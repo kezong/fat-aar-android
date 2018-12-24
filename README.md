@@ -77,8 +77,8 @@ See [anatomy of an aar file here][2].
 * **Proguard note.** Produce lots of(maybe) `Note: duplicate definition of library class`, while proguard is on. A workaround is to add `-dontnote` in `proguard-rules.pro`.
 * **The overlay order of res merge is changed:** Embedded dependency has higher priority than other dependencies.
 * **Res merge conflicts.** If the library res folder and embedded dependencies res have the same res Id(mostly `string/app_name`). A duplicate resources build exception will be thrown. To avoid res conflicts:
-1. consider using a prefix to each res Id, both in library res and aar dependencies if possible. 
-2. Adding "android.disableResourceValidation=true" to "gradle.properties" can do a trick to skip the exception, but is not recommended.
+  * consider using a prefix to each res Id, both in library res and aar dependencies if possible. 
+  * Adding "android.disableResourceValidation=true" to "gradle.properties" can do a trick to skip the exception, but is not recommended.
   
 
 ## Thanks

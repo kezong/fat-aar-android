@@ -43,10 +43,10 @@ dependencies {
     // aar dependency
     embed 'com.facebook.fresco:fresco:1.2.0'
   
-	compileOnly project(':aar-lib')
-	compileOnly project(':java-lib')
-	compileOnly 'com.google.guava:guava:20.0'
-	compileOnly 'com.facebook.fresco:fresco:1.2.0'
+    compileOnly project(':aar-lib')
+    compileOnly project(':java-lib')
+    compileOnly 'com.google.guava:guava:20.0'
+    compileOnly 'com.facebook.fresco:fresco:1.2.0'
 	
     // other dependencies you don't want to embed in
     implementation 'com.squareup.okhttp3:okhttp:3.6.0'

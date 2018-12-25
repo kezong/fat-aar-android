@@ -1,4 +1,6 @@
 # fat-aar-android
+[![license](http://img.shields.io/badge/license-Apache2.0-brightgreen.svg?style=flat)](https://github.com/kezong/fat-aar-android/blob/master/LICENSE)
+[![Download](https://api.bintray.com/packages/kezong/maven/fat-aar/images/download.svg)](https://bintray.com/kezong/maven/fat-aar/_latestVersion)
 
 It works with [the android gradle plugin][3], the android plugin's version of the development is `3.0.1` and later.
 
@@ -17,7 +19,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:xxx'
-        classpath 'com.kezong:fat-aar:1.0.0'
+        classpath 'com.kezong:fat-aar:1.0.1'
     }
 }
 ```
@@ -33,25 +35,27 @@ apply plugin: 'com.kezong.fat-aar'
 change `implementation` or `api` to `embed` and add `compileOnly` while you want to embed the dependency in the library. Like this:
 
 ```gradle
-dependencies {
-    // aar project
-    embed project(':aar-lib')
-    // java project
-    embed project(':java-lib')
+    implementation fileTree(dir: 'libs', include: '*.jar')
+
     // java dependency
-    embed 'com.google.guava:guava:20.0'
+    embed project(path: ':lib-java', configuration:'default')
+    compileOnly project(path: ':lib-java')
+
     // aar dependency
-    embed 'com.facebook.fresco:fresco:1.2.0'
-  
-    compileOnly project(':aar-lib')
-    compileOnly project(':java-lib')
-    compileOnly 'com.google.guava:guava:20.0'
-    compileOnly 'com.facebook.fresco:fresco:1.2.0'
-	
+    embed project(path: ':lib-aar', configuration:'default')
+    compileOnly project(path: ':lib-aar')
+
+    // aar dependency
+    embed project(path: ':lib-aar2', configuration:'default')
+    compileOnly project(path: ':lib-aar2')
+    
+    // aar dependency
+    embed 'com.facebook.fresco:fresco:1.11.0'
+    
     // other dependencies you don't want to embed in
-    implementation 'com.squareup.okhttp3:okhttp:3.6.0'
-}
+    implementation 'com.android.support:appcompat-v7:27.1.1'
 ```
+**More usage see [example](./example).**
 
 ## About AAR File
 

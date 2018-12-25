@@ -1,0 +1,4 @@
+include ':lib-main'
+include ':lib-java'
+include ':lib-aar'
+include ':lib-aar2'

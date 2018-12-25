@@ -1,0 +1,36 @@
+apply plugin: 'groovy'
+apply plugin: 'com.novoda.bintray-release'
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.novoda:bintray-release:0.5.0'
+    }
+}
+
+repositories {
+    jcenter()
+    google()
+    maven { url "https://plugins.gradle.org/m2/" }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation gradleApi()
+    implementation localGroovy()
+
+    implementation 'com.android.tools.build:gradle:3.2.1'
+    compile 'com.squareup:javapoet:1.8.0'
+}
+
+publish {
+    userOrg = 'kezong'
+    groupId = 'com.kezong'
+    artifactId = 'fat-aar'
+    publishVersion = '1.0.1'
+    desc = 'The fat-aar works with the gradle plugin\'s version of the development is 3.0.1 and later.'
+    website = 'https://github.com/kezong/fat-aar-android'
+}
+

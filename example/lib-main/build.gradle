@@ -1,0 +1,37 @@
+apply plugin: 'com.android.library'
+apply plugin: 'com.kezong.fat-aar'
+
+android {
+    compileSdkVersion 27
+
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 27
+        versionCode 1
+        versionName "1.0.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: '*.jar')
+
+    embed project(path: ':lib-java', configuration:'default')
+    compileOnly project(path: ':lib-java')
+
+    embed project(path: ':lib-aar', configuration:'default')
+    compileOnly project(path: ':lib-aar')
+
+    embed project(path: ':lib-aar2', configuration:'default')
+    compileOnly project(path: ':lib-aar2')
+
+    embed 'com.facebook.fresco:fresco:1.11.0'
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+}
+

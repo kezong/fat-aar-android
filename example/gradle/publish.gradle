@@ -1,0 +1,43 @@
+apply plugin: 'maven'
+
+def projectDesc = 'This is a gradle plugin that helps to output fat aar from android library.'
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    group BasePlugin.BUILD_GROUP
+    description = 'Assembles a jar archive containing the main sources of this project.'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives sourcesJar
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            def repositoryUrl
+            if (version.contains("SNAPSHOT") == false) {
+                println project.name + ' RELEASE BUILD'
+                repositoryUrl = mavenReleaseUrl
+            } else {
+                println project.name + ' SNAPSHOT BUILD'
+                repositoryUrl = mavenSnapshotsUrl
+            }
+
+            def userName = mavenUser
+            def password = mavenPass
+            repository(url: repositoryUrl) {
+                authentication(userName: userName, password: password)
+            }
+
+            pom.project {
+                name 'mobbeel-fataar'
+                description projectDesc
+                groupId GROUP
+                version VERSION_NAME
+            }
+        }
+    }
+}
+

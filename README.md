@@ -35,6 +35,7 @@ apply plugin: 'com.kezong.fat-aar'
 change `implementation` or `api` to `embed` and add `compileOnly` while you want to embed the dependency in the library. Like this:
 
 ```gradle
+dependencies {
     implementation fileTree(dir: 'libs', include: '*.jar')
 
     // java dependency
@@ -54,6 +55,7 @@ change `implementation` or `api` to `embed` and add `compileOnly` while you want
     
     // other dependencies you don't want to embed in
     implementation 'com.android.support:appcompat-v7:27.1.1'
+}
 ```
 **More usage see [example](./example).**
 

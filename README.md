@@ -2,7 +2,7 @@
 [![license](http://img.shields.io/badge/license-Apache2.0-brightgreen.svg?style=flat)](https://github.com/kezong/fat-aar-android/blob/master/LICENSE)
 [![Download](https://api.bintray.com/packages/kezong/maven/fat-aar/images/download.svg)](https://bintray.com/kezong/maven/fat-aar/_latestVersion)
 
-The solution of merging aar works with [the android gradle plugin][3], the android plugin's version of the development is `3.0.1` and later.
+The solution of merging aar works with [the android gradle plugin][3], the android plugin's version of the development is `3.0.1` and higher.
 
 ## Getting Started
 
@@ -52,6 +52,7 @@ dependencies {
     
     // aar dependency
     embed 'com.facebook.fresco:fresco:1.11.0'
+    compileOnly 'com.facebook.fresco:fresco:1.11.0'
     
     // other dependencies you don't want to embed in
     implementation 'com.android.support:appcompat-v7:27.1.1'

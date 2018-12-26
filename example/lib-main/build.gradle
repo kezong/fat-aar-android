@@ -32,6 +32,8 @@ dependencies {
     compileOnly project(path: ':lib-aar2')
 
     embed 'com.facebook.fresco:fresco:1.11.0'
+    compileOnly 'com.facebook.fresco:fresco:1.11.0'
+
     implementation 'com.android.support:appcompat-v7:27.1.1'
 }
 

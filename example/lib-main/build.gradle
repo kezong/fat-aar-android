@@ -1,6 +1,12 @@
 apply plugin: 'com.android.library'
 apply plugin: 'com.kezong.fat-aar'
 
+repositories {
+    flatDir {
+        dirs 'libs'
+    }
+}
+
 android {
     compileSdkVersion 27
 
@@ -22,17 +28,30 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: '*.jar')
 
+    // java dependency
     embed project(path: ':lib-java', configuration:'default')
     compileOnly project(path: ':lib-java')
 
+    // aar dependency
     embed project(path: ':lib-aar', configuration:'default')
     compileOnly project(path: ':lib-aar')
 
+    // aar dependency
     embed project(path: ':lib-aar2', configuration:'default')
     compileOnly project(path: ':lib-aar2')
 
+    // local full aar dependency
+    embed project(path: ':lib-aar-local', configuration:'default')
+    compileOnly project(path: ':lib-aar-local')
+
+    // local full aar dependency
+    embed (name:'lib-aar-local2',ext:'aar')
+    compileOnly (name:'lib-aar-local2',ext:'aar')
+
+    // online aar dependency
     embed 'com.facebook.fresco:fresco:1.11.0'
     compileOnly 'com.facebook.fresco:fresco:1.11.0'
+
 
     implementation 'com.android.support:appcompat-v7:27.1.1'
 }

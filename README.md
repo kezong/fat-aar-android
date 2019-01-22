@@ -54,10 +54,19 @@ dependencies {
     embed 'com.facebook.fresco:fresco:1.11.0'
     compileOnly 'com.facebook.fresco:fresco:1.11.0'
     
+    // local aar dependency, you need add the flatDir first.
+    embed (name:'lib-aar-local2',ext:'aar')
+    compileOnly (name:'lib-aar-local2',ext:'aar')
+
+    // local aar dependency
+    embed project(path: ':lib-aar-local', configuration:'default')
+    compileOnly project(path: ':lib-aar-local')
+
     // other dependencies you don't want to embed in
     implementation 'com.android.support:appcompat-v7:27.1.1'
 }
 ```
+
 **More usage see [example](./example).**
 
 ## About AAR File

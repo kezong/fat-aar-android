@@ -250,6 +250,10 @@ class VariantProcessor {
                 mProject.android.sourceSets."main".assets.srcDir(archiveLibrary.assetsFolder)
             }
         }
+
+        mExplodeTasks.each { it ->
+            assetsTask.dependsOn it
+        }
     }
 
     /**

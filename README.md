@@ -13,13 +13,11 @@ Add snippet below to your root build script file:
 ```gradle
 buildscript {
     repositories {
-        maven {
-            url  "http://dl.bintray.com/kezong/maven"
-        }
+        jcenter()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:xxx'
-        classpath 'com.kezong:fat-aar:1.0.1'
+        classpath 'com.kezong:fat-aar:1.0.3'
     }
 }
 ```

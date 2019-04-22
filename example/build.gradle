@@ -1,15 +1,15 @@
 buildscript {
     repositories {
-        maven {
-            url  "http://dl.bintray.com/kezong/maven"
-        }
-
+//        maven {
+//            url  "http://dl.bintray.com/kezong/maven"
+//        }
+        jcenter()
         google()
         maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.2.1'
-        classpath 'com.kezong:fat-aar:1.0.1'
+        classpath 'com.kezong:fat-aar:1.0.3'
     }
 }
 

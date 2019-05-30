@@ -6,6 +6,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ResolvedArtifact
+import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
 import org.gradle.api.tasks.Copy
@@ -16,7 +17,7 @@ import org.gradle.jvm.tasks.Jar
 /**
  * Processor for variant
  * Created by Vigi on 2017/2/24.
- * Modified by kezong on 2018/12/18
+ * Modified by kezong on 2019/05/29
  */
 class VariantProcessor {
 
@@ -32,9 +33,19 @@ class VariantProcessor {
 
     private Collection<Task> mExplodeTasks = new ArrayList<>()
 
+    private String mGradlePluginVersion
+
+    private String aarOutputFilePath
+
     VariantProcessor(Project project, LibraryVariant variant) {
         mProject = project
         mVariant = variant
+        // gradle version
+        mProject.parent.buildscript.getConfigurations().getByName("classpath").getDependencies().each { Dependency dep ->
+            if (dep.name == "gradle") {
+                mGradlePluginVersion = dep.version
+            }
+        }
     }
 
     void addArtifacts(Set<ResolvedArtifact> resolvedArtifacts) {
@@ -43,6 +54,15 @@ class VariantProcessor {
 
     void addAndroidArchiveLibrary(AndroidArchiveLibrary library) {
         mAndroidArchiveLibraries.add(library)
+    }
+
+    void addUnResolveArtifact(Set<ResolvedDependency> dependencies) {
+        if (dependencies != null) {
+            dependencies.each {
+                def artifact = FlavorArtifact.createFlavorArtifact(mProject, mVariant, it, mGradlePluginVersion)
+                mResolvedArtifacts.add(artifact)
+            }
+        }
     }
 
     void addJarFile(File jar) {
@@ -65,7 +85,7 @@ class VariantProcessor {
             throw new RuntimeException("Can not find task ${taskPath}!")
         }
         processArtifacts(bundleTask)
-        processClassesAndJars()
+        processClassesAndJars(bundleTask)
 
         if (mAndroidArchiveLibraries.isEmpty()) {
             return
@@ -75,26 +95,25 @@ class VariantProcessor {
         processAssets()
         processJniLibs()
         processProguardTxt(prepareTask)
-        processRFile()
+        processRFile(bundleTask)
     }
 
     /**
      * exploded artifact files
      */
     private void processArtifacts(Task bundleTask) {
-        for (DefaultResolvedArtifact artifact in mResolvedArtifacts) {
+        for (final DefaultResolvedArtifact artifact in mResolvedArtifacts) {
             if (FatLibraryPlugin.ARTIFACT_TYPE_JAR == artifact.type) {
                 addJarFile(artifact.file)
             } else if (FatLibraryPlugin.ARTIFACT_TYPE_AAR == artifact.type) {
                 AndroidArchiveLibrary archiveLibrary = new AndroidArchiveLibrary(mProject, artifact)
                 addAndroidArchiveLibrary(archiveLibrary)
-                Set<Task> buildDependencies = artifact.getBuildDependencies().getDependencies()
+                Set<Task> buildDependencies = artifact.buildDependencies.getDependencies()
                 archiveLibrary.getExploadedRootDir().deleteDir()
-                def zipFolder = archiveLibrary.getRootFolder()
+                final def zipFolder = archiveLibrary.getRootFolder()
                 zipFolder.mkdirs()
                 if (buildDependencies.size() == 0) {
                     mProject.copy {
-                        LogUtil.logInfo("explode $artifact.name")
                         from mProject.zipTree(artifact.file.absolutePath)
                         into zipFolder
                     }
@@ -103,10 +122,6 @@ class VariantProcessor {
                     Task explodeTask = mProject.tasks.create(name: taskName, type: Copy) {
                         from mProject.zipTree(artifact.file.absolutePath)
                         into zipFolder
-                    }
-                    final String artifactName = artifact.name
-                    explodeTask.doFirst {
-                        LogUtil.logInfo("explode $artifactName")
                     }
                     explodeTask.dependsOn(buildDependencies.first())
                     explodeTask.shouldRunAfter(buildDependencies.first())
@@ -138,7 +153,12 @@ class VariantProcessor {
             throw new RuntimeException("Can not find class ${className}!")
         }
         Task processManifestTask = mVariant.getOutputs().first().getProcessManifest()
-        File manifestOutputBackup = mProject.file(processManifestTask.getManifestOutputDirectory().absolutePath + '/AndroidManifest.xml')
+        File manifestOutputBackup
+        if (mGradlePluginVersion != null && Utils.compareVersion(mGradlePluginVersion, "3.3.0") >= 0) {
+            manifestOutputBackup = mProject.file("${mProject.buildDir.path}/intermediates/library_manifest/${mVariant.name}/AndroidManifest.xml")
+        } else {
+            manifestOutputBackup = mProject.file(processManifestTask.getManifestOutputDirectory().absolutePath + '/AndroidManifest.xml')
+        }
 
         InvokeManifestMerger manifestsMergeTask = mProject.tasks.create('merge' + mVariant.name.capitalize() + 'Manifest', invokeManifestTaskClazz)
         manifestsMergeTask.setVariantName(mVariant.name)
@@ -167,41 +187,64 @@ class VariantProcessor {
         processManifestTask.finalizedBy manifestsMergeTask
     }
 
+    private Task handleClassesMergeTask() {
+        final Task task = mProject.tasks.create(name: 'mergeClasses'
+                + mVariant.name.capitalize())
+        task.doFirst {
+            def dustDir = getClassPathDirFiles().first()
+            ExplodedHelper.processIntoClasses(mProject, mAndroidArchiveLibraries, mJarFiles, dustDir)
+        }
+        return task
+    }
+
+    private Task handleJarMergeTask() {
+        final Task task = mProject.tasks.create(name: 'mergeJars'
+                + mVariant.name.capitalize())
+        task.doFirst {
+            ExplodedHelper.processIntoJars(mProject, mAndroidArchiveLibraries, mJarFiles, getLibsDirFile())
+        }
+        return task
+    }
+
     /**
      * merge classes and jars
      */
-    private void processClassesAndJars() {
+    private void processClassesAndJars(Task bundleTask) {
         if (mVariant.getBuildType().isMinifyEnabled()) {
             //merge proguard file
             for (archiveLibrary in mAndroidArchiveLibraries) {
                 List<File> thirdProguardFiles = archiveLibrary.proguardRules
                 for (File file : thirdProguardFiles) {
                     if (file.exists()) {
-                        LogUtil.logInfo('add proguard file: ' + file.absolutePath)
+                        Utils.logInfo('add proguard file: ' + file.absolutePath)
                         mProject.android.getDefaultConfig().proguardFile(file)
                     }
                 }
             }
         }
 
-        // compile to a unbroken classes.jar
-        Task javacTask = mVariant.getJavaCompiler()
-        if (javacTask == null) {
-            throw new RuntimeException("Can not find java compiler task")
-        }
-        javacTask.doLast {
-            ExplodedHelper.processIntoClasses(mProject, mAndroidArchiveLibraries, mJarFiles, getClassPathDirFiles().first())
-        }
-
-        // assemble task
         String taskPath = 'transformClassesAndResourcesWithSyncLibJarsFor' + mVariant.name.capitalize()
         Task syncLibTask = mProject.tasks.findByPath(taskPath)
         if (syncLibTask == null) {
             throw new RuntimeException("Can not find task ${taskPath}!")
         }
-        syncLibTask.doLast {
-            ExplodedHelper.processIntoJars(mProject, mAndroidArchiveLibraries, mJarFiles, getLibsDirFile())
+
+        Task mergeClasses = handleClassesMergeTask()
+        syncLibTask.dependsOn(mergeClasses)
+        mExplodeTasks.each { it ->
+            mergeClasses.dependsOn it
         }
+
+        Task mergeJars = handleJarMergeTask()
+        mergeJars.shouldRunAfter(syncLibTask)
+        bundleTask.dependsOn(mergeJars)
+        mExplodeTasks.each { it ->
+            mergeJars.dependsOn it
+        }
+
+        Task javacTask = mVariant.getJavaCompiler()
+        mergeClasses.dependsOn(javacTask)
+        mergeJars.dependsOn(javacTask)
     }
 
     /**
@@ -221,7 +264,7 @@ class VariantProcessor {
         }
         resourceGenTask.doFirst {
             for (archiveLibrary in mAndroidArchiveLibraries) {
-                LogUtil.logInfo("Merge resource，Library res：${archiveLibrary.resFolder}")
+                Utils.logInfo("Merge resource，Library res：${archiveLibrary.resFolder}")
                 mProject.android.sourceSets."main".res.srcDir(archiveLibrary.resFolder)
             }
         }
@@ -241,13 +284,13 @@ class VariantProcessor {
         if (assetsTask == null) {
             throw new RuntimeException("Can not find task in variant.getMergeAssets()!")
         }
-        for (archiveLibrary in mAndroidArchiveLibraries) {
-            assetsTask.getInputs().dir(archiveLibrary.assetsFolder)
-        }
+
         assetsTask.doFirst {
             for (archiveLibrary in mAndroidArchiveLibraries) {
-                // the source set here should be main or variant?
-                mProject.android.sourceSets."main".assets.srcDir(archiveLibrary.assetsFolder)
+                if (archiveLibrary.assetsFolder != null && archiveLibrary.assetsFolder.size() > 0) {
+                    // the source set here should be main or variant?
+                    mProject.android.sourceSets."main".assets.srcDir(archiveLibrary.assetsFolder)
+                }
             }
         }
 
@@ -265,13 +308,13 @@ class VariantProcessor {
         if (mergeJniLibsTask == null) {
             throw new RuntimeException("Can not find task ${taskPath}!")
         }
-        for (archiveLibrary in mAndroidArchiveLibraries) {
-            mergeJniLibsTask.getInputs().dir(archiveLibrary.jniFolder)
-        }
+
         mergeJniLibsTask.doFirst {
             for (archiveLibrary in mAndroidArchiveLibraries) {
-                // the source set here should be main or variant?
-                mProject.android.sourceSets."main".jniLibs.srcDir(archiveLibrary.jniFolder)
+                if (archiveLibrary.jniFolder != null && archiveLibrary.jniFolder.size() > 0) {
+                    // the source set here should be main or variant?
+                    mProject.android.sourceSets."main".jniLibs.srcDir(archiveLibrary.jniFolder)
+                }
             }
         }
 
@@ -293,7 +336,7 @@ class VariantProcessor {
             List<File> thirdProguardFiles = archiveLibrary.proguardRules
             for (File file : thirdProguardFiles) {
                 if (file.exists()) {
-                    LogUtil.logInfo('add proguard file: ' + file.absolutePath)
+                    Utils.logInfo('add proguard file: ' + file.absolutePath)
                     mergeFileTask.getInputs().file(file)
                 }
             }
@@ -304,7 +347,7 @@ class VariantProcessor {
                 List<File> thirdProguardFiles = archiveLibrary.proguardRules
                 for (File file : thirdProguardFiles) {
                     if (file.exists()) {
-                        LogUtil.logInfo('add proguard file: ' + file.absolutePath)
+                        Utils.logInfo('add proguard file: ' + file.absolutePath)
                         proguardFiles.add(file)
                     }
                 }
@@ -313,41 +356,81 @@ class VariantProcessor {
         mergeFileTask.dependsOn prepareTask
     }
 
-    private def processRFile() {
+    def deleteEmptyDir = { file ->
+        file.listFiles().each { x ->
+            if (x.isDirectory()) {
+                if (x.listFiles().size() == 0) {
+                    x.delete()
+                } else {
+                    deleteEmptyDir(x)
+                    if (x.listFiles().size() == 0) {
+                        x.delete()
+                    }
+                }
+            }
+        }
+    }
+
+    private def processRFile(Task bundleTask) {
         // R.java dir
         File rFolder = mProject.file("${mProject.getBuildDir()}/intermediates/exploded-aar/r")
         // R.class compile dir
         File rClassFolder = mProject.file("${mProject.getBuildDir()}/intermediates/exploded-aar/r-class")
         // R.jar dir
-        File libFolder = mProject.file("${mProject.getBuildDir()}/outputs/aar-R/${mVariant.dirName}/libs")
-        libFolder.getParentFile().delete()
-        libFolder.mkdirs()
-        // aar output file
-        File outputFile
+        final File libFolder = mProject.file("${mProject.getBuildDir()}/outputs/aar-R/${mVariant.dirName}/libs")
         // aar zip file
         File outputDir = libFolder.getParentFile()
         // aar output dir
         File aarDir = mProject.file("${mProject.getBuildDir()}/outputs/aar/")
         mVariant.outputs.all { output ->
-            outputFile = output.outputFile
+            aarOutputFilePath = output.outputFile.absolutePath
+        }
+
+        if (bundleTask != null) {
+            bundleTask.doFirst {
+                File f = new File(aarOutputFilePath)
+                if (f.exists()) {
+                    f.delete()
+                }
+                libFolder.getParentFile().deleteDir()
+                libFolder.mkdirs()
+            }
         }
 
         def RFileTask = createRFileTask(rFolder)
         def RClassTask = createRClassTask(rFolder, rClassFolder)
         def RJarTask = createRJarTask(rClassFolder, libFolder)
-        def bundleAar = createBundleAarTask(outputDir, aarDir, outputFile)
-        bundleAar.doFirst {
-            LogUtil.logInfo("Assemble final aar, from:$outputDir")
-            mProject.copy {
-                from mProject.zipTree(outputFile.absolutePath)
-                into outputDir
+        def bundleAar = createBundleAarTask(outputDir, aarDir, aarOutputFilePath)
+        if (mGradlePluginVersion != null && Utils.compareVersion(mGradlePluginVersion, "3.3.0") >= 0) {
+            RClassTask.doFirst {
+                mProject.copy {
+                    from mProject.zipTree(getRClassPath().first().absolutePath + "/R.jar")
+                    into getRClassPath().first().absolutePath
+                }
             }
         }
+
+        bundleAar.doFirst {
+            Utils.logInfo("Assemble final aar, from:$outputDir.absolutePath")
+            mProject.copy {
+                from mProject.zipTree(aarOutputFilePath)
+                into outputDir
+            }
+            deleteEmptyDir(outputDir)
+        }
         bundleAar.doLast {
-            LogUtil.logInfo("Assemble final aar, target:$outputFile")
+            Utils.logInfo("Assemble final aar, target:$aarOutputFilePath")
         }
 
         Task assembleTask = mProject.tasks.findByPath("assemble${mVariant.name.capitalize()}")
+        assembleTask.doLast {
+            // support gradle 5.1 && gradle plugin 3.4 before, the outputName is changed
+            File file = new File(aarOutputFilePath)
+            if (!file.exists()) {
+                aarOutputFilePath = aarDir.absolutePath + "/" + mProject.name + ".aar"
+                bundleAar.archiveName = new File(aarOutputFilePath).name
+            }
+        }
         assembleTask.finalizedBy(RFileTask)
         RFileTask.finalizedBy(RClassTask)
         RClassTask.finalizedBy(RJarTask)
@@ -392,7 +475,7 @@ class VariantProcessor {
         def task = mProject.tasks.create(name: 'createRsFile' + mVariant.name)
         task.doLast {
             mAndroidArchiveLibraries.each {
-                LogUtil.logInfo("Generate R File, Library:${it.name}")
+                Utils.logInfo("Generate R File, Library:${it.name}")
                 createRFile(it, destFolder)
             }
         }
@@ -403,7 +486,7 @@ class VariantProcessor {
     private Task createRClassTask(def sourceDir, def destinationDir) {
         mProject.mkdir(destinationDir)
 
-        def classpath = getClassPathDirFiles()
+        def classpath = getRClassPath()
         String taskName = "compileRs${mVariant.name.capitalize()}"
         Task task = mProject.getTasks().create(taskName, JavaCompile.class, {
             it.source = sourceDir.path
@@ -413,7 +496,7 @@ class VariantProcessor {
             it.destinationDir destinationDir
         })
         task.doFirst {
-            LogUtil.logInfo("Compile R.class, Dir:${sourceDir.path}")
+            Utils.logInfo("Compile R.class, Dir:${sourceDir.path}")
         }
         return task
     }
@@ -426,38 +509,40 @@ class VariantProcessor {
             it.destinationDir desFile
         })
         task.doFirst {
-            LogUtil.logInfo("Generate R.jar, Dir：$fromDir")
+            Utils.logInfo("Generate R.jar, Dir：$fromDir")
         }
         return task
     }
 
-    private Task createBundleAarTask(File from, File destDir, File outputFile) {
+    private Task createBundleAarTask(File from, File destDir, String filePath) {
         String taskName = "assembleFinalAar${mVariant.name.capitalize()}"
         Task task = mProject.getTasks().create(taskName, Zip.class, {
             it.from from
             it.include "**"
-            it.archiveName = outputFile.name
+            it.archiveName = new File(filePath).name
             it.destinationDir(destDir)
         })
         return task
     }
 
     private ConfigurableFileCollection getClassPathDirFiles() {
-        def gradleVersion
-        mProject.parent.buildscript.getConfigurations().getByName("classpath").getDependencies().each { Dependency dep ->
-            if (dep.name == "gradle") {
-                gradleVersion = dep.version
-            }
-        }
-
         ConfigurableFileCollection classpath
-        if (gradleVersion != null && gradleVersion.contains("3.2")) { // Versions 3.2.x
+        if (mGradlePluginVersion != null && Utils.compareVersion(mGradlePluginVersion, "3.2.0") >= 0) { // >= Versions 3.2.X
             classpath = mProject.files("${mProject.buildDir.path}/intermediates/" +
                     "javac/${mVariant.name}/compile${mVariant.name.capitalize()}JavaWithJavac/classes")
         } else { // Versions 3.0.x and 3.1.x
             classpath = mProject.files("${mProject.buildDir.path}/intermediates/classes/${mVariant.dirName}")
         }
         return classpath
+    }
+
+    private ConfigurableFileCollection getRClassPath() {
+        if (mGradlePluginVersion != null && Utils.compareVersion(mGradlePluginVersion, "3.3.0") >= 0) {
+            return mProject.files("${mProject.buildDir.path}/intermediates/" + "compile_only_not_namespaced_r_class_jar/"
+                    + "${mVariant.name}/generate${mVariant.name.capitalize()}RFile")
+        } else {
+            return getClassPathDirFiles()
+        }
     }
 
     private File getLibsDirFile() {

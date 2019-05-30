@@ -13,19 +13,19 @@ class ExplodedHelper {
     static void processIntoJars(Project project,
                                 Collection<AndroidArchiveLibrary> androidLibraries, Collection<File> jarFiles,
                                 File folderOut) {
-        LogUtil.logInfo('Merge jars')
+        Utils.logInfo('Merge jars')
         for (androidLibrary in androidLibraries) {
             if (!androidLibrary.rootFolder.exists()) {
-                LogUtil.logError('[warning]' + androidLibrary.rootFolder + ' not found!')
+                Utils.logError('[warning]' + androidLibrary.rootFolder + ' not found!')
                 continue
             }
             if (androidLibrary.localJars.isEmpty()) {
-                LogUtil.logInfo("Not found jar file, Library:${androidLibrary.name}")
+                Utils.logInfo("Not found jar file, Library:${androidLibrary.name}")
             } else {
-                LogUtil.logInfo("Merge ${androidLibrary.name} jar file, Library:${androidLibrary.name}")
+                Utils.logInfo("Merge ${androidLibrary.name} jar file, Library:${androidLibrary.name}")
             }
             androidLibrary.localJars.each {
-                LogUtil.logInfo(it.path)
+                Utils.logInfo(it.path)
             }
             project.copy {
                 from(androidLibrary.localJars)
@@ -34,10 +34,10 @@ class ExplodedHelper {
         }
         for (jarFile in jarFiles) {
             if (!jarFile.exists()) {
-                LogUtil.logError('[warning]' + jarFile + ' not found!')
+                Utils.logError('[warning]' + jarFile + ' not found!')
                 continue
             }
-            LogUtil.logInfo('copy jar from: ' + jarFile)
+            Utils.logInfo('copy jar from: ' + jarFile + " to " + folderOut.absolutePath)
             project.copy {
                 from(jarFile)
                 into folderOut
@@ -48,15 +48,15 @@ class ExplodedHelper {
     static void processIntoClasses(Project project,
                                    Collection<AndroidArchiveLibrary> androidLibraries, Collection<File> jarFiles,
                                    File folderOut) {
-        LogUtil.logInfo('Merge classes')
+        Utils.logInfo('Merge classes')
         Collection<File> allJarFiles = new ArrayList<>()
         List<String> rPathList = new ArrayList<>()
         for (androidLibrary in androidLibraries) {
             if (!androidLibrary.rootFolder.exists()) {
-                LogUtil.logError('[warning]' + androidLibrary.rootFolder + ' not found!')
+                Utils.logError('[warning]' + androidLibrary.rootFolder + ' not found!')
                 continue
             }
-            LogUtil.logInfo('[androidLibrary]' + androidLibrary.getName())
+            Utils.logInfo('[androidLibrary]' + androidLibrary.getName())
             allJarFiles.add(androidLibrary.classesJarFile)
             String packageName = androidLibrary.getPackageName()
             if (!Strings.isNullOrEmpty(packageName)) {
@@ -64,7 +64,6 @@ class ExplodedHelper {
             }
         }
         for (jarFile in allJarFiles) {
-            LogUtil.logInfo('copy classes from: ' + jarFile)
             project.copy {
                 from project.zipTree(jarFile)
                 into folderOut

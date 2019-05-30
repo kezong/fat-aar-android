@@ -22,14 +22,22 @@ dependencies {
     implementation localGroovy()
 
     implementation 'com.android.tools.build:gradle:3.2.1'
-    compile 'com.squareup:javapoet:1.8.0'
 }
+
+//afterEvaluate {
+//    tasks.all { task ->
+//        if (task.name == "generatePomFileForMavenPublication") {
+//            task.setEnabled(false)
+//        } else {
+//        }
+//    }
+//}
 
 publish {
     userOrg = 'kezong'
     groupId = 'com.kezong'
     artifactId = 'fat-aar'
-    publishVersion = '1.0.1'
+    publishVersion = '1.1.6'
     desc = 'The fat-aar works with the gradle plugin\'s version of the development is 3.0.1 and later.'
     website = 'https://github.com/kezong/fat-aar-android'
 }

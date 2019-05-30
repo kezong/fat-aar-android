@@ -2,7 +2,7 @@
 [![license](http://img.shields.io/badge/license-Apache2.0-brightgreen.svg?style=flat)](https://github.com/kezong/fat-aar-android/blob/master/LICENSE)
 [![Download](https://api.bintray.com/packages/kezong/maven/fat-aar/images/download.svg)](https://bintray.com/kezong/maven/fat-aar/_latestVersion)
 
-The solution of merging aar works with [the android gradle plugin][3], the android plugin's version of the development is `3.0.1` and higher.
+The solution of merging aar works with [the android gradle plugin][3], the android plugin's version of the development is `3.0.1` and higher. (Tested in gradle plugin 3.0.1 - 3.4.1, and gradle 4.6 - 5.1.1)
 
 ## Getting Started
 

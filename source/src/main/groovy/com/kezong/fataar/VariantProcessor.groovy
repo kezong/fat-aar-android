@@ -386,21 +386,10 @@ class VariantProcessor {
             aarOutputFilePath = output.outputFile.absolutePath
         }
 
-        if (bundleTask != null) {
-            bundleTask.doFirst {
-                File f = new File(aarOutputFilePath)
-                if (f.exists()) {
-                    f.delete()
-                }
-                libFolder.getParentFile().deleteDir()
-                libFolder.mkdirs()
-            }
-        }
-
         def RFileTask = createRFileTask(rFolder)
         def RClassTask = createRClassTask(rFolder, rClassFolder)
         def RJarTask = createRJarTask(rClassFolder, libFolder)
-        def bundleAar = createBundleAarTask(outputDir, aarDir, aarOutputFilePath)
+        def reBundleAar = createBundleAarTask(outputDir, aarDir, aarOutputFilePath)
         if (mGradlePluginVersion != null && Utils.compareVersion(mGradlePluginVersion, "3.3.0") >= 0) {
             RClassTask.doFirst {
                 mProject.copy {
@@ -410,31 +399,39 @@ class VariantProcessor {
             }
         }
 
-        bundleAar.doFirst {
-            Utils.logInfo("Assemble final aar, from:$outputDir.absolutePath")
+        reBundleAar.doFirst {
+            Utils.logInfo("reBundle final aar, from:$outputDir.absolutePath")
             mProject.copy {
                 from mProject.zipTree(aarOutputFilePath)
                 into outputDir
             }
             deleteEmptyDir(outputDir)
         }
-        bundleAar.doLast {
-            Utils.logInfo("Assemble final aar, target:$aarOutputFilePath")
+        reBundleAar.doLast {
+            Utils.logInfo("reBundle final aar, target:$aarOutputFilePath")
         }
 
-        Task assembleTask = mProject.tasks.findByPath("assemble${mVariant.name.capitalize()}")
-        assembleTask.doLast {
+        bundleTask.doFirst {
+            File f = new File(aarOutputFilePath)
+            if (f.exists()) {
+                f.delete()
+            }
+            libFolder.getParentFile().deleteDir()
+            libFolder.mkdirs()
+        }
+
+        bundleTask.doLast {
             // support gradle 5.1 && gradle plugin 3.4 before, the outputName is changed
             File file = new File(aarOutputFilePath)
             if (!file.exists()) {
                 aarOutputFilePath = aarDir.absolutePath + "/" + mProject.name + ".aar"
-                bundleAar.archiveName = new File(aarOutputFilePath).name
+                reBundleAar.archiveName = new File(aarOutputFilePath).name
             }
         }
-        assembleTask.finalizedBy(RFileTask)
+        bundleTask.finalizedBy(RFileTask)
         RFileTask.finalizedBy(RClassTask)
         RClassTask.finalizedBy(RJarTask)
-        RJarTask.finalizedBy(bundleAar)
+        RJarTask.finalizedBy(reBundleAar)
     }
 
     private def createRFile(AndroidArchiveLibrary library, def rFolder) {
@@ -515,7 +512,7 @@ class VariantProcessor {
     }
 
     private Task createBundleAarTask(File from, File destDir, String filePath) {
-        String taskName = "assembleFinalAar${mVariant.name.capitalize()}"
+        String taskName = "reBundleAar${mVariant.name.capitalize()}"
         Task task = mProject.getTasks().create(taskName, Zip.class, {
             it.from from
             it.include "**"

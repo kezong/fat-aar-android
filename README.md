@@ -75,16 +75,15 @@ See [anatomy of an aar file here][2].
 
 **support list for now:**
 
+- [x] productFlavors
 - [x] manifest merge
 - [x] classes jar and external jars merge
 - [x] res merge
-- [x] R.txt merge
 - [x] assets merge
 - [x] jni libs merge
 - [x] proguard.txt merge
-- [ ] lint.jar merge
-- [ ] aidl merge?
-- [ ] public.txt merge?
+- [x] R.txt merge
+- [x] R.class merge
 
 ## Known Defects or Issues
 

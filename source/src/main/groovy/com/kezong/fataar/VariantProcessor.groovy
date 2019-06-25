@@ -86,7 +86,6 @@ class VariantProcessor {
         }
         processArtifacts(bundleTask)
         processClassesAndJars(bundleTask)
-
         if (mAndroidArchiveLibraries.isEmpty()) {
             return
         }
@@ -125,7 +124,7 @@ class VariantProcessor {
                     }
                     explodeTask.dependsOn(buildDependencies.first())
                     explodeTask.shouldRunAfter(buildDependencies.first())
-                    Task javacTask = mVariant.getJavaCompiler()
+                    Task javacTask = getJavaCompileTask()
                     javacTask.dependsOn(explodeTask)
                     bundleTask.dependsOn(explodeTask)
                     mExplodeTasks.add(explodeTask)
@@ -152,7 +151,7 @@ class VariantProcessor {
         if (invokeManifestTaskClazz == null) {
             throw new RuntimeException("Can not find class ${className}!")
         }
-        Task processManifestTask = mVariant.getOutputs().first().getProcessManifest()
+        Task processManifestTask = getProcessManifest()
         File manifestOutputBackup
         if (mGradlePluginVersion != null && Utils.compareVersion(mGradlePluginVersion, "3.3.0") >= 0) {
             manifestOutputBackup = mProject.file("${mProject.buildDir.path}/intermediates/library_manifest/${mVariant.name}/AndroidManifest.xml")
@@ -242,7 +241,7 @@ class VariantProcessor {
             mergeJars.dependsOn it
         }
 
-        Task javacTask = mVariant.getJavaCompiler()
+        Task javacTask = getJavaCompileTask()
         mergeClasses.dependsOn(javacTask)
         mergeJars.dependsOn(javacTask)
     }
@@ -280,7 +279,7 @@ class VariantProcessor {
      * AaptOptions.setIgnoreAssets and AaptOptions.setIgnoreAssetsPattern will work as normal
      */
     private void processAssets() {
-        Task assetsTask = mVariant.getMergeAssets()
+        Task assetsTask = getMergeAssets()
         if (assetsTask == null) {
             throw new RuntimeException("Can not find task in variant.getMergeAssets()!")
         }
@@ -382,14 +381,12 @@ class VariantProcessor {
         File outputDir = libFolder.getParentFile()
         // aar output dir
         File aarDir = mProject.file("${mProject.getBuildDir()}/outputs/aar/")
-        mVariant.outputs.all { output ->
-            aarOutputFilePath = output.outputFile.absolutePath
-        }
-
+        aarOutputFilePath = mVariant.outputs.first().outputFile.absolutePath
         def RFileTask = createRFileTask(rFolder)
         def RClassTask = createRClassTask(rFolder, rClassFolder)
         def RJarTask = createRJarTask(rClassFolder, libFolder)
         def reBundleAar = createBundleAarTask(outputDir, aarDir, aarOutputFilePath)
+
         if (mGradlePluginVersion != null && Utils.compareVersion(mGradlePluginVersion, "3.3.0") >= 0) {
             RClassTask.doFirst {
                 mProject.copy {
@@ -544,6 +541,30 @@ class VariantProcessor {
 
     private File getLibsDirFile() {
         return mProject.file(mProject.buildDir.path + '/intermediates/packaged-classes/' + mVariant.dirName + "/libs")
+    }
+
+    private Task getJavaCompileTask() {
+        if (Utils.compareVersion(mGradlePluginVersion, "3.3.0") >= 0) {
+            return mVariant.getJavaCompileProvider().get()
+        } else {
+            return mVariant.getJavaCompiler()
+        }
+    }
+
+    private Task getProcessManifest() {
+        if (Utils.compareVersion(mGradlePluginVersion, "3.3.0") >= 0) {
+            return mVariant.getOutputs().first().getProcessManifestProvider().get()
+        } else {
+            return mVariant.getOutputs().first().getProcessManifest()
+        }
+    }
+
+    private Task getMergeAssets() {
+        if (Utils.compareVersion(mGradlePluginVersion, "3.3.0") >= 0) {
+            return mVariant.getMergeAssetsProvider().get()
+        } else {
+            return mVariant.getMergeAssets()
+        }
     }
 }
 

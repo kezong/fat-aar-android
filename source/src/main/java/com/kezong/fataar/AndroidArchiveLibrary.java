@@ -7,6 +7,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -122,6 +123,8 @@ public class AndroidArchiveLibrary {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        } else {
+            throw new RuntimeException(getName() + " module's AndroidManifest not found");
         }
         return packageName;
     }

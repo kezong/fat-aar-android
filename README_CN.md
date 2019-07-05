@@ -87,12 +87,12 @@ AAR是Android提供的一种官方文件形式；
 
 ## 常见问题
 
-* **混淆日志：**当开启proguard时，可能会产生大量的`Note: duplicate definition of library class`日志，如果你想忽略这些日志，你可以在`proguard-rules.pro`中加上`-dontnote`关键字；
-* **资源冲突：**如果library和module中含有同名的资源(比如 `string/app_name`)，编译将会报`duplication resources`的相关错误，有两种方法可以解决这个问题：
+* **混淆日志：** 当开启proguard时，可能会产生大量的`Note: duplicate definition of library class`日志，如果你想忽略这些日志，你可以在`proguard-rules.pro`中加上`-dontnote`关键字；
+* **资源冲突：** 如果library和module中含有同名的资源(比如 `string/app_name`)，编译将会报`duplication resources`的相关错误，有两种方法可以解决这个问题：
   * 考虑将library以及module中的资源都加一个前缀来避免资源冲突； 
   * 在`gradle.properties`中添加`android.disableResourceValidation=true`可以忽略资源冲突的编译错误，程序会采用第一个找到的同名资源作为实际资源，不建议这样做，如果资源同名但实际资源不一样会造成不可预期的问题。
-* **多级依赖：**所有需要打包的module，都要在主library使用`embed`，哪怕主library没有直接依赖该module，不然可能会出现R文件找不到符号的错误；
-* **远程仓库：**你可以直接embed远程仓库中的库，但是如果你想忽略其pom文件中的某一项依赖，可以增加exclude关键字，例如：
+* **多级依赖：** 所有需要打包的module，都要在主library使用`embed`，哪怕主library没有直接依赖该module，不然可能会出现R文件找不到符号的错误；
+* **远程仓库：** 你可以直接embed远程仓库中的库，但是如果你想忽略其pom文件中的某一项依赖，可以增加exclude关键字，例如：
     ```groovy
     embed('com.facebook.fresco:fresco:1.11.0') {
         exclude(group:'com.facebook.soloader', module:'soloader')

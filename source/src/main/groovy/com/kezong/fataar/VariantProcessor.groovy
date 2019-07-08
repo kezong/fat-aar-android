@@ -135,22 +135,8 @@ class VariantProcessor {
 
     /**
      * merge manifest
-     *
-     * TODO process each variant.getOutputs()
-     * TODO "InvokeManifestMerger" deserve more android plugin version check
-     * TODO add setMergeReportFile
-     * TODO a better temp manifest file location
      */
     private void processManifest() {
-        Class invokeManifestTaskClazz = null
-        String className = 'com.android.build.gradle.tasks.InvokeManifestMerger'
-        try {
-            invokeManifestTaskClazz = Class.forName(className)
-        } catch (ClassNotFoundException ignored) {
-        }
-        if (invokeManifestTaskClazz == null) {
-            throw new RuntimeException("Can not find class ${className}!")
-        }
         Task processManifestTask = getProcessManifest()
         File manifestOutputBackup
         if (mGradlePluginVersion != null && Utils.compareVersion(mGradlePluginVersion, "3.3.0") >= 0) {
@@ -158,8 +144,9 @@ class VariantProcessor {
         } else {
             manifestOutputBackup = mProject.file(processManifestTask.getManifestOutputDirectory().absolutePath + '/AndroidManifest.xml')
         }
-
-        InvokeManifestMerger manifestsMergeTask = mProject.tasks.create('merge' + mVariant.name.capitalize() + 'Manifest', invokeManifestTaskClazz)
+        InvokeManifestMerger manifestsMergeTask = mProject.tasks.create("merge${mVariant.name.capitalize()}Manifest", LibraryManifestMerger.class)
+        manifestsMergeTask.setGradleVersion(mProject.getGradle().getGradleVersion())
+        manifestsMergeTask.setGradlePluginVersion(mGradlePluginVersion)
         manifestsMergeTask.setVariantName(mVariant.name)
         manifestsMergeTask.setMainManifestFile(manifestOutputBackup)
         List<File> list = new ArrayList<>()

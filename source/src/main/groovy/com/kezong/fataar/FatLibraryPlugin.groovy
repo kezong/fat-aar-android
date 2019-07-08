@@ -21,6 +21,7 @@ class FatLibraryPlugin implements Plugin<Project> {
     public static final String ARTIFACT_TYPE_JAR = 'jar'
 
     private Project project
+
     private Configuration embedConf
 
     private Set<ResolvedArtifact> artifacts

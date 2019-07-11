@@ -527,7 +527,11 @@ class VariantProcessor {
     }
 
     private File getLibsDirFile() {
-        return mProject.file(mProject.buildDir.path + '/intermediates/packaged-classes/' + mVariant.dirName + "/libs")
+        if (Utils.compareVersion(mGradlePluginVersion, "3.1.0") >= 0) {
+            return mProject.file(mProject.buildDir.path + '/intermediates/packaged-classes/' + mVariant.dirName + "/libs")
+        } else {
+            return mProject.file(mProject.buildDir.path + '/intermediates/bundles/' + mVariant.dirName + "/libs")
+        }
     }
 
     private Task getJavaCompileTask() {
@@ -554,4 +558,3 @@ class VariantProcessor {
         }
     }
 }
-

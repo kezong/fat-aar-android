@@ -42,18 +42,20 @@ public class LibraryManifestMerger extends InvokeManifestMerger {
                     newMerger(getMainManifestFile(), iLogger, ManifestMerger2.MergeType.LIBRARY);
             List<File> secondaryManifestFiles = getSecondaryManifestFiles();
             List<ManifestProvider> manifestProviders = new ArrayList<>();
-            for (final File file : secondaryManifestFiles) {
-                manifestProviders.add(new ManifestProvider() {
-                    @Override
-                    public File getManifest() {
-                        return file.getAbsoluteFile();
-                    }
+            if (secondaryManifestFiles != null) {
+                for (final File file : secondaryManifestFiles) {
+                    manifestProviders.add(new ManifestProvider() {
+                        @Override
+                        public File getManifest() {
+                            return file.getAbsoluteFile();
+                        }
 
-                    @Override
-                    public String getName() {
-                        return file.getName();
-                    }
-                });
+                        @Override
+                        public String getName() {
+                            return file.getName();
+                        }
+                    });
+                }
             }
             mergerInvoker.addManifestProviders(manifestProviders);
             MergingReport mergingReport = mergerInvoker.merge();

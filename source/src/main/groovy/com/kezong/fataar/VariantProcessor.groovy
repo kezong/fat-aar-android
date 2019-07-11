@@ -84,7 +84,7 @@ class VariantProcessor {
         if (bundleTask == null) {
             throw new RuntimeException("Can not find task ${taskPath}!")
         }
-        processArtifacts(bundleTask)
+        processArtifacts(prepareTask, bundleTask)
         processClassesAndJars(bundleTask)
         if (mAndroidArchiveLibraries.isEmpty()) {
             return
@@ -100,7 +100,7 @@ class VariantProcessor {
     /**
      * exploded artifact files
      */
-    private void processArtifacts(Task bundleTask) {
+    private void processArtifacts(Task prepareTask, Task bundleTask) {
         for (final DefaultResolvedArtifact artifact in mResolvedArtifacts) {
             if (FatLibraryPlugin.ARTIFACT_TYPE_JAR == artifact.type) {
                 addJarFile(artifact.file)
@@ -111,24 +111,20 @@ class VariantProcessor {
                 archiveLibrary.getExploadedRootDir().deleteDir()
                 final def zipFolder = archiveLibrary.getRootFolder()
                 zipFolder.mkdirs()
-                if (buildDependencies.size() == 0) {
-                    mProject.copy {
-                        from mProject.zipTree(artifact.file.absolutePath)
-                        into zipFolder
-                    }
-                } else {
-                    String taskName = "explode${artifact.name.capitalize()}${mVariant.name.capitalize()}"
-                    Task explodeTask = mProject.tasks.create(name: taskName, type: Copy) {
-                        from mProject.zipTree(artifact.file.absolutePath)
-                        into zipFolder
-                    }
-                    explodeTask.dependsOn(buildDependencies.first())
-                    explodeTask.shouldRunAfter(buildDependencies.first())
-                    Task javacTask = getJavaCompileTask()
-                    javacTask.dependsOn(explodeTask)
-                    bundleTask.dependsOn(explodeTask)
-                    mExplodeTasks.add(explodeTask)
+                String taskName = "explode${artifact.name.capitalize()}${mVariant.name.capitalize()}"
+                Task explodeTask = mProject.tasks.create(name: taskName, type: Copy) {
+                    from mProject.zipTree(artifact.file.absolutePath)
+                    into zipFolder
                 }
+                if (buildDependencies.size() == 0) {
+                    explodeTask.dependsOn(prepareTask)
+                } else {
+                    explodeTask.dependsOn(buildDependencies.first())
+                }
+                Task javacTask = getJavaCompileTask()
+                javacTask.dependsOn(explodeTask)
+                bundleTask.dependsOn(explodeTask)
+                mExplodeTasks.add(explodeTask)
             }
         }
     }

@@ -42,9 +42,12 @@ class VariantProcessor {
         mVariant = variant
         // gradle version
         mProject.parent.buildscript.getConfigurations().getByName("classpath").getDependencies().each { Dependency dep ->
-            if (dep.name == "gradle") {
+            if (dep.group == "com.android.tools.build" && dep.name == "gradle") {
                 mGradlePluginVersion = dep.version
             }
+        }
+        if (mGradlePluginVersion == null) {
+            throw new IllegalStateException("com.android.tools.build:gradle is no set in the root build.gradle file")
         }
     }
 

@@ -50,7 +50,7 @@ dependencies {
     embed project(path: ':lib-aar2', configuration:'default')
     compileOnly project(path: ':lib-aar2')
     
-    // aar dependency
+    // remote aar dependency
     embed 'com.facebook.fresco:fresco:1.11.0'
     compileOnly 'com.facebook.fresco:fresco:1.11.0'
     

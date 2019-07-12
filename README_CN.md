@@ -17,7 +17,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:xxx'
-        classpath 'com.kezong:fat-aar:1.1.7'
+        classpath 'com.kezong:fat-aar:1.1.10'
     }
 }
 ```
@@ -49,7 +49,7 @@ dependencies {
     embed project(path: ':lib-aar2', configuration:'default')
     compileOnly project(path: ':lib-aar2')
     
-    // aar dependency
+    // remote aar dependency
     embed 'com.facebook.fresco:fresco:1.11.0'
     compileOnly 'com.facebook.fresco:fresco:1.11.0'
     

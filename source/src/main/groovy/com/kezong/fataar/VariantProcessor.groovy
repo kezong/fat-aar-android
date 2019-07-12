@@ -492,7 +492,7 @@ class VariantProcessor {
     }
 
     private Task createBundleAarTask(File from, File destDir, String filePath) {
-        String taskName = " reBundleAar${mVariant.name.capitalize()}"
+        String taskName = "reBundleAar${mVariant.name.capitalize()}"
         Task task = mProject.getTasks().create(taskName, Zip.class, {
             it.from from
             it.include "**"

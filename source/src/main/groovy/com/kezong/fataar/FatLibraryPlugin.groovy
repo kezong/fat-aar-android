@@ -31,6 +31,7 @@ class FatLibraryPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
         this.project = project
+        Utils.setProject(project)
         checkAndroidPlugin()
         createConfiguration()
         project.afterEvaluate {
@@ -60,7 +61,7 @@ class FatLibraryPlugin implements Plugin<Project> {
         embedConf.resolvedConfiguration.resolvedArtifacts.each { artifact ->
             // jar file wouldn't be here
             if (ARTIFACT_TYPE_AAR == artifact.type || ARTIFACT_TYPE_JAR == artifact.type) {
-                Utils.logInfo('[embed detected][' + artifact.type + ']' + artifact.moduleVersion.id)
+                Utils.logAnytime('[embed detected][' + artifact.type + ']' + artifact.moduleVersion.id)
             } else {
                 throw new ProjectConfigurationException('Only support embed aar and jar dependencies!', null)
             }
@@ -87,7 +88,7 @@ class FatLibraryPlugin implements Plugin<Project> {
                 }
             }
             if (!match) {
-                Utils.logInfo('[unResolve dependency detected][' + dependency.name + ']')
+                Utils.logAnytime('[unResolve dependency detected][' + dependency.name + ']')
                 dependencySet.add(dependency)
             }
         }

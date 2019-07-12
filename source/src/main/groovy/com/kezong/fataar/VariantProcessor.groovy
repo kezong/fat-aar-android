@@ -380,7 +380,6 @@ class VariantProcessor {
         }
 
         reBundleAar.doFirst {
-            Utils.logInfo("reBundle final aar, from:$outputDir.absolutePath")
             mProject.copy {
                 from mProject.zipTree(aarOutputFilePath)
                 into outputDir
@@ -388,7 +387,7 @@ class VariantProcessor {
             deleteEmptyDir(outputDir)
         }
         reBundleAar.doLast {
-            Utils.logInfo("reBundle final aar, target:$aarOutputFilePath")
+            Utils.logAnytime("target: $aarOutputFilePath")
         }
 
         bundleTask.doFirst {
@@ -435,8 +434,9 @@ class VariantProcessor {
         rMap.each { subclass, values ->
             sb << "  public static final class $subclass {" << '\n'
             values.each { name, type ->
-                sb << "    public static $type $name = ${libPackageName}.R.${subclass}.${name};" << '\n'
+                sb << "    public static final $type $name = ${libPackageName}.R.${subclass}.${name};" << '\n'
             }
+
             sb << "    }" << '\n'
         }
 
@@ -467,8 +467,8 @@ class VariantProcessor {
         String taskName = "compileRs${mVariant.name.capitalize()}"
         Task task = mProject.getTasks().create(taskName, JavaCompile.class, {
             it.source = sourceDir.path
-            it.sourceCompatibility = '1.8'
-            it.targetCompatibility = '1.8'
+            it.sourceCompatibility = mProject.android.compileOptions.sourceCompatibility
+            it.targetCompatibility = mProject.android.compileOptions.targetCompatibility
             it.classpath = classpath
             it.destinationDir destinationDir
         })
@@ -492,7 +492,7 @@ class VariantProcessor {
     }
 
     private Task createBundleAarTask(File from, File destDir, String filePath) {
-        String taskName = "reBundleAar${mVariant.name.capitalize()}"
+        String taskName = " reBundleAar${mVariant.name.capitalize()}"
         Task task = mProject.getTasks().create(taskName, Zip.class, {
             it.from from
             it.include "**"

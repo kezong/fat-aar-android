@@ -15,6 +15,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 /**
  * Created by Vigi on 2017/2/16.
+ * Modify by kezong on 2019/7/16.
  */
 public class AndroidArchiveLibrary {
 
@@ -22,12 +23,15 @@ public class AndroidArchiveLibrary {
 
     private final ResolvedArtifact mArtifact;
 
-    public AndroidArchiveLibrary(Project project, ResolvedArtifact artifact) {
+    private final String mVariantName;
+
+    public AndroidArchiveLibrary(Project project, ResolvedArtifact artifact, String variantName) {
         if (!"aar".equals(artifact.getType())) {
             throw new IllegalArgumentException("artifact must be aar type!");
         }
         mProject = project;
         mArtifact = artifact;
+        mVariantName = variantName;
     }
 
     public String getGroup() {
@@ -42,19 +46,15 @@ public class AndroidArchiveLibrary {
         return mArtifact.getModuleVersion().getId().getVersion();
     }
 
-    public File getExploadedRootDir() {
-        File explodedRootDir = mProject.file(
-                mProject.getBuildDir() + "/intermediates" + "/exploded-aar/");
-        ModuleVersionIdentifier id = mArtifact.getModuleVersion().getId();
-        return mProject.file(explodedRootDir + "/" + id.getGroup() + "/" + id.getName());
-    }
-
     public File getRootFolder() {
         File explodedRootDir = mProject.file(
                 mProject.getBuildDir() + "/intermediates" + "/exploded-aar/");
         ModuleVersionIdentifier id = mArtifact.getModuleVersion().getId();
-        return mProject.file(
-                explodedRootDir + "/" + id.getGroup() + "/" + id.getName() + "/" + id.getVersion());
+        return mProject.file(explodedRootDir
+                + "/" + id.getGroup()
+                + "/" + id.getName()
+                + "/" + id.getVersion()
+                + "/" + mVariantName);
     }
 
     public File getAidlFolder() {

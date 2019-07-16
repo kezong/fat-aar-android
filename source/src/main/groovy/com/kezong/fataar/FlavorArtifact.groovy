@@ -17,7 +17,7 @@ import javax.annotation.Nullable
 
 /**
  * FlavorArtifact
- * @author yangchao on 2019/4/25.
+ * @author kezong on 2019/4/25.
  */
 class FlavorArtifact {
 

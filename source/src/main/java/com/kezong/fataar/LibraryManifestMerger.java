@@ -18,7 +18,7 @@ import java.util.List;
 
 /**
  * ManifestMerger for Library
- * @author yangchao on 2019/7/8.
+ * @author kezong on 2019/7/8.
  */
 public class LibraryManifestMerger extends InvokeManifestMerger {
 
@@ -38,7 +38,7 @@ public class LibraryManifestMerger extends InvokeManifestMerger {
     protected void doFullTaskAction() throws ManifestMerger2.MergeFailureException, IOException {
         try {
             ILogger iLogger = new LoggerWrapper(getLogger());
-            ManifestMerger2.Invoker mergerInvoker = ManifestMerger2.
+            ManifestMerger2.Invoker<?> mergerInvoker = ManifestMerger2.
                     newMerger(getMainManifestFile(), iLogger, ManifestMerger2.MergeType.LIBRARY);
             List<File> secondaryManifestFiles = getSecondaryManifestFiles();
             List<ManifestProvider> manifestProviders = new ArrayList<>();

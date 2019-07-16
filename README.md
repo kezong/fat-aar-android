@@ -95,6 +95,14 @@ See [anatomy of an aar file here][2].
 - **Res merge conflicts.** If the library res folder and embedded dependencies res have the same res Id(mostly `string/app_name`). A duplicate resources build exception will be thrown. To avoid res conflicts:
   - consider using a prefix to each res Id, both in library res and aar dependencies if possible. 
   - Adding "android.disableResourceValidation=true" to "gradle.properties" can do a trick to skip the exception, but is not recommended.
+- **Multilevel dependencies.** All modules that need to be packaged must to be `embed` in the main library, even if the main library does not directly rely on the module, otherwise there may throw an error that R files cannot find symbols;
+
+- **Remote Repository.** You can directly `embed` the library in the remote repository, but if you want to ignore a dependency in its POM file, you can add exclude keywords, like this:
+    ```groovy
+    embed('com.facebook.fresco:fresco:1.11.0') {
+        exclude(group:'com.facebook.soloader', module:'soloader')
+    }
+    ```
 
 
 

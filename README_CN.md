@@ -71,7 +71,7 @@ dependencies {
 ## 关于 AAR 文件
 AAR是Android提供的一种官方文件形式；
 该文件本身是一个Zip文件，并且包含Android里所有的元素；
-可以参考 [anatomy of an aar file here][2].
+可以参考 [aar文件详解][2].
 
 **支持功能列表:**
 

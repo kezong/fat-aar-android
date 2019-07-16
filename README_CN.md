@@ -98,6 +98,28 @@ AAR是Android提供的一种官方文件形式；
         exclude(group:'com.facebook.soloader', module:'soloader')
   }
     ```
+    
+## 更新日志
+
+- [1.1.10](<https://github.com/kezong/fat-aar-android/releases/tag/v1.1.10>)
+  - 修复使用gradle plugin 3.0.1时的jar合并错误 [#24](https://github.com/kezong/fat-aar-android/issues/24)
+  - 修复无法正常rebuild（同时使用clean assemble）的问题 [#24](https://github.com/kezong/fat-aar-android/issues/24)
+- [1.1.8](<https://github.com/kezong/fat-aar-android/releases/tag/v1.1.8>)
+  - 弃用旧接口，处理编译时输出的warning [#10](https://github.com/kezong/fat-aar-android/issues/10)
+  - 将AndroidManifest的合并规则由Application改为Library [#21](https://github.com/kezong/fat-aar-android/issues/21) [#23](https://github.com/kezong/fat-aar-android/issues/23)
+- [1.1.7](<https://github.com/kezong/fat-aar-android/releases/tag/v1.1.7>)
+  - 修复直接publish至maven时，aar的R文件未合并的问题 [#7](https://github.com/kezong/fat-aar-android/issues/7)
+- [1.1.6](<https://github.com/kezong/fat-aar-android/releases/tag/v1.1.6>)
+  - 适配gradle plugin 3.3.0+ [#4](https://github.com/kezong/fat-aar-android/issues/4) [#9](https://github.com/kezong/fat-aar-android/issues/9)
+  - 适配gadle 4.10.0+ [#8](https://github.com/kezong/fat-aar-android/issues/8)
+  - 支持子module的flavor编译
+  - 修复子module的class文件编译不实时更新的问题
+- [1.0.3](<https://github.com/kezong/fat-aar-android/releases/tag/v1.0.3>)
+  - 修复assets未合并的问题
+- [1.0.1](<https://github.com/kezong/fat-aar-android/releases/tag/v1.0.1>)
+  - 支持gradle plugin 3.1.0 - 3.2.1
+  - 支持资源合并，R文件合并
+  
 ## 致谢
 * [android-fat-aar][1]
 * [fat-aar-plugin][4]

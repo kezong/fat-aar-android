@@ -101,6 +101,11 @@ AAR是Android提供的一种官方文件形式；
     
 ## 更新日志
 
+- [1.1.11](<https://github.com/kezong/fat-aar-android/releases/tag/v1.1.11>)
+  - 修复gradle plugin version有可能判断错误的问题 [#28](https://github.com/kezong/fat-aar-android/issues/28)
+  - 修复LibraryManifestMerger.java中出现的build warning [#29](https://github.com/kezong/fat-aar-android/issues/29)
+  - 优化resource、assets、jni等的合并规则，不再合并至"main"，而是合并至"variant" [#27](https://github.com/kezong/fat-aar-android/issues/27)
+  - 修复重复build造成release包下jni丢失的问题 [#27](https://github.com/kezong/fat-aar-android/issues/27)
 - [1.1.10](<https://github.com/kezong/fat-aar-android/releases/tag/v1.1.10>)
   - 修复使用gradle plugin 3.0.1时的jar合并错误 [#24](https://github.com/kezong/fat-aar-android/issues/24)
   - 修复无法正常rebuild（同时使用clean assemble）的问题 [#24](https://github.com/kezong/fat-aar-android/issues/24)

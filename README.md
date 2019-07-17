@@ -110,7 +110,7 @@ See [anatomy of an aar file here][2].
 
 - [1.1.11](<https://github.com/kezong/fat-aar-android/releases/tag/v1.1.11>)
   - Fixed a problem where gradle plugin version might have misjudged [#28](https://github.com/kezong/fat-aar-android/issues/28)
-  - Fixed LibraryManifestMerger.javabuild warning [#29](https://github.com/kezong/fat-aar-android/issues/29)
+  - Fixed LibraryManifestMerger.java build warning [#29](https://github.com/kezong/fat-aar-android/issues/29)
   - Optimize the merging rules of resource、assets、jni... [#27](https://github.com/kezong/fat-aar-android/issues/27)
 - [1.1.10](<https://github.com/kezong/fat-aar-android/releases/tag/v1.1.10>)
   - Fixed jar merge bug when using gradle plugin 3.0.1 [#24](https://github.com/kezong/fat-aar-android/issues/24)

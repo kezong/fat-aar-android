@@ -16,6 +16,7 @@ import org.gradle.jvm.tasks.Jar
 class RProcessor {
 
     private final Project mProject
+    private final FatAarExtension mExtension
     private final LibraryVariant mVariant
 
     private final File mJavaDir
@@ -28,8 +29,9 @@ class RProcessor {
     private VersionAdapter mVersionAdapter
     private final Collection<AndroidArchiveLibrary> mLibraries
 
-    RProcessor(Project project, LibraryVariant variant, Collection<AndroidArchiveLibrary> libraries, String version) {
+    RProcessor(Project project, FatAarExtension extension, LibraryVariant variant, Collection<AndroidArchiveLibrary> libraries, String version) {
         mProject = project
+        mExtension = extension
         mVariant = variant
         mLibraries = libraries
         mGradlePluginVersion = version
@@ -130,7 +132,11 @@ class RProcessor {
             if (mLibraries != null && mLibraries.size() > 0) {
                 mLibraries.each {
                     Utils.logInfo("Generate R File, Library:${it.name}")
-                    createRFile(it, destFolder)
+                    if (!mExtension.excludedRLibraries.contains(it.name)) {
+                        createRFile(it, destFolder)
+                    } else {
+                        Utils.logAnytime("Generate R File skipped by configuration! Library:${it.name}")
+                    }
                 }
             }
         }

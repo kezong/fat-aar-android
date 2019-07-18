@@ -24,6 +24,8 @@ class FatLibraryPlugin implements Plugin<Project> {
 
     private Configuration embedConf
 
+    private FatAarExtension extension
+
     private Set<ResolvedArtifact> artifacts
 
     private Set<ResolvedDependency> unResolveArtifact
@@ -33,6 +35,7 @@ class FatLibraryPlugin implements Plugin<Project> {
         this.project = project
         Utils.setProject(project)
         checkAndroidPlugin()
+        createExtension()
         createConfiguration()
         project.afterEvaluate {
             resolveArtifacts()
@@ -49,6 +52,10 @@ class FatLibraryPlugin implements Plugin<Project> {
             throw new ProjectConfigurationException('fat-aar-plugin must be applied in project that' +
                     ' has android library plugin!', null)
         }
+    }
+
+    private void createExtension() {
+        extension = project.extensions.create('fatAar', FatAarExtension)
     }
 
     private void createConfiguration() {
@@ -71,7 +78,7 @@ class FatLibraryPlugin implements Plugin<Project> {
     }
 
     private void processVariant(LibraryVariant variant) {
-        def processor = new VariantProcessor(project, variant)
+        def processor = new VariantProcessor(project, extension, variant)
         processor.addArtifacts(artifacts)
         processor.addUnResolveArtifact(unResolveArtifact)
         processor.processVariant()

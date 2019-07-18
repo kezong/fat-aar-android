@@ -66,6 +66,16 @@ dependencies {
 }
 ```
 
+#### issue：R.id找不到的问题
+详细描述：[https://github.com/kezong/fat-aar-android/issues/11](https://github.com/kezong/fat-aar-android/issues/11)
+可以在build.gradle对这些不规范的library排除处理R.txt
+
+```gradle
+fatAar {
+    excludedRLibraries = ["com.foo:bar"]
+}
+```
+
 **更多使用方式可参考 [example](./example).**
 
 ## 关于 AAR 文件

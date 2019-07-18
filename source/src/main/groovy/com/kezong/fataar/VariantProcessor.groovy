@@ -21,6 +21,8 @@ class VariantProcessor {
 
     private final LibraryVariant mVariant
 
+    private final FatAarExtension mExtension
+
     private Set<ResolvedArtifact> mResolvedArtifacts = new ArrayList<>()
 
     private Collection<AndroidArchiveLibrary> mAndroidArchiveLibraries = new ArrayList<>()
@@ -33,8 +35,9 @@ class VariantProcessor {
 
     private VersionAdapter mVersionAdapter
 
-    VariantProcessor(Project project, LibraryVariant variant) {
+    VariantProcessor(Project project, FatAarExtension extension, LibraryVariant variant) {
         mProject = project
+        mExtension = extension
         mVariant = variant
         // gradle version
         mProject.parent.buildscript.getConfigurations().getByName("classpath").getDependencies().each { Dependency dep ->
@@ -94,7 +97,7 @@ class VariantProcessor {
         processAssets()
         processJniLibs()
         processProguardTxt(prepareTask)
-        RProcessor rProcessor = new RProcessor(mProject, mVariant, mAndroidArchiveLibraries, mGradlePluginVersion)
+        RProcessor rProcessor = new RProcessor(mProject, mExtension, mVariant, mAndroidArchiveLibraries, mGradlePluginVersion)
         rProcessor.inject(bundleTask)
     }
 

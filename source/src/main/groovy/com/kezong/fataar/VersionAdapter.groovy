@@ -73,4 +73,12 @@ class VersionAdapter {
             return mVariant.getMergeAssets()
         }
     }
+
+    File getSymbolFile() {
+        if (Utils.compareVersion(mGradlePluginVersion, "3.1.0") >= 0) {
+            return mProject.file(mProject.buildDir.path + '/intermediates/symbols/' + mVariant.dirName + "/R.txt")
+        } else {
+            return mProject.file(mProject.buildDir.path + '/intermediates/bundles/' + mVariant.name + "/R.txt")
+        }
+    }
 }

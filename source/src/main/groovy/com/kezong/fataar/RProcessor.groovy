@@ -101,7 +101,9 @@ class RProcessor {
         if (rTxt.exists()) {
             rTxt.eachLine { line ->
                 def (type, subclass, name, value) = line.tokenize(' ')
-                rMap[subclass].putAt(name, type)
+                if (checkValid(subclass, name)) {
+                    rMap[subclass].putAt(name, type)
+                }
             }
         }
 
@@ -122,6 +124,24 @@ class RProcessor {
         FileOutputStream outputStream = new FileOutputStream("${rFolder.path}/$packagePath/R.java")
         outputStream.write(sb.toString().getBytes())
         outputStream.close()
+    }
+
+    private boolean checkValid(def resourceClass, def resourceName) {
+        def file = mVersionAdapter.getSymbolFile()
+        if (!file.exists()) {
+            throw IllegalAccessException("{$file.absolutePath} not found")
+        }
+
+        def result = false
+        file.eachLine { line ->
+            def (type, subclass, name, value) = line.tokenize(' ')
+            if (resourceName == name && resourceClass == subclass) {
+                result = true
+                return
+            }
+        }
+
+        return result
     }
 
     private Task createRFileTask(final def destFolder) {

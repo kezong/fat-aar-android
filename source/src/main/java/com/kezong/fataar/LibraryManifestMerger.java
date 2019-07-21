@@ -10,9 +10,11 @@ import com.android.utils.ILogger;
 import org.apache.tools.ant.BuildException;
 import org.gradle.api.tasks.TaskAction;
 
+import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,10 +66,15 @@ public class LibraryManifestMerger extends InvokeManifestMerger {
                 mergingReport.log(iLogger);
                 throw new BuildException(mergingReport.getReportString());
             }
-            try (FileWriter fileWriter = new FileWriter(getOutputFile())) {
-                fileWriter.append(mergingReport
-                        .getMergedDocument(MergingReport.MergedManifestKind.MERGED));
-            }
+
+            // fix utf-8 problem in windows
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
+                    new FileOutputStream(getOutputFile()), "UTF-8")
+            );
+            writer.append(mergingReport
+                    .getMergedDocument(MergingReport.MergedManifestKind.MERGED));
+            writer.flush();
+            writer.close();
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Gradle Plugin Version:" + mGradlePluginVersion);

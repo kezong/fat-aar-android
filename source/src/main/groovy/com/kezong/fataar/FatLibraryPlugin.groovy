@@ -54,6 +54,7 @@ class FatLibraryPlugin implements Plugin<Project> {
     private void createConfiguration() {
         embedConf = project.configurations.create('embed')
         embedConf.visible = false
+        embedConf.transitive = false
     }
 
     private void resolveArtifacts() {

@@ -9,7 +9,7 @@ The solution of merging aar works with [the android gradle plugin][3], the andro
 
 ## Getting Started
 
-#### Step 1: Apply plugin
+### Step 1: Apply plugin
 
 Add snippet below to your root build script file:
 
@@ -31,7 +31,7 @@ Add snippet below to the `build.gradle` of your android library:
 apply plugin: 'com.kezong.fat-aar'
 ```
 
-#### Step 2: Embed dependencies
+### Step 2: Embed dependencies
 
 change `implementation` or `api` to `embed` while you want to embed the dependency in the library. Like this:
 
@@ -54,6 +54,27 @@ dependencies {
     embed 'com.facebook.fresco:fresco:1.11.0'
     // don't want to embed in
     implementation 'com.android.support:appcompat-v7:27.1.1'
+}
+```
+
+### Transitive
+
+#### Local Dependency
+If you want to including local transitive dependencies in final artifact, you must add `embed` for all dependencies in your main library. 
+
+For example, mainLib depend on subLib1, subLib1 depend on subLib2, If you want including all dependencies in final artifact, you must add `embed` for subLib1 and subLib2 in mainLib `build.gradle`
+
+#### Remote Dependency
+If you want to including all remote transitive dependencies which in pom file, you need change the `embed`'s transitive value to true in your `build.gradle`, like this:
+```gradle
+// the default value is false
+// invalid for local aar dependency
+configurations.embed.transitive = true
+```
+If you change the transitive value to true,and want to ignore a dependency in its POM file, you can add exclude keywords, like this:
+```gradle
+embed('com.facebook.fresco:fresco:1.11.0') {
+    exclude(group:'com.facebook.soloader', module:'soloader')
 }
 ```
 
@@ -84,16 +105,7 @@ See [anatomy of an aar file here][2].
 - **Res merge conflicts.** If the library res folder and embedded dependencies res have the same res Id(mostly `string/app_name`). A duplicate resources build exception will be thrown. To avoid res conflicts:
   - consider using a prefix to each res Id, both in library res and aar dependencies if possible. 
   - Adding "android.disableResourceValidation=true" to "gradle.properties" can do a trick to skip the exception, but is not recommended.
-- **Multilevel dependencies.** All modules that need to be packaged must to be `embed` in the main library, even if the main library does not directly rely on the module, otherwise there may throw an error that R files cannot find symbols;
-
-- **Remote Repository.** You can directly `embed` the library in the remote repository, but if you want to ignore a dependency in its POM file, you can add exclude keywords, like this:
-    ```groovy
-    embed('com.facebook.fresco:fresco:1.11.0') {
-        exclude(group:'com.facebook.soloader', module:'soloader')
-    }
-    ```
-
-
+  
 
 ## Version Log
 

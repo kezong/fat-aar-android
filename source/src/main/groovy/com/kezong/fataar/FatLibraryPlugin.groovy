@@ -5,6 +5,8 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.DependencyResolutionListener
+import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
 
@@ -55,6 +57,20 @@ class FatLibraryPlugin implements Plugin<Project> {
         embedConf = project.configurations.create('embed')
         embedConf.visible = false
         embedConf.transitive = false
+
+        project.gradle.addListener(new DependencyResolutionListener() {
+            @Override
+            void beforeResolve(ResolvableDependencies resolvableDependencies) {
+                embedConf.dependencies.each { dependency ->
+                    project.dependencies.add('compileOnly', dependency)
+                }
+                project.gradle.removeListener(this)
+            }
+
+            @Override
+            void afterResolve(ResolvableDependencies resolvableDependencies) {
+            }
+        })
     }
 
     private void resolveArtifacts() {

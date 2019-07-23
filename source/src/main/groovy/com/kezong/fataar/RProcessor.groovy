@@ -35,9 +35,9 @@ class RProcessor {
         mGradlePluginVersion = version
         mVersionAdapter = new VersionAdapter(project, variant, version)
         // R.java dir
-        mJavaDir = mProject.file("${mProject.getBuildDir()}/intermediates/exploded-aar/${mVariant.dirName}/r")
+        mJavaDir = mProject.file("${mProject.getBuildDir()}/intermediates/fat-R/r/${mVariant.dirName}")
         // R.class compile dir
-        mClassDir = mProject.file("${mProject.getBuildDir()}/intermediates/exploded-aar/${mVariant.dirName}/r-class")
+        mClassDir = mProject.file("${mProject.getBuildDir()}/intermediates/fat-R/r-class/${mVariant.dirName}")
         // R.jar dir
         mJarDir = mProject.file("${mProject.getBuildDir()}/outputs/aar-R/${mVariant.dirName}/libs")
         // aar zip file
@@ -89,7 +89,7 @@ class RProcessor {
         RJarTask.finalizedBy(reBundleAar)
     }
 
-    private def createRFile(AndroidArchiveLibrary library, def rFolder, Map symbolsMap) {
+    private def createRFile(AndroidArchiveLibrary library, def rFolder, ConfigObject symbolsMap) {
         def libPackageName = mVariant.getApplicationId()
         def aarPackageName = library.getPackageName()
 
@@ -101,7 +101,7 @@ class RProcessor {
         if (rTxt.exists()) {
             rTxt.eachLine { line ->
                 def (type, subclass, name, value) = line.tokenize(' ')
-                if (symbolsMap.containsKey(name) && symbolsMap.get(name) == subclass) {
+                if (symbolsMap.containsKey(subclass) && symbolsMap.get(subclass).getAt(name) == type) {
                     rMap[subclass].putAt(name, type)
                 }
             }
@@ -132,10 +132,10 @@ class RProcessor {
             throw IllegalAccessException("{$file.absolutePath} not found")
         }
 
-        Map map = new HashMap()
+        def map = new ConfigObject()
         file.eachLine { line ->
             def (type, subclass, name, value) = line.tokenize(' ')
-            map.put(name, subclass)
+            map[subclass].putAt(name, type)
         }
 
         return map
@@ -148,7 +148,7 @@ class RProcessor {
                 destFolder.deleteDir()
             }
             if (mLibraries != null && mLibraries.size() > 0) {
-                Map symbolsMap = getSymbolsMap()
+                def symbolsMap = getSymbolsMap()
                 mLibraries.each {
                     Utils.logInfo("Generate R File, Library:${it.name}")
                     createRFile(it, destFolder, symbolsMap)

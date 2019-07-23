@@ -60,7 +60,7 @@ dependencies {
 ### Transitive
 
 #### Local Dependency
-If you want to including local transitive dependencies in final artifact, you must add `embed` for all dependencies in your main library. 
+If you want to including local transitive dependencies in final artifact, you must add `embed` for transitive dependencies in your main library. 
 
 For example, mainLib depend on subLib1, subLib1 depend on subLib2, If you want including all dependencies in final artifact, you must add `embed` for subLib1 and subLib2 in mainLib `build.gradle`
 

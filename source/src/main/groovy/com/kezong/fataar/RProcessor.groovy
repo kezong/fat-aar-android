@@ -141,9 +141,12 @@ class RProcessor {
         return map
     }
 
-    private Task createRFileTask(final def destFolder) {
+    private Task createRFileTask(final File destFolder) {
         def task = mProject.tasks.create(name: 'createRsFile' + mVariant.name)
         task.doLast {
+            if (destFolder.exists()) {
+                destFolder.deleteDir()
+            }
             if (mLibraries != null && mLibraries.size() > 0) {
                 Map symbolsMap = getSymbolsMap()
                 mLibraries.each {

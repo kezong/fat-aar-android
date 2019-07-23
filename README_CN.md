@@ -2,7 +2,7 @@
 [![license](http://img.shields.io/badge/license-Apache2.0-brightgreen.svg?style=flat)](https://github.com/kezong/fat-aar-android/blob/master/LICENSE)
 [![Download](https://api.bintray.com/packages/kezong/maven/fat-aar/images/download.svg)](https://bintray.com/kezong/maven/fat-aar/_latestVersion)
 
-该插件提供了将library以及它依赖的module一起打包成一个完整aar的解决方案，支持gradle plugin 3.0.1及以上。（目前测试的版本范围是gradle plugin 3.0.1 - 3.4.1，gradle 4.6 - 5.4.1）
+该插件提供了将library以及它依赖的module一起打包成一个完整aar的解决方案，支持gradle plugin 3.0.1及以上。（目前测试的版本范围是gradle plugin 3.0.1 - 3.4.2，gradle 4.6 - 5.4.1）
 
 ## 如何使用
 
@@ -17,7 +17,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:xxx'
-        classpath 'com.kezong:fat-aar:1.1.10'
+        classpath 'com.kezong:fat-aar:1.2.3'
     }
 }
 ```
@@ -30,39 +30,51 @@ apply plugin: 'com.kezong.fat-aar'
 
 #### 第二步: Embed dependencies
 - 将`implementation`或者`api`改成`embed`
-- 给你的每一个`embed`的依赖添加 `compileOnly`  （这一步不是必须的，目的是让library能够索引到被embed的module，不添加的话library中引用该module中的代码可能会报错，但并不影响编译）
 
 代码所示：
 ```gradle
 dependencies {
     implementation fileTree(dir: 'libs', include: '*.jar')
-
     // java dependency
     embed project(path: ':lib-java', configuration:'default')
-    compileOnly project(path: ':lib-java')
-
     // aar dependency
     embed project(path: ':lib-aar', configuration:'default')
-    compileOnly project(path: ':lib-aar')
-
     // aar dependency
     embed project(path: ':lib-aar2', configuration:'default')
-    compileOnly project(path: ':lib-aar2')
-    
+    // local full aar dependency
+    embed project(path: ':lib-aar-local', configuration:'default')
+    // local full aar dependency
+    embed (name:'lib-aar-local2',ext:'aar')
+    // remote jar dependency
+    embed 'com.google.guava:guava:20.0'
     // remote aar dependency
     embed 'com.facebook.fresco:fresco:1.11.0'
-    compileOnly 'com.facebook.fresco:fresco:1.11.0'
-    
-    // local aar dependency, you need add the flatDir first.
-    embed (name:'lib-aar-local2',ext:'aar')
-    compileOnly (name:'lib-aar-local2',ext:'aar')
-
-    // local aar dependency
-    embed project(path: ':lib-aar-local', configuration:'default')
-    compileOnly project(path: ':lib-aar-local')
-
-    // other dependencies you don't want to embed in
+    // don't want to embed in
     implementation 'com.android.support:appcompat-v7:27.1.1'
+}
+```
+
+### 多级依赖
+
+#### 本地依赖
+
+如果你想将本地所有相关的依赖项全部包含在最终产物中，你需要在你主library中对所有依赖都加上`embed`关键字
+
+比如，mainLib依赖lib1，lib1依赖lib2，如果你想将所有依赖都打入最终产物，你必须在mainLib的`build.gradle`中对lib1以及lib2都加上`embed`关键字
+
+#### 远程依赖
+
+如果你想将所有远程依赖在pom中声明的依赖项同时打入在最终产物里的话，你需要在`build.gradle`中将`embed`的transitive值改为true，例如：
+```gradle
+// the default value is false
+// invalid for local aar dependency
+configurations.embed.transitive = true
+```
+
+如果你将transitive的值改成了true，并且想忽略pom文件中的某一个依赖项，你可以添加`exclude`关键字，例如：
+```gradle
+embed('com.facebook.fresco:fresco:1.11.0') {
+    exclude(group:'com.facebook.soloader', module:'soloader')
 }
 ```
 
@@ -91,16 +103,12 @@ AAR是Android提供的一种官方文件形式；
 * **资源冲突：** 如果library和module中含有同名的资源(比如 `string/app_name`)，编译将会报`duplication resources`的相关错误，有两种方法可以解决这个问题：
   * 考虑将library以及module中的资源都加一个前缀来避免资源冲突； 
   * 在`gradle.properties`中添加`android.disableResourceValidation=true`可以忽略资源冲突的编译错误，程序会采用第一个找到的同名资源作为实际资源，不建议这样做，如果资源同名但实际资源不一样会造成不可预期的问题。
-* **多级依赖：** 所有需要打包的module，都要在主library使用`embed`，哪怕主library没有直接依赖该module，不然可能会出现R文件找不到符号的错误；
-* **远程仓库：** 你可以直接embed远程仓库中的库，但是如果你想忽略其pom文件中的某一项依赖，可以增加exclude关键字，例如：
-    ```groovy
-    embed('com.facebook.fresco:fresco:1.11.0') {
-        exclude(group:'com.facebook.soloader', module:'soloader')
-  }
-    ```
     
 ## 更新日志
-
+- [1.2.3](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.3>)
+  - 修复未直接依赖的R类找不到的问题 [#11](https://github.com/kezong/fat-aar-android/issues/11) [#35](https://github.com/kezong/fat-aar-android/issues/35)
+  - 不再需要为需要`embed`的依赖项主动添加`compileOnly`
+  - `embed`的transitive默认值设置成false
 - [1.1.11](<https://github.com/kezong/fat-aar-android/releases/tag/v1.1.11>)
   - 修复gradle plugin version有可能判断错误的问题 [#28](https://github.com/kezong/fat-aar-android/issues/28)
   - 修复LibraryManifestMerger.java中出现的build warning [#29](https://github.com/kezong/fat-aar-android/issues/29)

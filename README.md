@@ -5,7 +5,7 @@
 
 - [中文文档](./README_CN.md)
 
-The solution of merging aar works with [the android gradle plugin][3], the android plugin's version of the development is `3.0.1` and higher. (Tested in gradle plugin 3.0.1 - 3.4.1, and gradle 4.6 - 5.4.1)
+The solution of merging aar works with [the android gradle plugin][3], the android plugin's version of the development is `3.0.1` and higher. (Tested in gradle plugin 3.0.1 - 3.4.2, and gradle 4.6 - 5.4.1)
 
 ## Getting Started
 
@@ -20,7 +20,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:xxx'
-        classpath 'com.kezong:fat-aar:1.1.11'
+        classpath 'com.kezong:fat-aar:1.2.3'
     }
 }
 ```
@@ -33,37 +33,26 @@ apply plugin: 'com.kezong.fat-aar'
 
 #### Step 2: Embed dependencies
 
-change `implementation` or `api` to `embed` and add `compileOnly` while you want to embed the dependency in the library. Like this:
+change `implementation` or `api` to `embed` while you want to embed the dependency in the library. Like this:
 
 ```gradle
 dependencies {
     implementation fileTree(dir: 'libs', include: '*.jar')
-
     // java dependency
     embed project(path: ':lib-java', configuration:'default')
-    compileOnly project(path: ':lib-java')
-
     // aar dependency
     embed project(path: ':lib-aar', configuration:'default')
-    compileOnly project(path: ':lib-aar')
-
     // aar dependency
     embed project(path: ':lib-aar2', configuration:'default')
-    compileOnly project(path: ':lib-aar2')
-    
+    // local full aar dependency
+    embed project(path: ':lib-aar-local', configuration:'default')
+    // local full aar dependency
+    embed (name:'lib-aar-local2',ext:'aar')
+    // remote jar dependency
+    embed 'com.google.guava:guava:20.0'
     // remote aar dependency
     embed 'com.facebook.fresco:fresco:1.11.0'
-    compileOnly 'com.facebook.fresco:fresco:1.11.0'
-    
-    // local aar dependency, you need add the flatDir first.
-    embed (name:'lib-aar-local2',ext:'aar')
-    compileOnly (name:'lib-aar-local2',ext:'aar')
-
-    // local aar dependency
-    embed project(path: ':lib-aar-local', configuration:'default')
-    compileOnly project(path: ':lib-aar-local')
-
-    // other dependencies you don't want to embed in
+    // don't want to embed in
     implementation 'com.android.support:appcompat-v7:27.1.1'
 }
 ```

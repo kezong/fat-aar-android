@@ -89,7 +89,7 @@ class RProcessor {
         RJarTask.finalizedBy(reBundleAar)
     }
 
-    private def createRFile(AndroidArchiveLibrary library, def rFolder) {
+    private def createRFile(AndroidArchiveLibrary library, def rFolder, Map symbolsMap) {
         def libPackageName = mVariant.getApplicationId()
         def aarPackageName = library.getPackageName()
 
@@ -101,7 +101,7 @@ class RProcessor {
         if (rTxt.exists()) {
             rTxt.eachLine { line ->
                 def (type, subclass, name, value) = line.tokenize(' ')
-                if (checkValid(subclass, name)) {
+                if (symbolsMap.containsKey(name) && symbolsMap.get(name) == subclass) {
                     rMap[subclass].putAt(name, type)
                 }
             }
@@ -126,31 +126,29 @@ class RProcessor {
         outputStream.close()
     }
 
-    private boolean checkValid(def resourceClass, def resourceName) {
+    private def getSymbolsMap() {
         def file = mVersionAdapter.getSymbolFile()
         if (!file.exists()) {
             throw IllegalAccessException("{$file.absolutePath} not found")
         }
 
-        def result = false
+        Map map = new HashMap()
         file.eachLine { line ->
             def (type, subclass, name, value) = line.tokenize(' ')
-            if (resourceName == name && resourceClass == subclass) {
-                result = true
-                return
-            }
+            map.put(name, subclass)
         }
 
-        return result
+        return map
     }
 
     private Task createRFileTask(final def destFolder) {
         def task = mProject.tasks.create(name: 'createRsFile' + mVariant.name)
         task.doLast {
             if (mLibraries != null && mLibraries.size() > 0) {
+                Map symbolsMap = getSymbolsMap()
                 mLibraries.each {
                     Utils.logInfo("Generate R File, Library:${it.name}")
-                    createRFile(it, destFolder)
+                    createRFile(it, destFolder, symbolsMap)
                 }
             }
         }

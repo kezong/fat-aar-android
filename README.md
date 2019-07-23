@@ -110,7 +110,7 @@ See [anatomy of an aar file here][2].
 ## Version Log
 
 - [1.2.3](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.3>)
-  - Fix the problem that non-dependency R cannot be found [#11](https://github.com/kezong/fat-aar-android/issues/11)[#35](https://github.com/kezong/fat-aar-android/issues/35)
+  - Fix the problem that non-dependency R cannot be found [#11](https://github.com/kezong/fat-aar-android/issues/11) [#35](https://github.com/kezong/fat-aar-android/issues/35)
   - No longer need to add `compileOnly` for dependencies
   - Transitive default value change to false
 - [1.1.11](<https://github.com/kezong/fat-aar-android/releases/tag/v1.1.11>)

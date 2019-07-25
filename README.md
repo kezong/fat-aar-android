@@ -53,7 +53,7 @@ dependencies {
     // remote aar dependency
     embed 'com.facebook.fresco:fresco:1.11.0'
     // don't want to embed in
-    implementation 'com.android.support:appcompat-v7:27.1.1'
+    compileOnly 'com.android.support:appcompat-v7:27.1.1'
 }
 ```
 

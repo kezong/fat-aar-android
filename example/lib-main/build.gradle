@@ -25,9 +25,9 @@ android {
     }
 }
 
-// if you change the value to true, the remote dependency's dependencies also to embed in final aar.
+// If the value is changed to true, the dependencies of the remote dependency will also be embedded in the final aar.
 // the default value of transitive is false
-configurations.embed.transitive = false
+configurations.embed.transitive = true
 
 dependencies {
     implementation fileTree(dir: 'libs', include: '*.jar')

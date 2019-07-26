@@ -275,7 +275,7 @@ class VariantProcessor {
 
         assetsTask.doFirst {
             for (archiveLibrary in mAndroidArchiveLibraries) {
-                if (archiveLibrary.assetsFolder != null && archiveLibrary.assetsFolder.size() > 0) {
+                if (archiveLibrary.assetsFolder != null && archiveLibrary.assetsFolder.exists()) {
                     mProject.android.sourceSets.each {
                         if (it.name == mVariant.name) {
                             it.assets.srcDir(archiveLibrary.assetsFolder)
@@ -302,7 +302,7 @@ class VariantProcessor {
 
         mergeJniLibsTask.doFirst {
             for (archiveLibrary in mAndroidArchiveLibraries) {
-                if (archiveLibrary.jniFolder != null && archiveLibrary.jniFolder.size() > 0) {
+                if (archiveLibrary.jniFolder != null && archiveLibrary.jniFolder.exists()) {
                     mProject.android.sourceSets.each {
                         if (it.name == mVariant.name) {
                             it.jniLibs.srcDir(archiveLibrary.jniFolder)

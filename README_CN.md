@@ -50,7 +50,8 @@ dependencies {
     // remote aar dependency
     embed 'com.facebook.fresco:fresco:1.11.0'
     // don't want to embed in
-    implementation 'com.android.support:appcompat-v7:27.1.1'
+    // 不建议使用implementation，因为该依赖可能与application的依赖版本不一致，使用implementation可能会导致R类找不到的问题
+    compileOnly 'com.android.support:appcompat-v7:27.1.1'
 }
 ```
 
@@ -105,6 +106,8 @@ AAR是Android提供的一种官方文件形式；
   * 在`gradle.properties`中添加`android.disableResourceValidation=true`可以忽略资源冲突的编译错误，程序会采用第一个找到的同名资源作为实际资源，不建议这样做，如果资源同名但实际资源不一样会造成不可预期的问题。
     
 ## 更新日志
+- [1.2.4](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.4>)
+  - 修复在windows平台上，jni和asset无法打入aar的bug [#11](https://github.com/kezong/fat-aar-android/issues/37) [#37](https://github.com/kezong/fat-aar-android/issues/35)
 - [1.2.3](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.3>)
   - 修复未直接依赖的R类找不到的问题 [#11](https://github.com/kezong/fat-aar-android/issues/11) [#35](https://github.com/kezong/fat-aar-android/issues/35)
   - 不再需要为需要`embed`的依赖项主动添加`compileOnly`

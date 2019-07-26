@@ -53,6 +53,7 @@ dependencies {
     // remote aar dependency
     embed 'com.facebook.fresco:fresco:1.11.0'
     // don't want to embed in
+    // implementation is not recommended because the dependency may be different with the version in application, resulting in the R class not found.
     compileOnly 'com.android.support:appcompat-v7:27.1.1'
 }
 ```
@@ -109,6 +110,8 @@ See [anatomy of an aar file here][2].
 
 ## Version Log
 
+- [1.2.4](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.4>)
+  - Fix jni and assets can't embed in windows platform [#37](https://github.com/kezong/fat-aar-android/issues/37)
 - [1.2.3](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.3>)
   - Fix the problem that non-dependency R cannot be found [#11](https://github.com/kezong/fat-aar-android/issues/11) [#35](https://github.com/kezong/fat-aar-android/issues/35)
   - No longer need to add `compileOnly` for dependencies

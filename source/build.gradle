@@ -37,8 +37,8 @@ publish {
     userOrg = 'kezong'
     groupId = 'com.kezong'
     artifactId = 'fat-aar'
-    publishVersion = '1.1.11'
-    desc = 'The fat-aar works with the gradle plugin\'s version of the development is 3.0.1 and later.'
+    publishVersion = '1.2.4'
+    desc = 'Gradle plugin for merging dependencies applies to gradle plugin version 3.+'
     website = 'https://github.com/kezong/fat-aar-android'
 }
 

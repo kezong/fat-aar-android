@@ -106,6 +106,9 @@ AAR是Android提供的一种官方文件形式；
   * 在`gradle.properties`中添加`android.disableResourceValidation=true`可以忽略资源冲突的编译错误，程序会采用第一个找到的同名资源作为实际资源，不建议这样做，如果资源同名但实际资源不一样会造成不可预期的问题。
     
 ## 更新日志
+- [1.2.5](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.5>)
+  - 修复任务名称重复导致编译错误的问题 [#48](https://github.com/kezong/fat-aar-android/issues/48)
+  - 如果开启minifyEnabled，所有的jar包将合入classes.jar文件
 - [1.2.4](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.4>)
   - 修复在windows平台上，jni和asset无法打入aar的bug [#11](https://github.com/kezong/fat-aar-android/issues/37) [#37](https://github.com/kezong/fat-aar-android/issues/35)
 - [1.2.3](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.3>)

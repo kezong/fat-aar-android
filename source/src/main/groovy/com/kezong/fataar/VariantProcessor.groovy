@@ -112,11 +112,14 @@ class VariantProcessor {
                 archiveLibrary.getRootFolder().deleteDir()
                 final def zipFolder = archiveLibrary.getRootFolder()
                 zipFolder.mkdirs()
-                String taskName = "explode${artifact.name.capitalize()}${mVariant.name.capitalize()}"
+                def group = artifact.getModuleVersion().id.group.capitalize()
+                def name = artifact.name.capitalize()
+                String taskName = "explode${group}${name}${mVariant.name.capitalize()}"
                 Task explodeTask = mProject.tasks.create(name: taskName, type: Copy) {
                     from mProject.zipTree(artifact.file.absolutePath)
                     into zipFolder
                 }
+
                 if (buildDependencies.size() == 0) {
                     explodeTask.dependsOn(prepareTask)
                 } else {

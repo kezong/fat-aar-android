@@ -173,12 +173,17 @@ class VariantProcessor {
         processManifestTask.finalizedBy manifestsMergeTask
     }
 
-    private Task handleClassesMergeTask() {
+    private Task handleClassesMergeTask(final boolean isMinifyEnabled) {
         final Task task = mProject.tasks.create(name: 'mergeClasses'
                 + mVariant.name.capitalize())
         task.doFirst {
             def dustDir = mVersionAdapter.getClassPathDirFiles().first()
-            ExplodedHelper.processIntoClasses(mProject, mAndroidArchiveLibraries, mJarFiles, dustDir)
+            if (isMinifyEnabled) {
+                ExplodedHelper.processClassesJarInfoClasses(mProject, mAndroidArchiveLibraries, dustDir)
+                ExplodedHelper.processLibsIntoClasses(mProject, mAndroidArchiveLibraries, mJarFiles, dustDir)
+            } else {
+                ExplodedHelper.processClassesJarInfoClasses(mProject, mAndroidArchiveLibraries, dustDir)
+            }
         }
         return task
     }
@@ -187,7 +192,7 @@ class VariantProcessor {
         final Task task = mProject.tasks.create(name: 'mergeJars'
                 + mVariant.name.capitalize())
         task.doFirst {
-            ExplodedHelper.processIntoJars(mProject, mAndroidArchiveLibraries, mJarFiles, mVersionAdapter.getLibsDirFile())
+            ExplodedHelper.processLibsIntoLibs(mProject, mAndroidArchiveLibraries, mJarFiles, mVersionAdapter.getLibsDirFile())
         }
         return task
     }
@@ -196,7 +201,8 @@ class VariantProcessor {
      * merge classes and jars
      */
     private void processClassesAndJars(Task bundleTask) {
-        if (mVariant.getBuildType().isMinifyEnabled()) {
+        boolean isMinifyEnabled = mVariant.getBuildType().isMinifyEnabled()
+        if (isMinifyEnabled) {
             //merge proguard file
             for (archiveLibrary in mAndroidArchiveLibraries) {
                 List<File> thirdProguardFiles = archiveLibrary.proguardRules
@@ -215,22 +221,23 @@ class VariantProcessor {
             throw new RuntimeException("Can not find task ${taskPath}!")
         }
 
-        Task mergeClasses = handleClassesMergeTask()
+        Task javacTask = mVersionAdapter.getJavaCompileTask()
+        Task mergeClasses = handleClassesMergeTask(isMinifyEnabled)
         syncLibTask.dependsOn(mergeClasses)
         mExplodeTasks.each { it ->
             mergeClasses.dependsOn it
         }
-
-        Task mergeJars = handleJarMergeTask()
-        mergeJars.shouldRunAfter(syncLibTask)
-        bundleTask.dependsOn(mergeJars)
-        mExplodeTasks.each { it ->
-            mergeJars.dependsOn it
-        }
-
-        Task javacTask = mVersionAdapter.getJavaCompileTask()
         mergeClasses.dependsOn(javacTask)
-        mergeJars.dependsOn(javacTask)
+
+        if (!isMinifyEnabled) {
+            Task mergeJars = handleJarMergeTask()
+            mergeJars.shouldRunAfter(syncLibTask)
+            bundleTask.dependsOn(mergeJars)
+            mExplodeTasks.each { it ->
+                mergeJars.dependsOn it
+            }
+            mergeJars.dependsOn(javacTask)
+        }
     }
 
     /**

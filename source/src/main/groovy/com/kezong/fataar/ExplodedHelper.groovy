@@ -1,6 +1,5 @@
 package com.kezong.fataar
 
-import com.google.common.base.Strings
 import org.gradle.api.Project
 
 /**
@@ -10,9 +9,9 @@ import org.gradle.api.Project
  */
 class ExplodedHelper {
 
-    static void processIntoJars(Project project,
-                                Collection<AndroidArchiveLibrary> androidLibraries, Collection<File> jarFiles,
-                                File folderOut) {
+    static void processLibsIntoLibs(Project project,
+                                    Collection<AndroidArchiveLibrary> androidLibraries, Collection<File> jarFiles,
+                                    File folderOut) {
         for (androidLibrary in androidLibraries) {
             if (!androidLibrary.rootFolder.exists()) {
                 Utils.logInfo('[warning]' + androidLibrary.rootFolder + ' not found!')
@@ -44,23 +43,45 @@ class ExplodedHelper {
         }
     }
 
-    static void processIntoClasses(Project project,
+    static void processClassesJarInfoClasses(Project project,
+                                             Collection<AndroidArchiveLibrary> androidLibraries,
+                                             File folderOut) {
+        Utils.logInfo('Merge ClassesJar')
+        Collection<File> allJarFiles = new ArrayList<>()
+        for (androidLibrary in androidLibraries) {
+            if (!androidLibrary.rootFolder.exists()) {
+                Utils.logInfo('[warning]' + androidLibrary.rootFolder + ' not found!')
+                continue
+            }
+            allJarFiles.add(androidLibrary.classesJarFile)
+        }
+        for (jarFile in allJarFiles) {
+            project.copy {
+                from project.zipTree(jarFile)
+                into folderOut
+                exclude 'META-INF/'
+            }
+        }
+    }
+
+    static void processLibsIntoClasses(Project project,
                                    Collection<AndroidArchiveLibrary> androidLibraries, Collection<File> jarFiles,
                                    File folderOut) {
-        Utils.logInfo('Merge classes')
+        Utils.logInfo('Merge Libs')
         Collection<File> allJarFiles = new ArrayList<>()
-        List<String> rPathList = new ArrayList<>()
         for (androidLibrary in androidLibraries) {
             if (!androidLibrary.rootFolder.exists()) {
                 Utils.logInfo('[warning]' + androidLibrary.rootFolder + ' not found!')
                 continue
             }
             Utils.logInfo('[androidLibrary]' + androidLibrary.getName())
-            allJarFiles.add(androidLibrary.classesJarFile)
-            String packageName = androidLibrary.getPackageName()
-            if (!Strings.isNullOrEmpty(packageName)) {
-                rPathList.add(androidLibrary.getPackageName())
+            allJarFiles.addAll(androidLibrary.localJars)
+        }
+        for (jarFile in jarFiles) {
+            if (!jarFile.exists()) {
+                continue
             }
+            allJarFiles.add(jarFile)
         }
         for (jarFile in allJarFiles) {
             project.copy {

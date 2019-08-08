@@ -37,7 +37,7 @@ class VariantProcessor {
         mProject = project
         mVariant = variant
         // gradle version
-        mProject.parent.buildscript.getConfigurations().getByName("classpath").getDependencies().each { Dependency dep ->
+        mProject.rootProject.buildscript.getConfigurations().getByName("classpath").getDependencies().each { Dependency dep ->
             if (dep.group == "com.android.tools.build" && dep.name == "gradle") {
                 mGradlePluginVersion = dep.version
             }

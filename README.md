@@ -110,6 +110,9 @@ See [anatomy of an aar file here][2].
 
 ## Version Log
 
+- [1.2.5](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.5>)
+  - Fix task name repeat error [#48](https://github.com/kezong/fat-aar-android/issues/48)
+  - If minifyEnabled, jar files would build into classes.jar
 - [1.2.4](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.4>)
   - Fix jni and assets can't embed in windows platform [#37](https://github.com/kezong/fat-aar-android/issues/37)
 - [1.2.3](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.3>)

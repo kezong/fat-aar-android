@@ -81,7 +81,6 @@ public class LibraryManifestMerger extends InvokeManifestMerger {
             System.out.println("Gradle Version:" + mGradleVersion);
             System.out.println("If you see this error message, please submit issue to " +
                     "https://github.com/kezong/fat-aar-android/issues with Gradle version. Thank you.");
-            super.doFullTaskAction();
         }
     }
 }

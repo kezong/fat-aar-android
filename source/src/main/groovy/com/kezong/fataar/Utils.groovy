@@ -37,6 +37,17 @@ class Utils {
         }
     }
 
+    def static showDir(int indent, File file) throws IOException {
+        for (int i = 0; i < indent; i++)
+            System.out.print('-')
+        println(file.getName() + " " + file.size())
+        if (file.isDirectory()) {
+            File[] files = file.listFiles()
+            for (int i = 0; i < files.length; i++)
+                showDir(indent + 4, files[i])
+        }
+    }
+
     static int compareVersion(String v1, String v2) {
         if (v1.equals(v2)) {
             return 0

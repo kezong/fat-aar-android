@@ -84,6 +84,7 @@ class VariantProcessor {
         if (bundleTask == null) {
             throw new RuntimeException("Can not find task ${taskPath}!")
         }
+        processCache()
         processArtifacts(prepareTask, bundleTask)
         processClassesAndJars(bundleTask)
         if (mAndroidArchiveLibraries.isEmpty()) {
@@ -96,6 +97,13 @@ class VariantProcessor {
         processProguardTxt(prepareTask)
         RProcessor rProcessor = new RProcessor(mProject, mVariant, mAndroidArchiveLibraries, mGradlePluginVersion)
         rProcessor.inject(bundleTask)
+    }
+
+    private void processCache() {
+        if (Utils.compareVersion(mGradlePluginVersion, "3.5.0") >= 0) {
+            mVersionAdapter.getLibsDirFile().deleteDir()
+            mVersionAdapter.getClassPathDirFiles().first().deleteDir()
+        }
     }
 
     /**
@@ -231,7 +239,7 @@ class VariantProcessor {
 
         if (!isMinifyEnabled) {
             Task mergeJars = handleJarMergeTask()
-            mergeJars.shouldRunAfter(syncLibTask)
+            mergeJars.mustRunAfter(syncLibTask)
             bundleTask.dependsOn(mergeJars)
             mExplodeTasks.each { it ->
                 mergeJars.dependsOn it

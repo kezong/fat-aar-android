@@ -24,7 +24,10 @@ class VersionAdapter {
 
     ConfigurableFileCollection getClassPathDirFiles() {
         ConfigurableFileCollection classpath
-        if (mGradlePluginVersion != null && Utils.compareVersion(mGradlePluginVersion, "3.2.0") >= 0) { // >= Versions 3.2.X
+        if (Utils.compareVersion(mGradlePluginVersion, "3.5.0") >= 0) {
+            classpath = mProject.files("${mProject.buildDir.path}/intermediates/" +
+                    "javac/${mVariant.name}/classes")
+        } else if (Utils.compareVersion(mGradlePluginVersion, "3.2.0") >= 0) { // >= Versions 3.2.X
             classpath = mProject.files("${mProject.buildDir.path}/intermediates/" +
                     "javac/${mVariant.name}/compile${mVariant.name.capitalize()}JavaWithJavac/classes")
         } else { // Versions 3.0.x and 3.1.x

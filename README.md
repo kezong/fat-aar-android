@@ -20,7 +20,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:xxx'
-        classpath 'com.kezong:fat-aar:1.2.5'
+        classpath 'com.kezong:fat-aar:1.2.6'
     }
 }
 ```

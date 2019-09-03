@@ -111,7 +111,7 @@ See [anatomy of an aar file here][2].
 ## Version Log
 
 - [1.2.6](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.6>)
-  - Adapt gradle plugin 3.5.0.[#53](https://github.com/kezong/fat-aar-android/issues/53)[#58](https://github.com/kezong/fat-aar-android/issues/58)
+  - Adapt gradle plugin 3.5.0 [#53](https://github.com/kezong/fat-aar-android/issues/53) [#58](https://github.com/kezong/fat-aar-android/issues/58)
 - [1.2.5](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.5>)
   - Fix task name repeat error [#48](https://github.com/kezong/fat-aar-android/issues/48)
   - If minifyEnabled, jar files would build into classes.jar

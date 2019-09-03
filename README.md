@@ -99,17 +99,19 @@ See [anatomy of an aar file here][2].
 - [x] R.txt merge
 - [x] R.class merge
 
-## Known Defects or Issues
+## Gradle Version Support
 
-- **Proguard note.** Produce lots of(maybe) `Note: duplicate definition of library class`, while proguard is on. A workaround is to add `-dontnote` in `proguard-rules.pro`.
-- **The overlay order of res merge is changed:** Embedded dependency has higher priority than other dependencies.
-- **Res merge conflicts.** If the library res folder and embedded dependencies res have the same res Id(mostly `string/app_name`). A duplicate resources build exception will be thrown. To avoid res conflicts:
-  - consider using a prefix to each res Id, both in library res and aar dependencies if possible. 
-  - Adding "android.disableResourceValidation=true" to "gradle.properties" can do a trick to skip the exception, but is not recommended.
-  
+| Version | Gradle Plugin |
+| :--------: | :--------:|
+| 1.0.1 | 3.1.0 - 3.2.1 |
+| 1.1.6 | 3.1.0 - 3.4.1 |
+| 1.1.10| 3.0.1 - 3.4.1 |
+| 1.2.6 | 3.0.1 - 3.5.0 |
 
 ## Version Log
 
+- [1.2.6](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.6>)
+  - Adapt gradle plugin 3.5.0.[#53](https://github.com/kezong/fat-aar-android/issues/53)[#58](https://github.com/kezong/fat-aar-android/issues/58)
 - [1.2.5](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.5>)
   - Fix task name repeat error [#48](https://github.com/kezong/fat-aar-android/issues/48)
   - If minifyEnabled, jar files would build into classes.jar
@@ -127,7 +129,7 @@ See [anatomy of an aar file here][2].
   - Fixed jar merge bug when using gradle plugin 3.0.1 [#24](https://github.com/kezong/fat-aar-android/issues/24)
   - Fixed rebuild(./gradlew clean assemble) error [#24](https://github.com/kezong/fat-aar-android/issues/24)
 - [1.1.8](<https://github.com/kezong/fat-aar-android/releases/tag/v1.1.8>)
-  - Adapter new interface to avoid the warning [#10](https://github.com/kezong/fat-aar-android/issues/10)
+  - Adapt new interface to avoid the warning [#10](https://github.com/kezong/fat-aar-android/issues/10)
   - Optimize AndroidManifest merge rules [#21](https://github.com/kezong/fat-aar-android/issues/21) [#23](https://github.com/kezong/fat-aar-android/issues/23)
 - [1.1.7](<https://github.com/kezong/fat-aar-android/releases/tag/v1.1.7>)
   - Support embed R file when upload maven [#7](https://github.com/kezong/fat-aar-android/issues/7)
@@ -142,6 +144,14 @@ See [anatomy of an aar file here][2].
   - Support gradle plugin 3.1.0 - 3.2.1
   - Support R class file merge
 
+## Known Defects or Issues
+
+- **Proguard note.** Produce lots of(maybe) `Note: duplicate definition of library class`, while proguard is on. A workaround is to add `-dontnote` in `proguard-rules.pro`.
+- **The overlay order of res merge is changed:** Embedded dependency has higher priority than other dependencies.
+- **Res merge conflicts.** If the library res folder and embedded dependencies res have the same res Id(mostly `string/app_name`). A duplicate resources build exception will be thrown. To avoid res conflicts:
+  - consider using a prefix to each res Id, both in library res and aar dependencies if possible. 
+  - Adding "android.disableResourceValidation=true" to "gradle.properties" can do a trick to skip the exception, but is not recommended.
+  
 ## Thanks
 
 - [android-fat-aar][1]

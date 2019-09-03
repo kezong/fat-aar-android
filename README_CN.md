@@ -98,14 +98,18 @@ AAR是Android提供的一种官方文件形式；
 - [x] R.class合并
 - [ ] proguard合并（混淆合并现在看来有些问题，建议将所有混淆文件都写在主Library中）
 
-## 常见问题
+## Gradle版本支持
 
-* **混淆日志：** 当开启proguard时，可能会产生大量的`Note: duplicate definition of library class`日志，如果你想忽略这些日志，你可以在`proguard-rules.pro`中加上`-dontnote`关键字；
-* **资源冲突：** 如果library和module中含有同名的资源(比如 `string/app_name`)，编译将会报`duplication resources`的相关错误，有两种方法可以解决这个问题：
-  * 考虑将library以及module中的资源都加一个前缀来避免资源冲突； 
-  * 在`gradle.properties`中添加`android.disableResourceValidation=true`可以忽略资源冲突的编译错误，程序会采用第一个找到的同名资源作为实际资源，不建议这样做，如果资源同名但实际资源不一样会造成不可预期的问题。
-    
+| Version | Gradle Plugin |
+| :--------: | :--------:|
+| 1.0.1 | 3.1.0 - 3.2.1 |
+| 1.1.6 | 3.1.0 - 3.4.1 |
+| 1.1.10| 3.0.1 - 3.4.1 |
+| 1.2.6 | 3.0.1 - 3.5.0 |
+  
 ## 更新日志
+- [1.2.6](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.6>)
+  - 适配gradle plugin 3.5.0 [#53](https://github.com/kezong/fat-aar-android/issues/53)[#58](https://github.com/kezong/fat-aar-android/issues/58)
 - [1.2.5](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.5>)
   - 修复任务名称重复导致编译错误的问题 [#48](https://github.com/kezong/fat-aar-android/issues/48)
   - 如果开启minifyEnabled，所有的jar包将合入classes.jar文件
@@ -138,6 +142,13 @@ AAR是Android提供的一种官方文件形式；
 - [1.0.1](<https://github.com/kezong/fat-aar-android/releases/tag/v1.0.1>)
   - 支持gradle plugin 3.1.0 - 3.2.1
   - 支持资源合并，R文件合并
+  
+## 常见问题
+
+* **混淆日志：** 当开启proguard时，可能会产生大量的`Note: duplicate definition of library class`日志，如果你想忽略这些日志，你可以在`proguard-rules.pro`中加上`-dontnote`关键字；
+* **资源冲突：** 如果library和module中含有同名的资源(比如 `string/app_name`)，编译将会报`duplication resources`的相关错误，有两种方法可以解决这个问题：
+  * 考虑将library以及module中的资源都加一个前缀来避免资源冲突； 
+  * 在`gradle.properties`中添加`android.disableResourceValidation=true`可以忽略资源冲突的编译错误，程序会采用第一个找到的同名资源作为实际资源，不建议这样做，如果资源同名但实际资源不一样会造成不可预期的问题。
   
 ## 致谢
 * [android-fat-aar][1]

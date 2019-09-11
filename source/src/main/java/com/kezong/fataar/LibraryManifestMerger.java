@@ -36,45 +36,9 @@ public class LibraryManifestMerger extends InvokeManifestMerger {
         mGradleVersion = gradleVersion;
     }
 
-    @TaskAction
-    protected void doFullTaskAction() throws ManifestMerger2.MergeFailureException, IOException {
+    protected void doTaskAction() {
         try {
-            ILogger iLogger = new LoggerWrapper(getLogger());
-            ManifestMerger2.Invoker<?> mergerInvoker = ManifestMerger2.
-                    newMerger(getMainManifestFile(), iLogger, ManifestMerger2.MergeType.LIBRARY);
-            List<File> secondaryManifestFiles = getSecondaryManifestFiles();
-            List<ManifestProvider> manifestProviders = new ArrayList<>();
-            if (secondaryManifestFiles != null) {
-                for (final File file : secondaryManifestFiles) {
-                    manifestProviders.add(new ManifestProvider() {
-                        @Override
-                        public File getManifest() {
-                            return file.getAbsoluteFile();
-                        }
-
-                        @Override
-                        public String getName() {
-                            return file.getName();
-                        }
-                    });
-                }
-            }
-            mergerInvoker.addManifestProviders(manifestProviders);
-            MergingReport mergingReport = mergerInvoker.merge();
-            if (mergingReport.getResult().isError()) {
-                getLogger().error(mergingReport.getReportString());
-                mergingReport.log(iLogger);
-                throw new BuildException(mergingReport.getReportString());
-            }
-
-            // fix utf-8 problem in windows
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
-                    new FileOutputStream(getOutputFile()), "UTF-8")
-            );
-            writer.append(mergingReport
-                    .getMergedDocument(MergingReport.MergedManifestKind.MERGED));
-            writer.flush();
-            writer.close();
+            doFullTaskAction();
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Gradle Plugin Version:" + mGradlePluginVersion);
@@ -82,5 +46,45 @@ public class LibraryManifestMerger extends InvokeManifestMerger {
             System.out.println("If you see this error message, please submit issue to " +
                     "https://github.com/kezong/fat-aar-android/issues with Gradle version. Thank you.");
         }
+    }
+
+    @TaskAction
+    protected void doFullTaskAction() throws ManifestMerger2.MergeFailureException, IOException {
+        ILogger iLogger = new LoggerWrapper(getLogger());
+        ManifestMerger2.Invoker<?> mergerInvoker = ManifestMerger2.
+                newMerger(getMainManifestFile(), iLogger, ManifestMerger2.MergeType.LIBRARY);
+        List<File> secondaryManifestFiles = getSecondaryManifestFiles();
+        List<ManifestProvider> manifestProviders = new ArrayList<>();
+        if (secondaryManifestFiles != null) {
+            for (final File file : secondaryManifestFiles) {
+                manifestProviders.add(new ManifestProvider() {
+                    @Override
+                    public File getManifest() {
+                        return file.getAbsoluteFile();
+                    }
+
+                    @Override
+                    public String getName() {
+                        return file.getName();
+                    }
+                });
+            }
+        }
+        mergerInvoker.addManifestProviders(manifestProviders);
+        MergingReport mergingReport = mergerInvoker.merge();
+        if (mergingReport.getResult().isError()) {
+            getLogger().error(mergingReport.getReportString());
+            mergingReport.log(iLogger);
+            throw new BuildException(mergingReport.getReportString());
+        }
+
+        // fix utf-8 problem in windows
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
+                new FileOutputStream(getOutputFile()), "UTF-8")
+        );
+        writer.append(mergingReport
+                .getMergedDocument(MergingReport.MergedManifestKind.MERGED));
+        writer.flush();
+        writer.close();
     }
 }

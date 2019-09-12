@@ -17,7 +17,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:xxx'
-        classpath 'com.kezong:fat-aar:1.2.6'
+        classpath 'com.kezong:fat-aar:1.2.7'
     }
 }
 ```
@@ -108,6 +108,8 @@ AAR是Android提供的一种官方文件形式；
 | 1.2.6 | 3.0.1 - 3.5.0 |
   
 ## 更新日志
+- [1.2.7](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.7>)
+  - 修复在3.5.0中AndroidMafest合并报错的问题 [#62](https://github.com/kezong/fat-aar-android/issues/62) [#65](https://github.com/kezong/fat-aar-android/issues/65)
 - [1.2.6](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.6>)
   - 适配gradle plugin 3.5.0 [#53](https://github.com/kezong/fat-aar-android/issues/53)[#58](https://github.com/kezong/fat-aar-android/issues/58)
 - [1.2.5](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.5>)

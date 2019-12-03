@@ -8,7 +8,9 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
+import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext
 import org.gradle.api.tasks.Copy
+import org.gradle.api.tasks.TaskDependency
 
 /**
  * Processor for variant
@@ -116,7 +118,18 @@ class VariantProcessor {
             } else if (FatLibraryPlugin.ARTIFACT_TYPE_AAR == artifact.type) {
                 AndroidArchiveLibrary archiveLibrary = new AndroidArchiveLibrary(mProject, artifact, mVariant.name)
                 addAndroidArchiveLibrary(archiveLibrary)
-                Set<Task> buildDependencies = artifact.buildDependencies.getDependencies()
+                Set<Task> dependencies
+                if (artifact.buildDependencies instanceof TaskDependency) {
+                    dependencies = artifact.buildDependencies.getDependencies()
+                } else {
+                    CachingTaskDependencyResolveContext context = new CachingTaskDependencyResolveContext()
+                    artifact.buildDependencies.visitDependencies(context)
+                    if (context.queue.size() == 0) {
+                        dependencies = new HashSet<>()
+                    } else {
+                        dependencies = context.queue.getFirst().getDependencies()
+                    }
+                }
                 archiveLibrary.getRootFolder().deleteDir()
                 final def zipFolder = archiveLibrary.getRootFolder()
                 zipFolder.mkdirs()
@@ -128,10 +141,10 @@ class VariantProcessor {
                     into zipFolder
                 }
 
-                if (buildDependencies.size() == 0) {
+                if (dependencies.size() == 0) {
                     explodeTask.dependsOn(prepareTask)
                 } else {
-                    explodeTask.dependsOn(buildDependencies.first())
+                    explodeTask.dependsOn(dependencies.first())
                 }
                 Task javacTask = mVersionAdapter.getJavaCompileTask()
                 javacTask.dependsOn(explodeTask)

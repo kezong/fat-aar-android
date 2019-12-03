@@ -9,6 +9,8 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
+import org.gradle.api.internal.tasks.TaskDependencyContainer
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.Factory
 import org.gradle.internal.component.model.DefaultIvyArtifactName
@@ -32,10 +34,19 @@ class FlavorArtifact {
                 return artifactFile
             }
         }
-        TaskDependency taskDependency = createTaskDependency(artifactProject, variant)
         ComponentArtifactIdentifier artifactIdentifier = createComponentIdentifier(artifactFile)
-
-        return new DefaultResolvedArtifact(identifier, artifactName, artifactIdentifier, taskDependency, fileFactory)
+        if (Utils.compareVersion(project.gradle.gradleVersion, "6.0.0") >= 0) {
+            TaskDependencyContainer taskDependencyContainer = new TaskDependencyContainer() {
+                @Override
+                void visitDependencies(TaskDependencyResolveContext taskDependencyResolveContext) {
+                    taskDependencyResolveContext.add(createTaskDependency(artifactProject, variant))
+                }
+            }
+            return new DefaultResolvedArtifact(identifier, artifactName, artifactIdentifier, taskDependencyContainer, fileFactory)
+        } else {
+            TaskDependency taskDependency = createTaskDependency(artifactProject, variant)
+            return new DefaultResolvedArtifact(identifier, artifactName, artifactIdentifier, taskDependency, fileFactory)
+        }
     }
 
     private static ModuleVersionIdentifier createModuleVersionIdentifier(ResolvedDependency unResolvedArtifact) {

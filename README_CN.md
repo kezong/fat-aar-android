@@ -2,7 +2,7 @@
 [![license](http://img.shields.io/badge/license-Apache2.0-brightgreen.svg?style=flat)](https://github.com/kezong/fat-aar-android/blob/master/LICENSE)
 [![Download](https://api.bintray.com/packages/kezong/maven/fat-aar/images/download.svg)](https://bintray.com/kezong/maven/fat-aar/_latestVersion)
 
-该插件提供了将library以及它依赖的module一起打包成一个完整aar的解决方案，支持gradle plugin 3.0.1及以上。（目前测试的版本范围是gradle plugin 3.0.1 - 3.4.2，gradle 4.6 - 5.4.1）
+该插件提供了将library以及它依赖的module一起打包成一个完整aar的解决方案，支持gradle plugin 3.0.1及以上。（目前测试的版本范围是gradle plugin 3.0.1 - 3.5.2，gradle 4.6 - 6.0.1）
 
 ## 如何使用
 
@@ -17,7 +17,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:xxx'
-        classpath 'com.kezong:fat-aar:1.2.7'
+        classpath 'com.kezong:fat-aar:1.2.8'
     }
 }
 ```
@@ -100,16 +100,19 @@ AAR是Android提供的一种官方文件形式；
 
 ## Gradle版本支持
 
-| Version | Gradle Plugin |
-| :--------: | :--------:|
-| 1.0.1 | 3.1.0 - 3.2.1 |
-| 1.1.6 | 3.1.0 - 3.4.1 |
-| 1.1.10| 3.0.1 - 3.4.1 |
-| 1.2.6 | 3.0.1 - 3.5.0 |
-  
+| Version | Gradle Plugin | Gradle |
+| :--------: | :--------:|:-------:|
+| 1.0.1 | 3.1.0 - 3.2.1 | 4.4-6.0 |
+| 1.1.6 | 3.1.0 - 3.4.1 | 4.4-6.0 |
+| 1.1.10| 3.0.1 - 3.4.1 | 4.1-6.0 |
+| 1.2.6 | 3.0.1 - 3.5.0 | 4.1-6.0 |
+| 1.2.8 | 3.0.1+ | 4.1+ |
+
 ## 更新日志
+- [1.2.8](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.8>)
+  - 适配gradle6.0+版本 [#97](https://github.com/kezong/fat-aar-android/issues/97)
 - [1.2.7](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.7>)
-  - 修复在3.5.0中AndroidMafest合并报错的问题 [#62](https://github.com/kezong/fat-aar-android/issues/62) [#65](https://github.com/kezong/fat-aar-android/issues/65)
+  - 修复在3.5.0中androidmafest合并报错的问题 [#62](https://github.com/kezong/fat-aar-android/issues/62) [#65](https://github.com/kezong/fat-aar-android/issues/65)
 - [1.2.6](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.6>)
   - 适配gradle plugin 3.5.0 [#53](https://github.com/kezong/fat-aar-android/issues/53)[#58](https://github.com/kezong/fat-aar-android/issues/58)
 - [1.2.5](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.5>)

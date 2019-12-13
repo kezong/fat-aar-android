@@ -5,7 +5,7 @@
 
 - [中文文档](./README_CN.md)
 
-The solution of merging aar works with [the android gradle plugin][3], the android plugin's version of the development is `3.0.1` and higher. (Tested in gradle plugin 3.0.1 - 3.4.2, and gradle 4.6 - 5.5)
+The solution of merging aar works with [the android gradle plugin][3], the android plugin's version of the development is `3.0.1` and higher. (Tested in gradle plugin 3.0.1 - 3.5.2, and gradle 4.6 - 6.0.1)
 
 ## Getting Started
 
@@ -20,7 +20,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:xxx'
-        classpath 'com.kezong:fat-aar:1.2.7'
+        classpath 'com.kezong:fat-aar:1.2.8'
     }
 }
 ```
@@ -101,14 +101,17 @@ See [anatomy of an aar file here][2].
 
 ## Gradle Version Support
 
-| Version | Gradle Plugin |
-| :--------: | :--------:|
-| 1.0.1 | 3.1.0 - 3.2.1 |
-| 1.1.6 | 3.1.0 - 3.4.1 |
-| 1.1.10| 3.0.1 - 3.4.1 |
-| 1.2.6 | 3.0.1 - 3.5.0 |
+| Version | Gradle Plugin | Gradle |
+| :--------: | :--------:|:-------:|
+| 1.0.1 | 3.1.0 - 3.2.1 | 4.4-6.0 |
+| 1.1.6 | 3.1.0 - 3.4.1 | 4.4-6.0 |
+| 1.1.10| 3.0.1 - 3.4.1 | 4.1-6.0 |
+| 1.2.6 | 3.0.1 - 3.5.0 | 4.1-6.0 |
+| 1.2.8 | 3.0.1+ | 4.1+ |
 
 ## Version Log
+- [1.2.8](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.8>)
+  - adapt gradle 6.0.0+ [#97](https://github.com/kezong/fat-aar-android/issues/97)
 - [1.2.7](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.7>)
   - Fix manifest merge bug in gradle 3.5.0 [#62](https://github.com/kezong/fat-aar-android/issues/62) [#65](https://github.com/kezong/fat-aar-android/issues/65)
 - [1.2.6](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.6>)

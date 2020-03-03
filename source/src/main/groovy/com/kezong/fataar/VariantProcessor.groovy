@@ -236,7 +236,7 @@ class VariantProcessor {
             }
         }
 
-        String taskPath = 'transformClassesAndResourcesWithSyncLibJarsFor' + mVariant.name.capitalize()
+        String taskPath = mVersionAdapter.getSyncLibJarsTaskPath()
         Task syncLibTask = mProject.tasks.findByPath(taskPath)
         if (syncLibTask == null) {
             throw new RuntimeException("Can not find task ${taskPath}!")

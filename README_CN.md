@@ -2,7 +2,7 @@
 [![license](http://img.shields.io/badge/license-Apache2.0-brightgreen.svg?style=flat)](https://github.com/kezong/fat-aar-android/blob/master/LICENSE)
 [![Download](https://api.bintray.com/packages/kezong/maven/fat-aar/images/download.svg)](https://bintray.com/kezong/maven/fat-aar/_latestVersion)
 
-该插件提供了将library以及它依赖的module一起打包成一个完整aar的解决方案，支持gradle plugin 3.0.1及以上。（目前测试的版本范围是gradle plugin 3.0.1 - 3.5.2，gradle 4.6 - 6.0.1）
+该插件提供了将library以及它依赖的module一起打包成一个完整aar的解决方案，支持gradle plugin 3.0.1及以上。（目前测试的版本范围是gradle plugin 3.0.1 - 3.6.1，gradle 4.6 - 6.0.1）
 
 ## 如何使用
 
@@ -17,7 +17,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:xxx'
-        classpath 'com.kezong:fat-aar:1.2.8'
+        classpath 'com.kezong:fat-aar:1.2.9'
     }
 }
 ```
@@ -109,6 +109,8 @@ AAR是Android提供的一种官方文件形式；
 | 1.2.8 | 3.0.1+ | 4.1+ |
 
 ## 更新日志
+- [1.2.9](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.8>)
+  - 适配gradle plugin 3.6.1 [#120](https://github.com/kezong/fat-aar-android/issues/120)
 - [1.2.8](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.8>)
   - 适配gradle6.0+版本 [#97](https://github.com/kezong/fat-aar-android/issues/97)
 - [1.2.7](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.7>)

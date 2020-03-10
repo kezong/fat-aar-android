@@ -9,6 +9,7 @@ import com.android.utils.ILogger;
 
 import org.apache.tools.ant.BuildException;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.workers.WorkerExecutor;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -86,5 +87,9 @@ public class LibraryManifestMerger extends InvokeManifestMerger {
                 .getMergedDocument(MergingReport.MergedManifestKind.MERGED));
         writer.flush();
         writer.close();
+    }
+
+    public WorkerExecutor getWorkerExecutor() {
+        return null;
     }
 }

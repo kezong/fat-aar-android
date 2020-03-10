@@ -5,7 +5,7 @@
 
 - [中文文档](./README_CN.md)
 
-The solution of merging aar works with [the android gradle plugin][3], the android plugin's version of the development is `3.0.1` and higher. (Tested in gradle plugin 3.0.1 - 3.5.2, and gradle 4.6 - 6.0.1)
+The solution of merging aar works with [the android gradle plugin][3], the android plugin's version of the development is `3.0.1` and higher. (Tested in gradle plugin 3.0.1 - 3.6.1, and gradle 4.6 - 6.0.1)
 
 ## Getting Started
 
@@ -20,7 +20,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:xxx'
-        classpath 'com.kezong:fat-aar:1.2.8'
+        classpath 'com.kezong:fat-aar:1.2.9'
     }
 }
 ```
@@ -110,6 +110,8 @@ See [anatomy of an aar file here][2].
 | 1.2.8 | 3.0.1+ | 4.1+ |
 
 ## Version Log
+- [1.2.9](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.9>)
+  - adapt gradle plugin 3.6.1 [#120](https://github.com/kezong/fat-aar-android/issues/120)
 - [1.2.8](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.8>)
   - adapt gradle 6.0.0+ [#97](https://github.com/kezong/fat-aar-android/issues/97)
 - [1.2.7](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.7>)

@@ -8,8 +8,8 @@ buildscript {
         maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.5.2'
-        classpath 'com.kezong:fat-aar:1.2.8'
+        classpath 'com.android.tools.build:gradle:3.6.1'
+        classpath 'com.kezong:fat-aar:1.2.9'
     }
 }
 

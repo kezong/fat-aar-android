@@ -84,7 +84,7 @@ class VersionAdapter {
 
     File getSymbolFile() {
         if (Utils.compareVersion(mGradlePluginVersion, "3.6.0") >= 0) {
-            return mProject.file(mProject.buildDir.path + '/intermediates/compile_symbol_list/' + mVariant.dirName + "/R.txt")
+            return mProject.file(mProject.buildDir.path + '/intermediates/compile_symbol_list/' + mVariant.name + "/R.txt")
         } else if (Utils.compareVersion(mGradlePluginVersion, "3.1.0") >= 0) {
             return mProject.file(mProject.buildDir.path + '/intermediates/symbols/' + mVariant.dirName + "/R.txt")
         } else {

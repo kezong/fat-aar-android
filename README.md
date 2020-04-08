@@ -5,7 +5,7 @@
 
 - [中文文档](./README_CN.md)
 
-The solution of merging aar works with [the android gradle plugin][3], the android plugin's version of the development is `3.0.1` and higher. (Tested in gradle plugin 3.0.1 - 3.6.1, and gradle 4.6 - 6.0.1)
+The solution of merging aar works with [the android gradle plugin][3], the android plugin's version of the development is `3.0.1` and higher. (Tested in gradle plugin 3.0.1 - 3.6.2, and gradle 4.6 - 6.0.1)
 
 ## Getting Started
 
@@ -20,7 +20,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:xxx'
-        classpath 'com.kezong:fat-aar:1.2.9'
+        classpath 'com.kezong:fat-aar:1.2.10'
     }
 }
 ```
@@ -100,7 +100,6 @@ See [anatomy of an aar file here][2].
 - [x] R.class merge
 
 ## Gradle Version Support
-
 | Version | Gradle Plugin | Gradle |
 | :--------: | :--------:|:-------:|
 | 1.0.1 | 3.1.0 - 3.2.1 | 4.4-6.0 |
@@ -108,8 +107,14 @@ See [anatomy of an aar file here][2].
 | 1.1.10| 3.0.1 - 3.4.1 | 4.1-6.0 |
 | 1.2.6 | 3.0.1 - 3.5.0 | 4.1-6.0 |
 | 1.2.8 | 3.0.1+ | 4.1+ |
+| 1.2.10| 3.6.0+ | 4.1+ |
+
+The following table lists which version of Gradle is required for each version of the Android Gradle plugin. For the best performance, you should use the latest possible version of both Gradle and the plugin.
+[Plugin version and Required Gradle version](https://developer.android.google.cn/studio/releases/gradle-plugin.html)
 
 ## Version Log
+- [1.2.10](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.10>)
+  - Fix build variants error in gradle plugin 3.6.+ [#126](https://github.com/kezong/fat-aar-android/issues/126)
 - [1.2.9](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.9>)
   - adapt gradle plugin 3.6.1 [#120](https://github.com/kezong/fat-aar-android/issues/120)
 - [1.2.8](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.8>)

@@ -82,9 +82,14 @@ class VersionAdapter {
         }
     }
 
-    File getSymbolFile() {
+    /**
+     * return symbol file without remote resources
+     * @return symbol file like R.txt
+     */
+    File getLocalSymbolFile() {
+        // > 3.6.0, R.txt contains remote resources, so we use R-def.txt
         if (Utils.compareVersion(mGradlePluginVersion, "3.6.0") >= 0) {
-            return mProject.file(mProject.buildDir.path + '/intermediates/compile_symbol_list/' + mVariant.name + "/R.txt")
+            return mProject.file(mProject.buildDir.path + '/intermediates/local_only_symbol_list/' + mVariant.name + "/R-def.txt")
         } else if (Utils.compareVersion(mGradlePluginVersion, "3.1.0") >= 0) {
             return mProject.file(mProject.buildDir.path + '/intermediates/symbols/' + mVariant.dirName + "/R.txt")
         } else {

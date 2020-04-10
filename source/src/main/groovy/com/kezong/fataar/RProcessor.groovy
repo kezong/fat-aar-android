@@ -101,7 +101,7 @@ class RProcessor {
         if (rTxt.exists()) {
             rTxt.eachLine { line ->
                 def (type, subclass, name, value) = line.tokenize(' ')
-                if (symbolsMap.containsKey(subclass) && symbolsMap.get(subclass).getAt(name) == type) {
+                if (symbolsMap.containsKey(subclass) && symbolsMap.get(subclass).containsKey(name)) {
                     rMap[subclass].putAt(name, type)
                 }
             }
@@ -127,17 +127,36 @@ class RProcessor {
     }
 
     private def getSymbolsMap() {
-        def file = mVersionAdapter.getSymbolFile()
+        def file = mVersionAdapter.getLocalSymbolFile()
         if (!file.exists()) {
             throw IllegalAccessException("{$file.absolutePath} not found")
         }
 
         def map = new ConfigObject()
-        file.eachLine { line ->
-            def (type, subclass, name, value) = line.tokenize(' ')
-            map[subclass].putAt(name, type)
-        }
 
+        if (file.name == "R-def.txt") {
+            // R-def.txt is a local symbol file that format is different of R.txt
+            file.eachLine { line ->
+                List splits = line.tokenize(' ')
+                if (splits == null || splits.size() < 2) {
+                    return
+                }
+                def subclass = splits.get(0)
+                def name = splits.get(1)
+                map[subclass].putAt(name, 1)
+                if (subclass == "styleable" && splits.size() > 2) {
+                    for (int i = 2; i < splits.size(); ++i) {
+                        String subStyle = splits.get(i).replace(':', "_")
+                        map[subclass].putAt("${name}_$subStyle", 1)
+                    }
+                }
+            }
+        } else {
+            file.eachLine { line ->
+                def (type, subclass, name, value) = line.tokenize(' ')
+                map[subclass].putAt(name, type)
+            }
+        }
         return map
     }
 

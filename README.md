@@ -107,15 +107,16 @@ See [anatomy of an aar file here][2].
 | 1.1.10| 3.0.1 - 3.4.1 | 4.1-6.0 |
 | 1.2.6 | 3.0.1 - 3.5.0 | 4.1-6.0 |
 | 1.2.8 | 3.0.1+ | 4.1+ |
-| 1.2.10| 3.6.0+ | 5.4.1+ |
+| 1.2.11| 3.6.0+ | 5.4.1+ |
 
 The following link which version of Gradle is required for each version of the Android Gradle plugin. For the best performance, you should use the latest possible version of both Gradle and the plugin.
 
 [Plugin version and Required Gradle version](https://developer.android.google.cn/studio/releases/gradle-plugin.html)
 
 ## Version Log
-- [1.2.10](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.10>)
+- [1.2.11](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.11>)
   - Fix build variants error in gradle plugin 3.6.+ [#126](https://github.com/kezong/fat-aar-android/issues/126)
+  - Fix bug that remote recources symbol can not found in R.class when build with gradle plugin 3.6.0+
 - [1.2.9](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.9>)
   - adapt gradle plugin 3.6.1 [#120](https://github.com/kezong/fat-aar-android/issues/120)
 - [1.2.8](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.8>)

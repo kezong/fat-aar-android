@@ -31,6 +31,13 @@ class FatLibraryPlugin implements Plugin<Project> {
         createConfiguration(embedConf)
         print("Creating configuration embed\n")
 
+        project.android.buildTypes.all { buildType ->
+            String configName = buildType.name + 'Embed'
+            Configuration configuration = project.configurations.create(configName)
+            createConfiguration(configuration)
+            print("Creating configuration " + configName + "\n")
+        }
+
         project.android.productFlavors.all { flavor ->
             String configName = flavor.name + 'Embed'
             Configuration configuration = project.configurations.create(configName)
@@ -51,6 +58,9 @@ class FatLibraryPlugin implements Plugin<Project> {
             project.android.libraryVariants.all { variant ->
 //                String configName = variant.name + 'Embed'
 
+                String buildTypeConfigName = variant.getBuildType().name + 'Embed'
+                Configuration buildTypeConfiguration = project.configurations.getByName(buildTypeConfigName)
+
                 /**
                  * Doesn't support more than one flavor dimension: LibraryVariant does not have
                  * public interface for VariantConfiguration list(which holds flavor configs).
@@ -61,10 +71,12 @@ class FatLibraryPlugin implements Plugin<Project> {
 
                 Set<ResolvedArtifact> artifacts = new HashSet<>()
                 artifacts.addAll(commonArtifacts)
+                artifacts.addAll(resolveArtifacts(buildTypeConfiguration))
                 artifacts.addAll(resolveArtifacts(flavorConfiguration))
 
                 Set<ResolvedDependency> unResolveArtifacts = new HashSet<>()
                 unResolveArtifacts.addAll(commonUnResolveArtifacts)
+                unResolveArtifacts.addAll(dealUnResolveArtifacts(buildTypeConfiguration, artifacts))
                 unResolveArtifacts.addAll(dealUnResolveArtifacts(flavorConfiguration, artifacts))
 
                 processVariant(variant, artifacts, unResolveArtifacts)

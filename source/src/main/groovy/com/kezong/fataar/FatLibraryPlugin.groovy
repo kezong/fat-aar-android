@@ -67,7 +67,10 @@ class FatLibraryPlugin implements Plugin<Project> {
                  * Also Library plugin doesn't have API for variants in the project.
                  */
                 String flavorConfigName = variant.getFlavorName() + 'Embed'
-                Configuration flavorConfiguration = project.configurations.getByName(flavorConfigName)
+                Configuration flavorConfiguration
+                try {
+                    flavorConfiguration = project.configurations.getByName(flavorConfigName)
+                } catch(Exception ignored) {}
 
                 Set<ResolvedArtifact> artifacts = new HashSet<>()
                 artifacts.addAll(commonArtifacts)
@@ -100,14 +103,16 @@ class FatLibraryPlugin implements Plugin<Project> {
 
     private Set<ResolvedArtifact> resolveArtifacts(Configuration configuration) {
         def set = new HashSet<>()
-        configuration.resolvedConfiguration.resolvedArtifacts.each { artifact ->
-            // jar file wouldn't be here
-            if (ARTIFACT_TYPE_AAR == artifact.type || ARTIFACT_TYPE_JAR == artifact.type) {
-                Utils.logAnytime('[embed detected][' + artifact.type + ']' + artifact.moduleVersion.id)
-            } else {
-                throw new ProjectConfigurationException('Only support embed aar and jar dependencies!', null)
+        if (configuration != null) {
+            configuration.resolvedConfiguration.resolvedArtifacts.each { artifact ->
+                // jar file wouldn't be here
+                if (ARTIFACT_TYPE_AAR == artifact.type || ARTIFACT_TYPE_JAR == artifact.type) {
+                    Utils.logAnytime('[embed detected][' + artifact.type + ']' + artifact.moduleVersion.id)
+                } else {
+                    throw new ProjectConfigurationException('Only support embed aar and jar dependencies!', null)
+                }
+                set.add(artifact)
             }
-            set.add(artifact)
         }
         return Collections.unmodifiableSet(set)
     }
@@ -120,18 +125,20 @@ class FatLibraryPlugin implements Plugin<Project> {
     }
 
     private Set<ResolvedDependency> dealUnResolveArtifacts(Configuration configuration, Set<ResolvedArtifact> artifacts) {
-        def dependencies = Collections.unmodifiableSet(configuration.resolvedConfiguration.firstLevelModuleDependencies)
         def dependencySet = new HashSet()
-        dependencies.each { dependency ->
-            boolean match = false
-            artifacts.each { artifact ->
-                if (dependency.moduleName == artifact.name) {
-                    match = true
+        if (configuration != null) {
+            def dependencies = Collections.unmodifiableSet(configuration.resolvedConfiguration.firstLevelModuleDependencies)
+            dependencies.each { dependency ->
+                boolean match = false
+                artifacts.each { artifact ->
+                    if (dependency.moduleName == artifact.name) {
+                        match = true
+                    }
                 }
-            }
-            if (!match) {
-                Utils.logAnytime('[unResolve dependency detected][' + dependency.name + ']')
-                dependencySet.add(dependency)
+                if (!match) {
+                    Utils.logAnytime('[unResolve dependency detected][' + dependency.name + ']')
+                    dependencySet.add(dependency)
+                }
             }
         }
         return Collections.unmodifiableSet(dependencySet)

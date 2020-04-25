@@ -20,6 +20,8 @@ class FatLibraryPlugin implements Plugin<Project> {
 
     public static final String ARTIFACT_TYPE_JAR = 'jar'
 
+    public static final String CONFIG_SUFFIX = 'Embed'
+
     private Project project
 
     @Override
@@ -32,55 +34,71 @@ class FatLibraryPlugin implements Plugin<Project> {
         print("Creating configuration embed\n")
 
         project.android.buildTypes.all { buildType ->
-            String configName = buildType.name + 'Embed'
+            String configName = buildType.name + CONFIG_SUFFIX
             Configuration configuration = project.configurations.create(configName)
             createConfiguration(configuration)
             print("Creating configuration " + configName + "\n")
         }
 
         project.android.productFlavors.all { flavor ->
-            String configName = flavor.name + 'Embed'
+            String configName = flavor.name + CONFIG_SUFFIX
             Configuration configuration = project.configurations.create(configName)
             createConfiguration(configuration)
             print("Creating configuration " + configName + "\n")
+            project.android.buildTypes.all { buildType ->
+                String variantName = flavor.name + buildType.name.capitalize()
+                String variantConfigName = variantName + CONFIG_SUFFIX
+                Configuration variantConfiguration = project.configurations.create(variantConfigName)
+                createConfiguration(variantConfiguration)
+                print("Creating configuration " + variantConfigName + "\n")
+            }
         }
-
-//        project.android.libraryVariants.all { variant ->
-//            String configName = variant.name + 'Embed'
-//            final Configuration configuration = project.configurations.create(configName)
-//            createConfiguration(configuration)
-//            print("Configuration created: " + configName + "\n")
-//        }
 
         project.afterEvaluate {
             Set<ResolvedArtifact> commonArtifacts = resolveArtifacts(embedConf)
             Set<ResolvedDependency> commonUnResolveArtifacts = dealUnResolveArtifacts(embedConf, commonArtifacts)
             project.android.libraryVariants.all { variant ->
-//                String configName = variant.name + 'Embed'
-
-                String buildTypeConfigName = variant.getBuildType().name + 'Embed'
-                Configuration buildTypeConfiguration = project.configurations.getByName(buildTypeConfigName)
+                String buildTypeConfigName = variant.getBuildType().name + CONFIG_SUFFIX
+                Configuration buildTypeConfiguration 
+                try {
+                    buildTypeConfiguration = project.configurations.getByName(buildTypeConfigName)
+                } catch(Exception ignored) {
+                }
 
                 /**
                  * Doesn't support more than one flavor dimension: LibraryVariant does not have
                  * public interface for VariantConfiguration list(which holds flavor configs).
                  * Also Library plugin doesn't have API for variants in the project.
                  */
-                String flavorConfigName = variant.getFlavorName() + 'Embed'
+                String flavorConfigName = variant.getFlavorName() + CONFIG_SUFFIX
                 Configuration flavorConfiguration
-                try {
-                    flavorConfiguration = project.configurations.getByName(flavorConfigName)
-                } catch(Exception ignored) {}
+                if (flavorConfigName != CONFIG_SUFFIX) {
+                    try {
+                        flavorConfiguration = project.configurations.getByName(flavorConfigName)
+                    } catch(Exception ignored) {
+                    }
+                }
+
+                String variantConfigName = variant.name + CONFIG_SUFFIX
+                Configuration variantConfiguration
+                if (variantConfigName != buildTypeConfigName) {
+                    try {
+                        flavorConfiguration = project.configurations.getByName(variantConfigName)
+                    } catch(Exception ignored) {
+                    }
+                }
 
                 Set<ResolvedArtifact> artifacts = new HashSet<>()
                 artifacts.addAll(commonArtifacts)
                 artifacts.addAll(resolveArtifacts(buildTypeConfiguration))
                 artifacts.addAll(resolveArtifacts(flavorConfiguration))
+                artifacts.addAll(resolveArtifacts(variantConfiguration))
 
                 Set<ResolvedDependency> unResolveArtifacts = new HashSet<>()
                 unResolveArtifacts.addAll(commonUnResolveArtifacts)
                 unResolveArtifacts.addAll(dealUnResolveArtifacts(buildTypeConfiguration, artifacts))
                 unResolveArtifacts.addAll(dealUnResolveArtifacts(flavorConfiguration, artifacts))
+                unResolveArtifacts.addAll(dealUnResolveArtifacts(variantConfiguration, artifacts))
 
                 processVariant(variant, artifacts, unResolveArtifacts)
             }

@@ -63,6 +63,7 @@ class FatLibraryPlugin implements Plugin<Project> {
                 try {
                     buildTypeConfiguration = project.configurations.getByName(buildTypeConfigName)
                 } catch(Exception ignored) {
+                    print("Ignored configuration " + buildTypeConfigName + "\n")
                 }
 
                 /**
@@ -76,6 +77,7 @@ class FatLibraryPlugin implements Plugin<Project> {
                     try {
                         flavorConfiguration = project.configurations.getByName(flavorConfigName)
                     } catch(Exception ignored) {
+                        print("Ignored configuration " + flavorConfigName + "\n")
                     }
                 }
 
@@ -83,8 +85,9 @@ class FatLibraryPlugin implements Plugin<Project> {
                 Configuration variantConfiguration
                 if (variantConfigName != buildTypeConfigName) {
                     try {
-                        flavorConfiguration = project.configurations.getByName(variantConfigName)
+                        variantConfiguration = project.configurations.getByName(variantConfigName)
                     } catch(Exception ignored) {
+                        print("Ignored configuration " + variantConfigName + "\n")
                     }
                 }
 

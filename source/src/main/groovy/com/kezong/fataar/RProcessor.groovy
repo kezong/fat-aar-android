@@ -81,7 +81,7 @@ class RProcessor {
             if (!file.exists()) {
                 mAarOutputPath = mAarOutputDir.absolutePath + "/" + mProject.name + ".aar"
                 if (Utils.compareVersion(mProject.gradle.gradleVersion, "6.0.1") >= 0) {
-                    reBundleAar.getArchiveFileName().set(new File(filePath).name)
+                    reBundleAar.getArchiveFileName().set(new File(mAarOutputPath).name)
                 } else {
                     reBundleAar.archiveName = new File(mAarOutputPath).name
                 }

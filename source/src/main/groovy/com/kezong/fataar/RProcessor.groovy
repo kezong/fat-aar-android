@@ -223,10 +223,10 @@ class RProcessor {
         Task task = mProject.getTasks().create(taskName, Jar.class, {
             it.from fromDir.path
             if (Utils.compareVersion(mProject.gradle.gradleVersion, "6.0.1") >= 0) {
-                it.archiveName = "r-classes.jar"
+                it.archiveFileName = "r-classes.jar"
                 it.destinationDirectory desFile
             } else {
-                it.archiveFileName = "r-classes.jar"
+                it.archiveName = "r-classes.jar"
                 it.destinationDir desFile
             }
         })

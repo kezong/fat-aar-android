@@ -104,4 +104,13 @@ class VersionAdapter {
             return "transformClassesAndResourcesWithSyncLibJarsFor${mVariant.name.capitalize()}"
         }
     }
+
+    String getOutputPath() {
+        if (Utils.compareVersion(mGradlePluginVersion, "3.3.0") >= 0) {
+            String fileName = mVariant.outputs.first().outputFileName
+            return new File(mVariant.getPackageLibraryProvider().get().getDestinationDir(), fileName).absolutePath
+        } else {
+            return mVariant.outputs.first().outputFile.absolutePath
+        }
+    }
 }

@@ -44,7 +44,8 @@ class RProcessor {
         mAarUnZipDir = mJarDir.getParentFile()
         // aar output dir
         mAarOutputDir = mProject.file("${mProject.getBuildDir()}/outputs/aar/")
-        mAarOutputPath = mVariant.outputs.first().outputFile.absolutePath
+
+        mAarOutputPath = mVersionAdapter.getOutputPath()
     }
 
     void inject(Task bundleTask) {
@@ -79,7 +80,13 @@ class RProcessor {
             File file = new File(mAarOutputPath)
             if (!file.exists()) {
                 mAarOutputPath = mAarOutputDir.absolutePath + "/" + mProject.name + ".aar"
-                reBundleAar.archiveName = new File(mAarOutputPath).name
+                // The archiveName property has been deprecated.
+                // This is scheduled to be removed in Gradle 7.0. Please use the archiveFileName property instead.
+                if (Utils.compareVersion(mProject.gradle.gradleVersion, "6.0.1") >= 0) {
+                    reBundleAar.archiveFileName = new File(mAarOutputPath).name
+                } else {
+                    reBundleAar.archiveName = new File(mAarOutputPath).name
+                }
             }
         }
 
@@ -188,7 +195,13 @@ class RProcessor {
             it.sourceCompatibility = mProject.android.compileOptions.sourceCompatibility
             it.targetCompatibility = mProject.android.compileOptions.targetCompatibility
             it.classpath = classpath
-            it.destinationDir destinationDir
+            // The destinationDir property has been deprecated.
+            // This is scheduled to be removed in Gradle 7.0. Please use the destinationDirectory property instead.
+            if (Utils.compareVersion(mProject.gradle.gradleVersion, "6.0.1") >= 0) {
+                it.destinationDirectory destinationDir
+            } else {
+                it.destinationDir destinationDir
+            }
         })
 
         task.doFirst {
@@ -209,8 +222,13 @@ class RProcessor {
         String taskName = "createRsJar${mVariant.name.capitalize()}"
         Task task = mProject.getTasks().create(taskName, Jar.class, {
             it.from fromDir.path
-            it.archiveName = "r-classes.jar"
-            it.destinationDir desFile
+            if (Utils.compareVersion(mProject.gradle.gradleVersion, "6.0.1") >= 0) {
+                it.archiveName = "r-classes.jar"
+                it.destinationDirectory desFile
+            } else {
+                it.archiveFileName = "r-classes.jar"
+                it.destinationDir desFile
+            }
         })
         task.doFirst {
             Utils.logInfo("Generate R.jar, Dir：$fromDir")
@@ -223,8 +241,13 @@ class RProcessor {
         Task task = mProject.getTasks().create(taskName, Zip.class, {
             it.from from
             it.include "**"
-            it.archiveName = new File(filePath).name
-            it.destinationDir(destDir)
+            if (Utils.compareVersion(mProject.gradle.gradleVersion, "6.0.1") >= 0) {
+                it.archiveFileName = new File(filePath).name
+                it.destinationDirectory(destDir)
+            } else {
+                it.archiveName = new File(filePath).name
+                it.destinationDir(destDir)
+            }
         })
 
         return task

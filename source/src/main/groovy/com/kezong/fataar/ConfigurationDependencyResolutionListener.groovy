@@ -1,6 +1,5 @@
 package com.kezong.fataar
 
-import com.android.build.gradle.api.LibraryVariant
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.DependencyResolutionListener

@@ -31,39 +31,46 @@ class FatLibraryPlugin implements Plugin<Project> {
         checkAndroidPlugin()
         final Configuration embedConf = project.configurations.create('embed')
         createConfiguration(embedConf)
-        print("Creating configuration embed\n")
+        Utils.logAnytime("Creating configuration embed")
 
         project.android.buildTypes.all { buildType ->
             String configName = buildType.name + CONFIG_SUFFIX
             Configuration configuration = project.configurations.create(configName)
             createConfiguration(configuration)
-            print("Creating configuration " + configName + "\n")
+            Utils.logAnytime("Creating configuration " + configName)
         }
 
         project.android.productFlavors.all { flavor ->
             String configName = flavor.name + CONFIG_SUFFIX
             Configuration configuration = project.configurations.create(configName)
             createConfiguration(configuration)
-            print("Creating configuration " + configName + "\n")
+            Utils.logAnytime("Creating configuration " + configName)
             project.android.buildTypes.all { buildType ->
                 String variantName = flavor.name + buildType.name.capitalize()
                 String variantConfigName = variantName + CONFIG_SUFFIX
                 Configuration variantConfiguration = project.configurations.create(variantConfigName)
                 createConfiguration(variantConfiguration)
-                print("Creating configuration " + variantConfigName + "\n")
+                Utils.logAnytime("Creating configuration " + variantConfigName)
             }
         }
 
         project.afterEvaluate {
             Set<ResolvedArtifact> commonArtifacts = resolveArtifacts(embedConf)
             Set<ResolvedDependency> commonUnResolveArtifacts = dealUnResolveArtifacts(embedConf, commonArtifacts)
+            if (commonArtifacts.size() > 0 || commonUnResolveArtifacts.size() > 0) {
+                Utils.logAnytime("--------------------------"
+                        + "[common]"
+                        + "--------------------------")
+                printArtifactsInfo(commonArtifacts)
+                printUnResolveArtifactsInfo(commonUnResolveArtifacts)
+            }
             project.android.libraryVariants.all { variant ->
                 String buildTypeConfigName = variant.getBuildType().name + CONFIG_SUFFIX
                 Configuration buildTypeConfiguration 
                 try {
                     buildTypeConfiguration = project.configurations.getByName(buildTypeConfigName)
                 } catch(Exception ignored) {
-                    print("Ignored configuration " + buildTypeConfigName + "\n")
+                    Utils.logAnytime("Ignored configuration " + buildTypeConfigName)
                 }
 
                 /**
@@ -77,7 +84,7 @@ class FatLibraryPlugin implements Plugin<Project> {
                     try {
                         flavorConfiguration = project.configurations.getByName(flavorConfigName)
                     } catch(Exception ignored) {
-                        print("Ignored configuration " + flavorConfigName + "\n")
+                        Utils.logAnytime("Ignored configuration " + flavorConfigName)
                     }
                 }
 
@@ -87,21 +94,33 @@ class FatLibraryPlugin implements Plugin<Project> {
                     try {
                         variantConfiguration = project.configurations.getByName(variantConfigName)
                     } catch(Exception ignored) {
-                        print("Ignored configuration " + variantConfigName + "\n")
+                        Utils.logAnytime("Ignored configuration " + variantConfigName)
                     }
                 }
 
+                Set<ResolvedArtifact> variantArtifacts = new HashSet<>()
+                variantArtifacts.addAll(resolveArtifacts(buildTypeConfiguration))
+                variantArtifacts.addAll(resolveArtifacts(flavorConfiguration))
+                variantArtifacts.addAll(resolveArtifacts(variantConfiguration))
                 Set<ResolvedArtifact> artifacts = new HashSet<>()
                 artifacts.addAll(commonArtifacts)
-                artifacts.addAll(resolveArtifacts(buildTypeConfiguration))
-                artifacts.addAll(resolveArtifacts(flavorConfiguration))
-                artifacts.addAll(resolveArtifacts(variantConfiguration))
+                artifacts.addAll(variantArtifacts)
 
+                Set<ResolvedDependency> variantUnResolveArtifacts = new HashSet<>()
+                variantUnResolveArtifacts.addAll(dealUnResolveArtifacts(buildTypeConfiguration, artifacts))
+                variantUnResolveArtifacts.addAll(dealUnResolveArtifacts(flavorConfiguration, artifacts))
+                variantUnResolveArtifacts.addAll(dealUnResolveArtifacts(variantConfiguration, artifacts))
                 Set<ResolvedDependency> unResolveArtifacts = new HashSet<>()
                 unResolveArtifacts.addAll(commonUnResolveArtifacts)
-                unResolveArtifacts.addAll(dealUnResolveArtifacts(buildTypeConfiguration, artifacts))
-                unResolveArtifacts.addAll(dealUnResolveArtifacts(flavorConfiguration, artifacts))
-                unResolveArtifacts.addAll(dealUnResolveArtifacts(variantConfiguration, artifacts))
+                unResolveArtifacts.addAll(variantUnResolveArtifacts)
+
+                if (variantArtifacts.size() > 0 || variantUnResolveArtifacts.size() > 0) {
+                    Utils.logAnytime("--------------------------"
+                            + "[${variant.getFlavorName()}][${variant.getBuildType().name}]"
+                            + "--------------------------")
+                    printArtifactsInfo(variantArtifacts)
+                    printUnResolveArtifactsInfo(variantUnResolveArtifacts)
+                }
 
                 processVariant(variant, artifacts, unResolveArtifacts)
             }
@@ -128,7 +147,7 @@ class FatLibraryPlugin implements Plugin<Project> {
             configuration.resolvedConfiguration.resolvedArtifacts.each { artifact ->
                 // jar file wouldn't be here
                 if (ARTIFACT_TYPE_AAR == artifact.type || ARTIFACT_TYPE_JAR == artifact.type) {
-                    Utils.logAnytime('[embed detected][' + artifact.type + ']' + artifact.moduleVersion.id)
+                    //
                 } else {
                     throw new ProjectConfigurationException('Only support embed aar and jar dependencies!', null)
                 }
@@ -157,11 +176,26 @@ class FatLibraryPlugin implements Plugin<Project> {
                     }
                 }
                 if (!match) {
-                    Utils.logAnytime('[unResolve dependency detected][' + dependency.name + ']')
                     dependencySet.add(dependency)
                 }
             }
         }
         return Collections.unmodifiableSet(dependencySet)
+    }
+
+    private static printArtifactsInfo(Set<ResolvedArtifact> artifacts) {
+        if (artifacts != null && artifacts.size() > 0) {
+            artifacts.each { artifact ->
+                Utils.logAnytime("[embed detected][$artifact.type]${artifact.moduleVersion.id}")
+            }
+        }
+    }
+
+    private static printUnResolveArtifactsInfo(Set<ResolvedDependency> dependencies) {
+        if (dependencies != null && dependencies.size() > 0) {
+            dependencies.each { it ->
+                Utils.logAnytime("[embed detected']${it.name}")
+            }
+        }
     }
 }

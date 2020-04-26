@@ -108,7 +108,11 @@ class VersionAdapter {
     String getOutputPath() {
         if (Utils.compareVersion(mGradlePluginVersion, "3.3.0") >= 0) {
             String fileName = mVariant.outputs.first().outputFileName
-            return new File(mVariant.getPackageLibraryProvider().get().getDestinationDir(), fileName).absolutePath
+            if (Utils.compareVersion(mProject.gradle.gradleVersion, "6.0.1") >= 0) {
+                return new File(mVariant.getPackageLibraryProvider().get().getDestinationDirectory().getAsFile().get(), fileName).absolutePath
+            } else {
+                return new File(mVariant.getPackageLibraryProvider().get().getDestinationDir(), fileName).absolutePath
+            }
         } else {
             return mVariant.outputs.first().outputFile.absolutePath
         }

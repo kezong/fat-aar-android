@@ -23,6 +23,19 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    flavorDimensions "default"
+
+    productFlavors {
+
+        flavor1 {
+
+        }
+
+        flavor2 {
+
+        }
+    }
 }
 
 // If the value is changed to true, the dependencies of the remote dependency will also be embedded in the final aar.
@@ -37,10 +50,10 @@ dependencies {
     embed project(path: ':lib-aar', configuration:'default')
     // aar dependency
     embed project(path: ':lib-aar2', configuration:'default')
-    // local full aar dependency
-    embed project(path: ':lib-aar-local', configuration:'default')
-    // local full aar dependency
-    embed (name:'lib-aar-local2',ext:'aar')
+    // local full aar dependency, just build in flavor1
+    flavor1Embed project(path: ':lib-aar-local', configuration:'default')
+    // local full aar dependency, just build in debug
+    debugEmbed (name:'lib-aar-local2',ext:'aar')
     // remote jar dependency
     embed 'com.google.guava:guava:20.0'
     // remote aar dependency

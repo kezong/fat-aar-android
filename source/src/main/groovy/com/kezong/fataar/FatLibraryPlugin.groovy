@@ -115,9 +115,15 @@ class FatLibraryPlugin implements Plugin<Project> {
                 unResolveArtifacts.addAll(variantUnResolveArtifacts)
 
                 if (variantArtifacts.size() > 0 || variantUnResolveArtifacts.size() > 0) {
-                    Utils.logAnytime("--------------------------"
-                            + "[${variant.getFlavorName()}][${variant.getBuildType().name}]"
-                            + "--------------------------")
+                    if (variant.getFlavorName()) {
+                        Utils.logAnytime("--------------------------"
+                                + "[${variant.getFlavorName()}][${variant.getBuildType().name}]"
+                                + "--------------------------")
+                    } else {
+                        Utils.logAnytime("--------------------------"
+                                + "[${variant.getBuildType().name}]"
+                                + "--------------------------")
+                    }
                     printArtifactsInfo(variantArtifacts)
                     printUnResolveArtifactsInfo(variantUnResolveArtifacts)
                 }

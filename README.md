@@ -115,7 +115,7 @@ The following link which version of Gradle is required for each version of the A
 
 ## Version Log
 - [1.2.12](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.12>)
-  - Added support for specific build type and product flavor dependencies. [#135](https://github.com/kezong/fat-aar-android/issues/135) [#137](https://github.com/kezong/fat-aar-android/issues/137)
+  - Added support for specific build type and product flavor dependencies, like debugEmbed or flavorEmbed. [#135](https://github.com/kezong/fat-aar-android/issues/135) [#137](https://github.com/kezong/fat-aar-android/issues/137)
   - Fix some build warning
 - [1.2.11](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.11>)
   - Fix build variants error in gradle plugin 3.6.+ [#126](https://github.com/kezong/fat-aar-android/issues/126)

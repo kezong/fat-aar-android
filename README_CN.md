@@ -17,7 +17,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:xxx'
-        classpath 'com.kezong:fat-aar:1.2.11'
+        classpath 'com.kezong:fat-aar:1.2.12'
     }
 }
 ```
@@ -41,10 +41,10 @@ dependencies {
     embed project(path: ':lib-aar', configuration:'default')
     // aar dependency
     embed project(path: ':lib-aar2', configuration:'default')
-    // local full aar dependency
-    embed project(path: ':lib-aar-local', configuration:'default')
-    // local full aar dependency
-    embed (name:'lib-aar-local2',ext:'aar')
+    // local full aar dependency, just build in flavor1
+    flavor1Embed project(path: ':lib-aar-local', configuration:'default')
+    // local full aar dependency, just build in debug
+    debugEmbed (name:'lib-aar-local2',ext:'aar')
     // remote jar dependency
     embed 'com.google.guava:guava:20.0'
     // remote aar dependency
@@ -107,11 +107,14 @@ AAR是Android提供的一种官方文件形式；
 | 1.1.10| 3.0.1 - 3.4.1 | 4.1-6.0 |
 | 1.2.6 | 3.0.1 - 3.5.0 | 4.1-6.0 |
 | 1.2.8 | 3.0.1+ | 4.1+ |
-| 1.2.11| 3.6.0+ | 5.4.1+ |
+| 1.2.11+ | 3.6.0+ | 5.4.1+ |
 
 [Gradle Plugin和所需求的Gradle版本官方文档](https://developer.android.google.cn/studio/releases/gradle-plugin.html)
 
 ## 更新日志
+- [1.2.12](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.12>)
+  - 添加对buildType以及flavor的支持，例如debugEmbed以及flavorEmbed. [#135](https://github.com/kezong/fat-aar-android/issues/135) [#137](https://github.com/kezong/fat-aar-android/issues/137)
+  - 修复一些编译时的warning.
 - [1.2.11](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.11>)
   - 修复在gradle plugin 3.6.0下编译variants会error的情况 [#126](https://github.com/kezong/fat-aar-android/issues/126)
   - 修复在gradle plugin 3.6.0下编译出来的aar，在编译apk时会出现资源符号对象找不到的问题

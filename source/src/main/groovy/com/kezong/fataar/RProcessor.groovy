@@ -148,6 +148,10 @@ class RProcessor {
                 }
                 def subclass = splits.get(0)
                 def name = splits.get(1)
+                if (subclass == "attr?"){
+                    //styleable attributes
+                    subclass = "attr"
+                }
                 map[subclass].putAt(name, 1)
                 if (subclass == "styleable" && splits.size() > 2) {
                     for (int i = 2; i < splits.size(); ++i) {

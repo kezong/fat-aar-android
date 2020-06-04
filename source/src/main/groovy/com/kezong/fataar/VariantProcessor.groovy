@@ -159,7 +159,7 @@ class VariantProcessor {
      */
     private void processManifest() {
         Task processManifestTask = mVersionAdapter.getProcessManifest()
-        String manifestInputDir ="${mProject.getBuildDir()}/intermediates/fat-R/manifest"
+        String manifestInputDir = "${mProject.getBuildDir()}/intermediates/fat-R/manifest"
         File manifestOutput
         if (mGradlePluginVersion != null && Utils.compareVersion(mGradlePluginVersion, "3.3.0") >= 0) {
             manifestOutput = mProject.file("${mProject.buildDir.path}/intermediates/library_manifest/${mVariant.name}/AndroidManifest.xml")

@@ -159,24 +159,24 @@ class VariantProcessor {
      */
     private void processManifest() {
         Task processManifestTask = mVersionAdapter.getProcessManifest()
-        File manifestOutputBackup
+        String manifestInputDir ="${mProject.getBuildDir()}/intermediates/fat-R/manifest"
+        File manifestOutput
         if (mGradlePluginVersion != null && Utils.compareVersion(mGradlePluginVersion, "3.3.0") >= 0) {
-            manifestOutputBackup = mProject.file("${mProject.buildDir.path}/intermediates/library_manifest/${mVariant.name}/AndroidManifest.xml")
+            manifestOutput = mProject.file("${mProject.buildDir.path}/intermediates/library_manifest/${mVariant.name}/AndroidManifest.xml")
         } else {
-            manifestOutputBackup = mProject.file(processManifestTask.getManifestOutputDirectory().absolutePath + '/AndroidManifest.xml')
+            manifestOutput = mProject.file(processManifestTask.getManifestOutputDirectory().absolutePath + '/AndroidManifest.xml')
         }
         InvokeManifestMerger manifestsMergeTask = mProject.tasks.create("merge${mVariant.name.capitalize()}Manifest", LibraryManifestMerger.class)
         manifestsMergeTask.setGradleVersion(mProject.getGradle().getGradleVersion())
         manifestsMergeTask.setGradlePluginVersion(mGradlePluginVersion)
         manifestsMergeTask.setVariantName(mVariant.name)
-        manifestsMergeTask.setMainManifestFile(manifestOutputBackup)
+        manifestsMergeTask.setMainManifestFile(mProject.file("${manifestInputDir}/AndroidManifest.xml"))
         List<File> list = new ArrayList<>()
         for (archiveLibrary in mAndroidArchiveLibraries) {
             list.add(archiveLibrary.getManifest())
         }
         manifestsMergeTask.setSecondaryManifestFiles(list)
-        manifestsMergeTask.setOutputFile(manifestOutputBackup)
-        manifestsMergeTask.dependsOn processManifestTask
+        manifestsMergeTask.setOutputFile(manifestOutput)
         manifestsMergeTask.doFirst {
             List<File> existFiles = new ArrayList<>()
             manifestsMergeTask.getSecondaryManifestFiles().each {
@@ -191,6 +191,16 @@ class VariantProcessor {
             manifestsMergeTask.dependsOn it
         }
 
+        // AGP 4.0.0 brings in a change which wipes out the output files whenever a task gets rerun
+        // See https://android.googlesource.com/platform/tools/base/+/studio-master-dev/build-system/gradle-core/src/main/java/com/android/build/gradle/internal/tasks/NonIncrementalTask.kt
+        // The manifest merging task tries to update the manifest in place, by setting input == output, resulting in the input file being explicitly deleted just before the task gets run
+        // The sleight-of-hand below gets things working again
+        Task copyTask = mProject.tasks.create(name: "copy${mVariant.name.capitalize()}Manifest", type: Copy) {
+            from manifestOutput
+            into mProject.file(manifestInputDir)
+        }
+        copyTask.dependsOn processManifestTask
+        manifestsMergeTask.dependsOn copyTask
         processManifestTask.finalizedBy manifestsMergeTask
     }
 

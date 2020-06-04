@@ -21,7 +21,7 @@ dependencies {
     implementation gradleApi()
     implementation localGroovy()
 
-    implementation 'com.android.tools.build:gradle:3.4.1'
+    implementation 'com.android.tools.build:gradle:4.0.0'
 }
 
 //afterEvaluate {

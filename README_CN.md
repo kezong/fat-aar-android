@@ -2,7 +2,7 @@
 [![license](http://img.shields.io/badge/license-Apache2.0-brightgreen.svg?style=flat)](https://github.com/kezong/fat-aar-android/blob/master/LICENSE)
 [![Download](https://api.bintray.com/packages/kezong/maven/fat-aar/images/download.svg)](https://bintray.com/kezong/maven/fat-aar/_latestVersion)
 
-该插件提供了将library以及它依赖的module一起打包成一个完整aar的解决方案，支持gradle plugin 3.0.1及以上。（目前测试的版本范围是gradle plugin 3.0.1 - 3.6.2，gradle 4.6 - 6.0.1）
+该插件提供了将library以及它依赖的module一起打包成一个完整aar的解决方案，支持gradle plugin 3.0.1及以上。（目前测试的版本范围是gradle plugin 3.0.1 - 4.0.0，gradle 4.6 - 6.1.1）
 
 ## 如何使用
 
@@ -17,7 +17,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:xxx'
-        classpath 'com.kezong:fat-aar:1.2.12'
+        classpath 'com.kezong:fat-aar:1.2.13'
     }
 }
 ```
@@ -108,10 +108,13 @@ AAR是Android提供的一种官方文件形式；
 | 1.2.6 | 3.0.1 - 3.5.0 | 4.1-6.0 |
 | 1.2.8 | 3.0.1+ | 4.1+ |
 | 1.2.11+ | 3.6.0+ | 5.4.1+ |
+| 1.2.13 | 4.0.0+ | 6.1.1+ |
 
 [Gradle Plugin和所需求的Gradle版本官方文档](https://developer.android.google.cn/studio/releases/gradle-plugin.html)
 
 ## 更新日志
+- [1.2.13](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.13>)
+  - 支持gradle plugin 4.0.0 [#147](https://github.com/kezong/fat-aar-android/issues/147)
 - [1.2.12](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.12>)
   - 添加对buildType以及flavor的支持，例如debugEmbed以及flavorEmbed. [#135](https://github.com/kezong/fat-aar-android/issues/135) [#137](https://github.com/kezong/fat-aar-android/issues/137)
   - 修复一些编译时的warning.

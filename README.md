@@ -5,7 +5,7 @@
 
 - [中文文档](./README_CN.md)
 
-The solution of merging aar works with [the android gradle plugin][3], the android plugin's version of the development is `3.0.1` and higher. (Tested in gradle plugin 3.0.1 - 3.6.2, and gradle 4.6 - 6.0.1)
+The solution of merging aar works with [the android gradle plugin][3], the android plugin's version of the development is `3.0.1` and higher. (Tested in gradle plugin 3.0.1 - 4.0.0, and gradle 4.6 - 6.1.1)
 
 ## Getting Started
 
@@ -20,7 +20,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:xxx'
-        classpath 'com.kezong:fat-aar:1.2.12'
+        classpath 'com.kezong:fat-aar:1.2.13'
     }
 }
 ```
@@ -108,12 +108,15 @@ See [anatomy of an aar file here][2].
 | 1.2.6 | 3.0.1 - 3.5.0 | 4.1-6.0 |
 | 1.2.8 | 3.0.1+ | 4.1+ |
 | 1.2.11+ | 3.6.0+ | 5.4.1+ |
+| 1.2.13 | 4.0.0+ | 6.1.1+ |
 
 The following link which version of Gradle is required for each version of the Android Gradle plugin. For the best performance, you should use the latest possible version of both Gradle and the plugin.
 
 [Plugin version and Required Gradle version](https://developer.android.google.cn/studio/releases/gradle-plugin.html)
 
 ## Version Log
+- [1.2.13](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.13>)
+  - adapt gradle plugin 4.0.0 [#147](https://github.com/kezong/fat-aar-android/issues/147)
 - [1.2.12](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.12>)
   - Added support for specific build type and product flavor dependencies, like debugEmbed or flavorEmbed. [#135](https://github.com/kezong/fat-aar-android/issues/135) [#137](https://github.com/kezong/fat-aar-android/issues/137)
   - Fix some build warning

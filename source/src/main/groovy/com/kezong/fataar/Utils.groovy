@@ -52,8 +52,12 @@ class Utils {
         if (v1.equals(v2)) {
             return 0
         }
-        String[] version1Array = v1.split("[._]")
-        String[] version2Array = v2.split("[._]")
+
+        String[] version1 = v1.split("-")
+        String[] version2 = v2.split("-")
+        String[] version1Array = version1[0].split("[._]")
+        String[] version2Array = version2[0].split("[._]")
+
         int index = 0
         int minLen = Math.min(version1Array.length, version2Array.length)
         long diff = 0

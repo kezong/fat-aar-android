@@ -17,7 +17,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:xxx'
-        classpath 'com.kezong:fat-aar:1.2.13'
+        classpath 'com.kezong:fat-aar:1.2.15'
     }
 }
 ```
@@ -108,13 +108,15 @@ AAR是Android提供的一种官方文件形式；
 | 1.2.6 | 3.0.1 - 3.5.0 | 4.1-6.0 |
 | 1.2.8 | 3.0.1+ | 4.1+ |
 | 1.2.11+ | 3.6.0+ | 5.4.1+ |
-| 1.2.13 | 4.0.0+ | 6.1.1+ |
+| 1.2.15 | 4.0.0+ | 6.1.1+ |
 
 [Gradle Plugin和所需求的Gradle版本官方文档](https://developer.android.google.cn/studio/releases/gradle-plugin.html)
 
 ## 更新日志
-- [1.2.13](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.13>)
+- [1.2.15](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.15>)
   - 支持gradle plugin 4.0.0 [#147](https://github.com/kezong/fat-aar-android/issues/147)
+  - 修复在Android Studio 4.0.0上embed的库无法直接索引源码的问题 [#148](https://github.com/kezong/fat-aar-android/issues/148)
+  - 修复lint编译错误 [#152](https://github.com/kezong/fat-aar-android/issues/152)
 - [1.2.12](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.12>)
   - 添加对buildType以及flavor的支持，例如debugEmbed以及flavorEmbed. [#135](https://github.com/kezong/fat-aar-android/issues/135) [#137](https://github.com/kezong/fat-aar-android/issues/137)
   - 修复一些编译时的warning.

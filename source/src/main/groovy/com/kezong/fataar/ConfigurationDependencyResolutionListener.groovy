@@ -28,8 +28,10 @@ class ConfigurationDependencyResolutionListener implements DependencyResolutionL
                 DefaultProjectDependency dependencyClone = dependency.copy()
                 dependencyClone.targetConfiguration = null;
                 project.dependencies.add('compileOnly', dependencyClone)
+                project.dependencies.add('testCompile', dependencyClone)
             } else {
                 project.dependencies.add('compileOnly', dependency)
+                project.dependencies.add('testCompile', dependency)
             }
         }
         project.gradle.removeListener(this)

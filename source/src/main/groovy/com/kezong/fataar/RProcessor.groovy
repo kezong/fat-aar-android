@@ -147,8 +147,8 @@ class RProcessor {
                     return
                 }
                 def subclass = splits.get(0)
-                def name = splits.get(1)
-                if (subclass == "attr?"){
+                def name = splits.get(1).repleace(".", "_")
+                if (subclass == "attr?") {
                     //styleable attributes
                     subclass = "attr"
                 }

@@ -17,7 +17,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:xxx'
-        classpath 'com.kezong:fat-aar:1.2.15'
+        classpath 'com.kezong:fat-aar:1.2.16'
     }
 }
 ```
@@ -113,6 +113,9 @@ AAR是Android提供的一种官方文件形式；
 [Gradle Plugin和所需求的Gradle版本官方文档](https://developer.android.google.cn/studio/releases/gradle-plugin.html)
 
 ## 更新日志
+- [1.2.16](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.16>)
+  - 修复gradle plugin版本不在根目录下就找不到的问题 [#172](https://github.com/kezong/fat-aar-android/issues/172)
+  - 修复在gradle plugin 4.0构建的产物中有可能styleable资源找不到的问题 [#163](https://github.com/kezong/fat-aar-android/issues/163)
 - [1.2.15](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.15>)
   - 支持gradle plugin 4.0.0 [#147](https://github.com/kezong/fat-aar-android/issues/147)
   - 修复在Android Studio 4.0.0上embed的库无法直接索引源码的问题 [#148](https://github.com/kezong/fat-aar-android/issues/148)

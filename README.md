@@ -20,7 +20,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:xxx'
-        classpath 'com.kezong:fat-aar:1.2.15'
+        classpath 'com.kezong:fat-aar:1.2.16'
     }
 }
 ```
@@ -108,13 +108,16 @@ See [anatomy of an aar file here][2].
 | 1.2.6 | 3.0.1 - 3.5.0 | 4.1-6.0 |
 | 1.2.8 | 3.0.1+ | 4.1+ |
 | 1.2.11+ | 3.6.0+ | 5.4.1+ |
-| 1.2.15 | 4.0.0+ | 6.1.1+ |
+| 1.2.15+ | 4.0.0+ | 6.1.1+ |
 
 The following link which version of Gradle is required for each version of the Android Gradle plugin. For the best performance, you should use the latest possible version of both Gradle and the plugin.
 
 [Plugin version and Required Gradle version](https://developer.android.google.cn/studio/releases/gradle-plugin.html)
 
 ## Version Log
+- [1.2.16](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.16>)
+  - Search for android build plugin version in full classpath [#172](https://github.com/kezong/fat-aar-android/issues/172)
+  - Fixed a bug where resources might not be found when build in gradle version 4.0 [#163](https://github.com/kezong/fat-aar-android/issues/163)
 - [1.2.15](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.15>)
   - adapt gradle plugin 4.0.0 [#147](https://github.com/kezong/fat-aar-android/issues/147)
   - support that the module can be indexed in AS 4.0.0 [#148](https://github.com/kezong/fat-aar-android/issues/148)

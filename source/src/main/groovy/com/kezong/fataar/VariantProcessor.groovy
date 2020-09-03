@@ -38,22 +38,33 @@ class VariantProcessor {
     VariantProcessor(Project project, LibraryVariant variant) {
         mProject = project
         mVariant = variant
-        // gradle version
-        def classpathBuildscriptConfiguration = mProject.rootProject.buildscript.getConfigurations().getByName("classpath")
+        checkGradlePluginVersion()
+        mVersionAdapter = new VersionAdapter(project, variant, mGradlePluginVersion)
+    }
 
-        def artifacts = classpathBuildscriptConfiguration.getResolvedConfiguration().getResolvedArtifacts()
-        artifacts.find {
-            def artifactId = it.getModuleVersion().getId()
-            if (artifactId.getGroup() == "com.android.tools.build" && artifactId.getName() == "gradle") {
-                mGradlePluginVersion = artifactId.getVersion()
-                return true
+    private void checkGradlePluginVersion() {
+        mProject.rootProject.buildscript.getConfigurations().getByName("classpath").getDependencies().each { Dependency dep ->
+            if (dep.group == "com.android.tools.build" && dep.name == "gradle") {
+                mGradlePluginVersion = dep.version
             }
-            return false
         }
+
+        if (mGradlePluginVersion == null) {
+            def classpathBuildscriptConfiguration = mProject.rootProject.buildscript.getConfigurations().getByName("classpath")
+            def artifacts = classpathBuildscriptConfiguration.getResolvedConfiguration().getResolvedArtifacts()
+            artifacts.find {
+                def artifactId = it.getModuleVersion().getId()
+                if (artifactId.getGroup() == "com.android.tools.build" && artifactId.getName() == "gradle") {
+                    mGradlePluginVersion = artifactId.getVersion()
+                    return true
+                }
+                return false
+            }
+        }
+
         if (mGradlePluginVersion == null) {
             throw new IllegalStateException("com.android.tools.build:gradle not found in buildscript classpath")
         }
-        mVersionAdapter = new VersionAdapter(project, variant, mGradlePluginVersion)
     }
 
     void addArtifacts(Set<ResolvedArtifact> resolvedArtifacts) {

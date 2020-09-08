@@ -93,15 +93,8 @@ class VariantProcessor {
         if (prepareTask == null) {
             throw new RuntimeException("Can not find task ${taskPath}!")
         }
-        taskPath = 'bundle' + mVariant.name.capitalize()
-        Task bundleTask = mProject.tasks.findByPath(taskPath)
-        if (bundleTask == null) {
-            taskPath = 'bundle' + mVariant.name.capitalize() + "Aar"
-            bundleTask = mProject.tasks.findByPath(taskPath)
-        }
-        if (bundleTask == null) {
-            throw new RuntimeException("Can not find task ${taskPath}!")
-        }
+        TaskProvider bundleTask = FlavorArtifact.getBundleTaskProvider(mProject, mVariant)
+
         processCache()
         processArtifacts(prepareTask, bundleTask)
         processClassesAndJars(bundleTask)
@@ -127,7 +120,7 @@ class VariantProcessor {
     /**
      * exploded artifact files
      */
-    private void processArtifacts(TaskProvider prepareTask, Task bundleTask) {
+    private void processArtifacts(TaskProvider<Task> prepareTask, TaskProvider<Task> bundleTask) {
         for (final ResolvedArtifact artifact in mResolvedArtifacts) {
             if (FatLibraryPlugin.ARTIFACT_TYPE_JAR == artifact.type) {
                 addJarFile(artifact.file)
@@ -164,7 +157,9 @@ class VariantProcessor {
                 }
                 Task javacTask = mVersionAdapter.getJavaCompileTask()
                 javacTask.dependsOn(explodeTask)
-                bundleTask.dependsOn(explodeTask)
+                bundleTask.configure {
+                    dependsOn(explodeTask)
+                }
                 mExplodeTasks.add(explodeTask)
             }
         }
@@ -254,7 +249,7 @@ class VariantProcessor {
     /**
      * merge classes and jars
      */
-    private void processClassesAndJars(Task bundleTask) {
+    private void processClassesAndJars(TaskProvider<Task> bundleTask) {
         boolean isMinifyEnabled = mVariant.getBuildType().isMinifyEnabled()
         if (isMinifyEnabled) {
             //merge proguard file
@@ -282,7 +277,9 @@ class VariantProcessor {
 
         if (!isMinifyEnabled) {
             TaskProvider mergeJars = handleJarMergeTask(syncLibTask)
-            bundleTask.dependsOn(mergeJars)
+            bundleTask.configure {
+                dependsOn(mergeJars)
+            }
         }
     }
 

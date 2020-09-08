@@ -47,7 +47,7 @@ class RProcessor {
         mAarOutputPath = mVersionAdapter.getOutputPath()
     }
 
-    void inject(Task bundleTask) {
+    void inject(TaskProvider<Task> bundleTask) {
         def reBundleAar = createBundleAarTask(mAarUnZipDir, mAarOutputDir, mAarOutputPath)
         def RJarTask = createRJarTask(mClassDir, mJarDir, reBundleAar)
         def RClassTask = createRClassTask(mJavaDir, mClassDir, RJarTask)
@@ -66,29 +66,31 @@ class RProcessor {
             }
         }
 
-        bundleTask.doFirst {
-            File f = new File(mAarOutputPath)
-            if (f.exists()) {
-                f.delete()
-            }
-            mJarDir.getParentFile().deleteDir()
-            mJarDir.mkdirs()
-        }
+        bundleTask.configure {
+            finalizedBy(RFileTask)
 
-        bundleTask.doLast {
-            // support gradle 5.1 && gradle plugin 3.4 before, the outputName is changed
-            File file = new File(mAarOutputPath)
-            if (!file.exists()) {
-                mAarOutputPath = mAarOutputDir.absolutePath + "/" + mProject.name + ".aar"
-                if (Utils.compareVersion(mProject.gradle.gradleVersion, "6.0.1") >= 0) {
-                    reBundleAar.getArchiveFileName().set(new File(mAarOutputPath).name)
-                } else {
-                    reBundleAar.archiveName = new File(mAarOutputPath).name
+            doFirst {
+                File f = new File(mAarOutputPath)
+                if (f.exists()) {
+                    f.delete()
+                }
+                mJarDir.getParentFile().deleteDir()
+                mJarDir.mkdirs()
+            }
+
+            doLast {
+                // support gradle 5.1 && gradle plugin 3.4 before, the outputName is changed
+                File file = new File(mAarOutputPath)
+                if (!file.exists()) {
+                    mAarOutputPath = mAarOutputDir.absolutePath + "/" + mProject.name + ".aar"
+                    if (Utils.compareVersion(mProject.gradle.gradleVersion, "6.0.1") >= 0) {
+                        reBundleAar.getArchiveFileName().set(new File(mAarOutputPath).name)
+                    } else {
+                        reBundleAar.archiveName = new File(mAarOutputPath).name
+                    }
                 }
             }
         }
-
-        bundleTask.finalizedBy(RFileTask)
     }
 
     private def createRFile(AndroidArchiveLibrary library, def rFolder, ConfigObject symbolsMap) {

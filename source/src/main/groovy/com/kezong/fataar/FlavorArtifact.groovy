@@ -3,6 +3,7 @@ package com.kezong.fataar
 import com.android.build.gradle.api.LibraryVariant
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.UnknownTaskException
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
@@ -12,6 +13,7 @@ import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
 import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.internal.Factory
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 
@@ -95,22 +97,26 @@ class FlavorArtifact {
         return new File(outputName)
     }
 
+    static TaskProvider<Task> getBundleTaskProvider(final Project project, final LibraryVariant variant) throws UnknownTaskException {
+        def taskPath = "bundle" + variant.name.capitalize()
+        TaskProvider bundleTask
+        try {
+            bundleTask = project.tasks.named(taskPath)
+        } catch (UnknownTaskException ignored) {
+            taskPath += "Aar"
+            bundleTask = project.tasks.named(taskPath)
+        }
+        return bundleTask
+    }
+
     private static TaskDependency createTaskDependency(Project project, LibraryVariant variant) {
-        def taskPath = 'bundle' + variant.name.capitalize()
-        Task bundleTask = project.tasks.findByPath(taskPath)
-        if (bundleTask == null) {
-            taskPath = 'bundle' + variant.name.capitalize() + "Aar"
-            bundleTask = project.tasks.findByPath(taskPath)
-        }
-        if (bundleTask == null) {
-            throw new RuntimeException("Can not find task ${taskPath}!")
-        }
+        def bundleTaskProvider = getBundleTaskProvider(project, variant)
 
         return new TaskDependency() {
             @Override
             Set<? extends Task> getDependencies(@Nullable Task task) {
                 def set = new HashSet()
-                set.add(bundleTask)
+                set.add(bundleTaskProvider.get())
                 return set
             }
         }

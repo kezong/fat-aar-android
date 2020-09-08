@@ -197,7 +197,7 @@ class RProcessor {
             it.sourceCompatibility = mProject.android.compileOptions.sourceCompatibility
             it.targetCompatibility = mProject.android.compileOptions.targetCompatibility
             it.classpath = classpath
-            it.destinationDir destinationDir
+            it.destinationDir = destinationDir
         })
 
         task.doFirst {
@@ -214,7 +214,7 @@ class RProcessor {
         return task
     }
 
-    private Task createRJarTask(final def fromDir, final def desFile) {
+    private Task createRJarTask(final File fromDir, final File desFile) {
         String taskName = "createRsJar${mVariant.name.capitalize()}"
         Task task = mProject.getTasks().create(taskName, Jar.class, {
             it.from fromDir.path
@@ -225,7 +225,7 @@ class RProcessor {
                 it.getDestinationDirectory().set(desFile)
             } else {
                 it.archiveName = "r-classes.jar"
-                it.destinationDir desFile
+                it.destinationDir = desFile
             }
         })
         task.doFirst {
@@ -244,14 +244,14 @@ class RProcessor {
                 it.getDestinationDirectory().set(destDir)
             } else {
                 it.archiveName = new File(filePath).name
-                it.destinationDir(destDir)
+                it.destinationDir = destDir
             }
         })
 
         return task
     }
 
-    def deleteEmptyDir = { file ->
+    private void deleteEmptyDir(final File file) {
         file.listFiles().each { x ->
             if (x.isDirectory()) {
                 if (x.listFiles().size() == 0) {

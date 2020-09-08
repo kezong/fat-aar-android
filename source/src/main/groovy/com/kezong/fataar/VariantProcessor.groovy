@@ -23,7 +23,7 @@ class VariantProcessor {
 
     private final LibraryVariant mVariant
 
-    private Set<ResolvedArtifact> mResolvedArtifacts = new ArrayList<>()
+    private Set<ResolvedArtifact> mResolvedArtifacts = new HashSet<>()
 
     private Collection<AndroidArchiveLibrary> mAndroidArchiveLibraries = new ArrayList<>()
 

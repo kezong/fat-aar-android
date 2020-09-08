@@ -11,6 +11,7 @@ import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.api.tasks.TaskProvider
 
 /**
  * Processor for variant
@@ -221,24 +222,25 @@ class VariantProcessor {
         processManifestTask.finalizedBy manifestsMergeTask
     }
 
-    private Task handleClassesMergeTask(final boolean isMinifyEnabled) {
-        final Task task = mProject.tasks.create(name: 'mergeClasses'
-                + mVariant.name.capitalize())
-        task.doFirst {
-            def dustDir = mVersionAdapter.getClassPathDirFiles().first()
-            if (isMinifyEnabled) {
-                ExplodedHelper.processClassesJarInfoClasses(mProject, mAndroidArchiveLibraries, dustDir)
-                ExplodedHelper.processLibsIntoClasses(mProject, mAndroidArchiveLibraries, mJarFiles, dustDir)
-            } else {
-                ExplodedHelper.processClassesJarInfoClasses(mProject, mAndroidArchiveLibraries, dustDir)
+    private TaskProvider handleClassesMergeTask(final boolean isMinifyEnabled) {
+        final TaskProvider task = mProject.tasks.register('mergeClasses' + mVariant.name.capitalize()) {
+            dependsOn(mExplodeTasks)
+            dependsOn(mVersionAdapter.getJavaCompileTask())
+            doFirst {
+                def dustDir = mVersionAdapter.getClassPathDirFiles().first()
+                if (isMinifyEnabled) {
+                    ExplodedHelper.processClassesJarInfoClasses(mProject, mAndroidArchiveLibraries, dustDir)
+                    ExplodedHelper.processLibsIntoClasses(mProject, mAndroidArchiveLibraries, mJarFiles, dustDir)
+                } else {
+                    ExplodedHelper.processClassesJarInfoClasses(mProject, mAndroidArchiveLibraries, dustDir)
+                }
             }
         }
         return task
     }
 
     private Task handleJarMergeTask() {
-        final Task task = mProject.tasks.create(name: 'mergeJars'
-                + mVariant.name.capitalize())
+        final Task task = mProject.tasks.create('mergeJars' + mVariant.name.capitalize())
         task.doFirst {
             ExplodedHelper.processLibsIntoLibs(mProject, mAndroidArchiveLibraries, mJarFiles, mVersionAdapter.getLibsDirFile())
         }
@@ -270,12 +272,8 @@ class VariantProcessor {
         }
 
         Task javacTask = mVersionAdapter.getJavaCompileTask()
-        Task mergeClasses = handleClassesMergeTask(isMinifyEnabled)
+        TaskProvider mergeClasses = handleClassesMergeTask(isMinifyEnabled)
         syncLibTask.dependsOn(mergeClasses)
-        mExplodeTasks.each { it ->
-            mergeClasses.dependsOn it
-        }
-        mergeClasses.dependsOn(javacTask)
 
         if (!isMinifyEnabled) {
             Task mergeJars = handleJarMergeTask()

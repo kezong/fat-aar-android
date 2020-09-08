@@ -1,14 +1,12 @@
 package com.kezong.fataar
 
 import com.android.build.gradle.api.LibraryVariant
-
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.jvm.tasks.Jar
-
 
 /**
  * R file processor
@@ -50,21 +48,22 @@ class RProcessor {
     }
 
     void inject(Task bundleTask) {
-        def RJarTask = createRJarTask(mClassDir, mJarDir)
+        def reBundleAar = createBundleAarTask(mAarUnZipDir, mAarOutputDir, mAarOutputPath)
+        def RJarTask = createRJarTask(mClassDir, mJarDir, reBundleAar)
         def RClassTask = createRClassTask(mJavaDir, mClassDir, RJarTask)
         def RFileTask = createRFileTask(mJavaDir, RClassTask)
-        def reBundleAar = createBundleAarTask(mAarUnZipDir, mAarOutputDir, mAarOutputPath)
 
-        reBundleAar.doFirst {
-            mProject.copy {
-                from mProject.zipTree(mAarOutputPath)
-                into mAarUnZipDir
+        reBundleAar.configure {
+            doFirst {
+                mProject.copy {
+                    from mProject.zipTree(mAarOutputPath)
+                    into mAarUnZipDir
+                }
+                deleteEmptyDir(mAarUnZipDir)
             }
-            deleteEmptyDir(mAarUnZipDir)
-        }
-
-        reBundleAar.doLast {
-            Utils.logAnytime("target: $mAarOutputPath")
+            doLast {
+                Utils.logAnytime("target: $mAarOutputPath")
+            }
         }
 
         bundleTask.doFirst {
@@ -90,7 +89,6 @@ class RProcessor {
         }
 
         bundleTask.finalizedBy(RFileTask)
-        RJarTask.finalizedBy(reBundleAar)
     }
 
     private def createRFile(AndroidArchiveLibrary library, def rFolder, ConfigObject symbolsMap) {
@@ -188,7 +186,7 @@ class RProcessor {
         return task
     }
 
-    private TaskProvider createRClassTask(final File sourceDir, final File destinationDir, final Task RJarTask) {
+    private TaskProvider createRClassTask(final File sourceDir, final File destinationDir, final TaskProvider RJarTask) {
         mProject.mkdir(destinationDir)
 
         def classpath = mVersionAdapter.getRClassPath()
@@ -217,9 +215,11 @@ class RProcessor {
         return task
     }
 
-    private Task createRJarTask(final File fromDir, final File desFile) {
+    private TaskProvider createRJarTask(final File fromDir, final File desFile, final TaskProvider reBundleAarTask) {
         String taskName = "createRsJar${mVariant.name.capitalize()}"
-        Task task = mProject.getTasks().create(taskName, Jar.class, {
+        TaskProvider task = mProject.getTasks().register(taskName, Jar) {
+            finalizedBy(reBundleAarTask)
+
             it.from fromDir.path
             // The destinationDir property has been deprecated.
             // This is scheduled to be removed in Gradle 7.0. Please use the destinationDirectory property instead.
@@ -230,16 +230,16 @@ class RProcessor {
                 it.archiveName = "r-classes.jar"
                 it.destinationDir = desFile
             }
-        })
-        task.doFirst {
-            Utils.logInfo("Generate R.jar, Dir：$fromDir")
+            doFirst {
+                Utils.logInfo("Generate R.jar, Dir：$fromDir")
+            }
         }
         return task
     }
 
-    private Task createBundleAarTask(final File from, final File destDir, final String filePath) {
+    private TaskProvider createBundleAarTask(final File from, final File destDir, final String filePath) {
         String taskName = "reBundleAar${mVariant.name.capitalize()}"
-        Task task = mProject.getTasks().create(taskName, Zip.class, {
+        TaskProvider task = mProject.getTasks().register(taskName, Zip.class) {
             it.from from
             it.include "**"
             if (Utils.compareVersion(mProject.gradle.gradleVersion, "6.0.1") >= 0) {
@@ -249,7 +249,7 @@ class RProcessor {
                 it.archiveName = new File(filePath).name
                 it.destinationDir = destDir
             }
-        })
+        }
 
         return task
     }

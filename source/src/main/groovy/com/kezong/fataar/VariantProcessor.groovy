@@ -239,7 +239,7 @@ class VariantProcessor {
         return task
     }
 
-    private TaskProvider handleJarMergeTask(final Task syncLibTask) {
+    private TaskProvider handleJarMergeTask(final TaskProvider syncLibTask) {
         final TaskProvider task = mProject.tasks.register('mergeJars' + mVariant.name.capitalize()) {
             dependsOn(mExplodeTasks)
             dependsOn(mVersionAdapter.getJavaCompileTask())
@@ -270,13 +270,15 @@ class VariantProcessor {
         }
 
         String taskPath = mVersionAdapter.getSyncLibJarsTaskPath()
-        Task syncLibTask = mProject.tasks.findByPath(taskPath)
+        TaskProvider syncLibTask = mProject.tasks.named(taskPath)
         if (syncLibTask == null) {
             throw new RuntimeException("Can not find task ${taskPath}!")
         }
 
         TaskProvider mergeClasses = handleClassesMergeTask(isMinifyEnabled)
-        syncLibTask.dependsOn(mergeClasses)
+        syncLibTask.configure {
+            dependsOn(mergeClasses)
+        }
 
         if (!isMinifyEnabled) {
             TaskProvider mergeJars = handleJarMergeTask(syncLibTask)

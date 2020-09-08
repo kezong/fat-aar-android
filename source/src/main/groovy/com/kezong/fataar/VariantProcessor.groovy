@@ -89,7 +89,7 @@ class VariantProcessor {
 
     void processVariant() {
         String taskPath = 'pre' + mVariant.name.capitalize() + 'Build'
-        Task prepareTask = mProject.tasks.findByPath(taskPath)
+        TaskProvider prepareTask = mProject.tasks.named(taskPath)
         if (prepareTask == null) {
             throw new RuntimeException("Can not find task ${taskPath}!")
         }
@@ -127,7 +127,7 @@ class VariantProcessor {
     /**
      * exploded artifact files
      */
-    private void processArtifacts(Task prepareTask, Task bundleTask) {
+    private void processArtifacts(TaskProvider prepareTask, Task bundleTask) {
         for (final ResolvedArtifact artifact in mResolvedArtifacts) {
             if (FatLibraryPlugin.ARTIFACT_TYPE_JAR == artifact.type) {
                 addJarFile(artifact.file)
@@ -377,7 +377,7 @@ class VariantProcessor {
      * fixme
      * merge proguard.txt
      */
-    private void processProguardTxt(Task prepareTask) {
+    private void processProguardTxt(TaskProvider prepareTask) {
         String taskPath = 'merge' + mVariant.name.capitalize() + 'ConsumerProguardFiles'
         TaskProvider mergeFileTask = mProject.tasks.named(taskPath)
         if (mergeFileTask == null) {

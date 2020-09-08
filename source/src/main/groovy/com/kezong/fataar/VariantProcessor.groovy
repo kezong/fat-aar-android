@@ -6,7 +6,6 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
-import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.TaskDependency
@@ -129,7 +128,7 @@ class VariantProcessor {
      * exploded artifact files
      */
     private void processArtifacts(Task prepareTask, Task bundleTask) {
-        for (final DefaultResolvedArtifact artifact in mResolvedArtifacts) {
+        for (final ResolvedArtifact artifact in mResolvedArtifacts) {
             if (FatLibraryPlugin.ARTIFACT_TYPE_JAR == artifact.type) {
                 addJarFile(artifact.file)
             } else if (FatLibraryPlugin.ARTIFACT_TYPE_AAR == artifact.type) {
@@ -153,7 +152,7 @@ class VariantProcessor {
                 def group = artifact.getModuleVersion().id.group.capitalize()
                 def name = artifact.name.capitalize()
                 String taskName = "explode${group}${name}${mVariant.name.capitalize()}"
-                Task explodeTask = mProject.tasks.create(name: taskName, type: Copy) {
+                Task explodeTask = mProject.tasks.create(taskName, Copy) {
                     from mProject.zipTree(artifact.file.absolutePath)
                     into zipFolder
                 }
@@ -350,25 +349,25 @@ class VariantProcessor {
      */
     private void processJniLibs() {
         String taskPath = 'merge' + mVariant.name.capitalize() + 'JniLibFolders'
-        Task mergeJniLibsTask = mProject.tasks.findByPath(taskPath)
+        TaskProvider mergeJniLibsTask = mProject.tasks.named(taskPath)
         if (mergeJniLibsTask == null) {
             throw new RuntimeException("Can not find task ${taskPath}!")
         }
 
-        mergeJniLibsTask.doFirst {
-            for (archiveLibrary in mAndroidArchiveLibraries) {
-                if (archiveLibrary.jniFolder != null && archiveLibrary.jniFolder.exists()) {
-                    mProject.android.sourceSets.each {
-                        if (it.name == mVariant.name) {
-                            it.jniLibs.srcDir(archiveLibrary.jniFolder)
+        mergeJniLibsTask.configure {
+            dependsOn(mExplodeTasks)
+
+            doFirst {
+                for (archiveLibrary in mAndroidArchiveLibraries) {
+                    if (archiveLibrary.jniFolder != null && archiveLibrary.jniFolder.exists()) {
+                        mProject.android.sourceSets.each {
+                            if (it.name == mVariant.name) {
+                                it.jniLibs.srcDir(archiveLibrary.jniFolder)
+                            }
                         }
                     }
                 }
             }
-        }
-
-        mExplodeTasks.each { it ->
-            mergeJniLibsTask.dependsOn it
         }
     }
 
@@ -378,31 +377,25 @@ class VariantProcessor {
      */
     private void processProguardTxt(Task prepareTask) {
         String taskPath = 'merge' + mVariant.name.capitalize() + 'ConsumerProguardFiles'
-        Task mergeFileTask = mProject.tasks.findByPath(taskPath)
+        TaskProvider mergeFileTask = mProject.tasks.named(taskPath)
         if (mergeFileTask == null) {
             throw new RuntimeException("Can not find task ${taskPath}!")
         }
+
+        def proguardFiles = new ArrayList<File>()
         for (archiveLibrary in mAndroidArchiveLibraries) {
             List<File> thirdProguardFiles = archiveLibrary.proguardRules
             for (File file : thirdProguardFiles) {
                 if (file.exists()) {
                     Utils.logInfo('add proguard file: ' + file.absolutePath)
-                    mergeFileTask.getInputs().file(file)
+                    proguardFiles.add(file)
                 }
             }
         }
-        mergeFileTask.doFirst {
-            def proguardFiles = mergeFileTask.getInputFiles()
-            for (archiveLibrary in mAndroidArchiveLibraries) {
-                List<File> thirdProguardFiles = archiveLibrary.proguardRules
-                for (File file : thirdProguardFiles) {
-                    if (file.exists()) {
-                        Utils.logInfo('add proguard file: ' + file.absolutePath)
-                        proguardFiles.add(file)
-                    }
-                }
-            }
+
+        mergeFileTask.configure {
+            dependsOn(prepareTask)
+            inputs.files(proguardFiles)
         }
-        mergeFileTask.dependsOn prepareTask
     }
 }

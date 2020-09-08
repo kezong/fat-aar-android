@@ -4,6 +4,7 @@ import com.android.build.gradle.api.LibraryVariant
 
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.jvm.tasks.Jar
@@ -49,8 +50,8 @@ class RProcessor {
     }
 
     void inject(Task bundleTask) {
-        def RFileTask = createRFileTask(mJavaDir)
         def RClassTask = createRClassTask(mJavaDir, mClassDir)
+        def RFileTask = createRFileTask(mJavaDir, RClassTask)
         def RJarTask = createRJarTask(mClassDir, mJarDir)
         def reBundleAar = createBundleAarTask(mAarUnZipDir, mAarOutputDir, mAarOutputPath)
 
@@ -89,7 +90,6 @@ class RProcessor {
         }
 
         bundleTask.finalizedBy(RFileTask)
-        RFileTask.finalizedBy(RClassTask)
         RClassTask.finalizedBy(RJarTask)
         RJarTask.finalizedBy(reBundleAar)
     }
@@ -169,21 +169,23 @@ class RProcessor {
         return map
     }
 
-    private Task createRFileTask(final File destFolder) {
-        def task = mProject.tasks.create(name: 'createRsFile' + mVariant.name)
-        task.doLast {
-            if (destFolder.exists()) {
-                destFolder.deleteDir()
-            }
-            if (mLibraries != null && mLibraries.size() > 0) {
-                def symbolsMap = getSymbolsMap()
-                mLibraries.each {
-                    Utils.logInfo("Generate R File, Library:${it.name}")
-                    createRFile(it, destFolder, symbolsMap)
+    private TaskProvider createRFileTask(final File destFolder, final Task RClassTask) {
+        def task = mProject.tasks.register('createRsFile' + mVariant.name) {
+            finalizedBy(RClassTask)
+
+            doLast {
+                if (destFolder.exists()) {
+                    destFolder.deleteDir()
+                }
+                if (mLibraries != null && mLibraries.size() > 0) {
+                    def symbolsMap = getSymbolsMap()
+                    mLibraries.each {
+                        Utils.logInfo("Generate R File, Library:${it.name}")
+                        createRFile(it, destFolder, symbolsMap)
+                    }
                 }
             }
         }
-
         return task
     }
 

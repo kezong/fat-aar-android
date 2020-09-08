@@ -239,10 +239,14 @@ class VariantProcessor {
         return task
     }
 
-    private Task handleJarMergeTask() {
-        final Task task = mProject.tasks.create('mergeJars' + mVariant.name.capitalize())
-        task.doFirst {
-            ExplodedHelper.processLibsIntoLibs(mProject, mAndroidArchiveLibraries, mJarFiles, mVersionAdapter.getLibsDirFile())
+    private TaskProvider handleJarMergeTask(final Task syncLibTask) {
+        final TaskProvider task = mProject.tasks.register('mergeJars' + mVariant.name.capitalize()) {
+            dependsOn(mExplodeTasks)
+            dependsOn(mVersionAdapter.getJavaCompileTask())
+            mustRunAfter(syncLibTask)
+            doFirst {
+                ExplodedHelper.processLibsIntoLibs(mProject, mAndroidArchiveLibraries, mJarFiles, mVersionAdapter.getLibsDirFile())
+            }
         }
         return task
     }
@@ -271,18 +275,12 @@ class VariantProcessor {
             throw new RuntimeException("Can not find task ${taskPath}!")
         }
 
-        Task javacTask = mVersionAdapter.getJavaCompileTask()
         TaskProvider mergeClasses = handleClassesMergeTask(isMinifyEnabled)
         syncLibTask.dependsOn(mergeClasses)
 
         if (!isMinifyEnabled) {
-            Task mergeJars = handleJarMergeTask()
-            mergeJars.mustRunAfter(syncLibTask)
+            TaskProvider mergeJars = handleJarMergeTask(syncLibTask)
             bundleTask.dependsOn(mergeJars)
-            mExplodeTasks.each { it ->
-                mergeJars.dependsOn it
-            }
-            mergeJars.dependsOn(javacTask)
         }
     }
 

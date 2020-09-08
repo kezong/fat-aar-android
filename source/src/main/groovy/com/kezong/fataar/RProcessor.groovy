@@ -50,9 +50,9 @@ class RProcessor {
     }
 
     void inject(Task bundleTask) {
-        def RClassTask = createRClassTask(mJavaDir, mClassDir)
-        def RFileTask = createRFileTask(mJavaDir, RClassTask)
         def RJarTask = createRJarTask(mClassDir, mJarDir)
+        def RClassTask = createRClassTask(mJavaDir, mClassDir, RJarTask)
+        def RFileTask = createRFileTask(mJavaDir, RClassTask)
         def reBundleAar = createBundleAarTask(mAarUnZipDir, mAarOutputDir, mAarOutputPath)
 
         reBundleAar.doFirst {
@@ -90,7 +90,6 @@ class RProcessor {
         }
 
         bundleTask.finalizedBy(RFileTask)
-        RClassTask.finalizedBy(RJarTask)
         RJarTask.finalizedBy(reBundleAar)
     }
 
@@ -169,7 +168,7 @@ class RProcessor {
         return map
     }
 
-    private TaskProvider createRFileTask(final File destFolder, final Task RClassTask) {
+    private TaskProvider createRFileTask(final File destFolder, final TaskProvider RClassTask) {
         def task = mProject.tasks.register('createRsFile' + mVariant.name) {
             finalizedBy(RClassTask)
 
@@ -189,27 +188,29 @@ class RProcessor {
         return task
     }
 
-    private Task createRClassTask(final def sourceDir, final def destinationDir) {
+    private TaskProvider createRClassTask(final File sourceDir, final File destinationDir, final Task RJarTask) {
         mProject.mkdir(destinationDir)
 
         def classpath = mVersionAdapter.getRClassPath()
         String taskName = "compileRs${mVariant.name.capitalize()}"
-        Task task = mProject.getTasks().create(taskName, JavaCompile.class, {
+        TaskProvider task = mProject.getTasks().register(taskName, JavaCompile.class) {
+            finalizedBy(RJarTask)
+
             it.source = sourceDir.path
             it.sourceCompatibility = mProject.android.compileOptions.sourceCompatibility
             it.targetCompatibility = mProject.android.compileOptions.targetCompatibility
             it.classpath = classpath
             it.destinationDir = destinationDir
-        })
 
-        task.doFirst {
-            Utils.logInfo("Compile R.class, Dir:${sourceDir.path}")
-            Utils.logInfo("Compile R.class, classpath:${classpath.first().absolutePath}")
+            doFirst {
+                Utils.logInfo("Compile R.class, Dir:${sourceDir.path}")
+                Utils.logInfo("Compile R.class, classpath:${classpath.first().absolutePath}")
 
-            if (mGradlePluginVersion != null && Utils.compareVersion(mGradlePluginVersion, "3.3.0") >= 0) {
-                mProject.copy {
-                    from mProject.zipTree(mVersionAdapter.getRClassPath().first().absolutePath + "/R.jar")
-                    into mVersionAdapter.getRClassPath().first().absolutePath
+                if (mGradlePluginVersion != null && Utils.compareVersion(mGradlePluginVersion, "3.3.0") >= 0) {
+                    mProject.copy {
+                        from mProject.zipTree(mVersionAdapter.getRClassPath().first().absolutePath + "/R.jar")
+                        into mVersionAdapter.getRClassPath().first().absolutePath
+                    }
                 }
             }
         }

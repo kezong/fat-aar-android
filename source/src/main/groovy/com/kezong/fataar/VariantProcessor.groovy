@@ -147,7 +147,6 @@ class VariantProcessor {
                         dependencies = context.queue.getFirst().getDependencies()
                     }
                 }
-                archiveLibrary.getRootFolder().deleteDir()
                 final def zipFolder = archiveLibrary.getRootFolder()
                 zipFolder.mkdirs()
                 def group = artifact.getModuleVersion().id.group.capitalize()
@@ -222,25 +221,30 @@ class VariantProcessor {
     }
 
     private Task handleClassesMergeTask(final boolean isMinifyEnabled) {
-        final Task task = mProject.tasks.create(name: 'mergeClasses'
-                + mVariant.name.capitalize())
-        task.doFirst {
-            def dustDir = mVersionAdapter.getClassPathDirFiles().first()
-            if (isMinifyEnabled) {
-                ExplodedHelper.processClassesJarInfoClasses(mProject, mAndroidArchiveLibraries, dustDir)
-                ExplodedHelper.processLibsIntoClasses(mProject, mAndroidArchiveLibraries, mJarFiles, dustDir)
-            } else {
-                ExplodedHelper.processClassesJarInfoClasses(mProject, mAndroidArchiveLibraries, dustDir)
+        final Task task = mProject.tasks.create(name: 'mergeClasses' + mVariant.name.capitalize()) {
+            def outputDir = mVersionAdapter.getClassPathDirFiles().first()
+            outputs.dir(outputDir)
+
+            doFirst {
+                if (isMinifyEnabled) {
+                    ExplodedHelper.processClassesJarInfoClasses(mProject, mAndroidArchiveLibraries, outputDir)
+                    ExplodedHelper.processLibsIntoClasses(mProject, mAndroidArchiveLibraries, mJarFiles, outputDir)
+                } else {
+                    ExplodedHelper.processClassesJarInfoClasses(mProject, mAndroidArchiveLibraries, outputDir)
+                }
             }
         }
         return task
     }
 
     private Task handleJarMergeTask() {
-        final Task task = mProject.tasks.create(name: 'mergeJars'
-                + mVariant.name.capitalize())
-        task.doFirst {
-            ExplodedHelper.processLibsIntoLibs(mProject, mAndroidArchiveLibraries, mJarFiles, mVersionAdapter.getLibsDirFile())
+        final Task task = mProject.tasks.create(name: 'mergeJars' + mVariant.name.capitalize()) {
+            def outputDir = mVersionAdapter.getLibsDirFile()
+            outputs.dir(outputDir)
+
+            doFirst {
+                ExplodedHelper.processLibsIntoLibs(mProject, mAndroidArchiveLibraries, mJarFiles, outputDir)
+            }
         }
         return task
     }

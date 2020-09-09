@@ -71,8 +71,6 @@ class RProcessor {
             if (f.exists()) {
                 f.delete()
             }
-            mJarDir.getParentFile().deleteDir()
-            mJarDir.mkdirs()
         }
 
         bundleTask.doLast {
@@ -170,7 +168,9 @@ class RProcessor {
     }
 
     private Task createRFileTask(final File destFolder) {
-        def task = mProject.tasks.create(name: 'createRsFile' + mVariant.name)
+        def task = mProject.tasks.create(name: 'createRsFile' + mVariant.name) {
+            outputs.dir(destFolder)
+        }
         task.doLast {
             if (destFolder.exists()) {
                 destFolder.deleteDir()

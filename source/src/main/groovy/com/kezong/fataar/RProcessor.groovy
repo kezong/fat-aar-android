@@ -34,11 +34,11 @@ class RProcessor {
         mGradlePluginVersion = version
         mVersionAdapter = new VersionAdapter(project, variant, version)
         // R.java dir
-        mJavaDir = mProject.file("${mProject.getBuildDir()}/intermediates/fat-R/r/${mVariant.dirName}")
+        mJavaDir = mProject.file("${mProject.getBuildDir()}/intermediates/${Constants.INTERMEDIATES_TEMP_FOLDER}/r/${mVariant.dirName}")
         // R.class compile dir
-        mClassDir = mProject.file("${mProject.getBuildDir()}/intermediates/fat-R/r-class/${mVariant.dirName}")
+        mClassDir = mProject.file("${mProject.getBuildDir()}/intermediates/${Constants.INTERMEDIATES_TEMP_FOLDER}/r-class/${mVariant.dirName}")
         // R.jar dir
-        mJarDir = mProject.file("${mProject.getBuildDir()}/outputs/aar-R/${mVariant.dirName}/libs")
+        mJarDir = mProject.file("${mProject.getBuildDir()}/outputs/${Constants.RE_BUNDLE_FOLDER}/${mVariant.dirName}/libs")
         // aar zip file
         mAarUnZipDir = mJarDir.getParentFile()
         // aar output dir
@@ -74,7 +74,6 @@ class RProcessor {
                 if (f.exists()) {
                     f.delete()
                 }
-                mJarDir.getParentFile().deleteDir()
                 mJarDir.mkdirs()
             }
 

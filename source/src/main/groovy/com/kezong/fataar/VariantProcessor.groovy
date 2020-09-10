@@ -106,14 +106,52 @@ class VariantProcessor {
         processAssets()
         processJniLibs()
         processProguardTxt(prepareTask)
+        processR(bundleTask)
+        processDataBinding(bundleTask)
+    }
+
+    private void processR(TaskProvider<Task> bundleTask) {
         RProcessor rProcessor = new RProcessor(mProject, mVariant, mAndroidArchiveLibraries, mGradlePluginVersion)
         rProcessor.inject(bundleTask)
+    }
+
+    private void processDataBinding(TaskProvider<Task> bundleTask) {
+        bundleTask.configure {
+            doFirst {
+                for (archiveLibrary in mAndroidArchiveLibraries) {
+                    if (archiveLibrary.dataBindingFolder != null && archiveLibrary.dataBindingFolder.exists()) {
+                        String filePath = "${mProject.getBuildDir()}/outputs/${Constants.RE_BUNDLE_FOLDER}" +
+                                "/${mVariant.dirName}/${archiveLibrary.dataBindingFolder.name}"
+                        new File(filePath).mkdirs()
+                        mProject.copy {
+                            from archiveLibrary.dataBindingFolder
+                            into filePath
+                        }
+                    }
+
+                    if (archiveLibrary.dataBindingLogFolder != null && archiveLibrary.dataBindingLogFolder.exists()) {
+                        String filePath = "${mProject.getBuildDir()}/outputs/${Constants.RE_BUNDLE_FOLDER}/${mVariant.dirName}" +
+                                "/${archiveLibrary.dataBindingLogFolder.name}"
+                        new File(filePath).mkdirs()
+                        mProject.copy {
+                            from archiveLibrary.dataBindingLogFolder
+                            into filePath
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private void processCache() {
         if (Utils.compareVersion(mGradlePluginVersion, "3.5.0") >= 0) {
             mVersionAdapter.getLibsDirFile().deleteDir()
             mVersionAdapter.getClassPathDirFiles().first().deleteDir()
+        }
+
+        File reBundleFile = mProject.file("${mProject.getBuildDir()}/outputs/${Constants.RE_BUNDLE_FOLDER}/${mVariant.dirName}")
+        if (reBundleFile != null && reBundleFile.exists()) {
+            reBundleFile.delete()
         }
     }
 
@@ -170,7 +208,7 @@ class VariantProcessor {
      */
     private void processManifest() {
         Task processManifestTask = mVersionAdapter.getProcessManifest()
-        String manifestInputDir = "${mProject.getBuildDir()}/intermediates/fat-R/manifest"
+        String manifestInputDir = "${mProject.getBuildDir()}/intermediates/${Constants.INTERMEDIATES_TEMP_FOLDER}/manifest"
         File manifestOutput
         if (mGradlePluginVersion != null && Utils.compareVersion(mGradlePluginVersion, "3.3.0") >= 0) {
             manifestOutput = mProject.file("${mProject.buildDir.path}/intermediates/library_manifest/${mVariant.name}/AndroidManifest.xml")
@@ -184,7 +222,7 @@ class VariantProcessor {
         // The sleight-of-hand below gets things working again
         TaskProvider copyTask = mProject.tasks.register("copy${mVariant.name.capitalize()}Manifest", Copy) {
             dependsOn(processManifestTask)
-
+            outputs.upToDateWhen { false }
             from manifestOutput
             into mProject.file(manifestInputDir)
         }

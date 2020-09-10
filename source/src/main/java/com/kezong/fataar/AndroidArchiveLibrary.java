@@ -127,4 +127,12 @@ public class AndroidArchiveLibrary {
         }
         return packageName;
     }
+
+    public File getDataBindingFolder() {
+        return new File(getRootFolder(), "data-binding");
+    }
+
+    public File getDataBindingLogFolder() {
+        return new File(getRootFolder(), "data-binding-base-class-log");
+    }
 }

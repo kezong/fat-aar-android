@@ -1,6 +1,7 @@
 package com.kezong.fataar
 
 import com.android.build.gradle.api.LibraryVariant
+import com.android.build.gradle.tasks.ManifestProcessorTask
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
@@ -206,54 +207,37 @@ class VariantProcessor {
      * merge manifest
      */
     private void processManifest() {
-        Task processManifestTask = mVersionAdapter.getProcessManifest()
-        String manifestInputDir = "${mProject.getBuildDir()}/intermediates/${Constants.INTERMEDIATES_TEMP_FOLDER}/manifest"
+        ManifestProcessorTask processManifestTask = mVersionAdapter.getProcessManifest()
+
         File manifestOutput
         if (mGradlePluginVersion != null && Utils.compareVersion(mGradlePluginVersion, "3.3.0") >= 0) {
             manifestOutput = mProject.file("${mProject.buildDir.path}/intermediates/library_manifest/${mVariant.name}/AndroidManifest.xml")
         } else {
-            manifestOutput = mProject.file(processManifestTask.getManifestOutputDirectory().absolutePath + '/AndroidManifest.xml')
+            manifestOutput = mProject.file(processManifestTask.getManifestOutputDirectory().absolutePath + "/AndroidManifest.xml")
         }
 
-        // AGP 4.0.0 brings in a change which wipes out the output files whenever a task gets rerun
-        // See https://android.googlesource.com/platform/tools/base/+/studio-master-dev/build-system/gradle-core/src/main/java/com/android/build/gradle/internal/tasks/NonIncrementalTask.kt
-        // The manifest merging task tries to update the manifest in place, by setting input == output, resulting in the input file being explicitly deleted just before the task gets run
-        // The sleight-of-hand below gets things working again
-        TaskProvider copyTask = mProject.tasks.register("copy${mVariant.name.capitalize()}Manifest", Copy) {
-            dependsOn(processManifestTask)
-            outputs.upToDateWhen { false }
-            from manifestOutput
-            into mProject.file(manifestInputDir)
-        }
-
-        List<File> list = new ArrayList<>()
-        for (archiveLibrary in mAndroidArchiveLibraries) {
-            list.add(archiveLibrary.getManifest())
-        }
         TaskProvider<LibraryManifestMerger> manifestsMergeTask = mProject.tasks.register("merge${mVariant.name.capitalize()}Manifest", LibraryManifestMerger) {
-            dependsOn(copyTask)
-            dependsOn(mExplodeTasks)
-
+            final List<File> inputManifests = new ArrayList<>()
+            for (archiveLibrary in mAndroidArchiveLibraries) {
+                def manifest = archiveLibrary.getManifest()
+                if (manifest.exists()) {
+                    inputManifests.add(archiveLibrary.getManifest())
+                }
+            }
             setGradleVersion(mProject.getGradle().getGradleVersion())
             setGradlePluginVersion(mGradlePluginVersion)
             setVariantName(mVariant.name)
-            setMainManifestFile(mProject.file("${manifestInputDir}/AndroidManifest.xml"))
-            setSecondaryManifestFiles(list)
+            setMainManifestFile(manifestOutput)
+            setSecondaryManifestFiles(inputManifests)
             setOutputFile(manifestOutput)
-            doFirst {
-                List<File> existFiles = new ArrayList<>()
-                getSecondaryManifestFiles().each {
-                    if (it.exists()) {
-                        existFiles.add(it)
-                    }
-                }
-                setSecondaryManifestFiles(existFiles)
-            }
         }
 
-        processManifestTask.finalizedBy(manifestsMergeTask)
+        processManifestTask.dependsOn(mExplodeTasks)
+        processManifestTask.doLast {
+            // Merge manifests
+            manifestsMergeTask.get().doTaskAction()
+        }
     }
-
 
     private TaskProvider handleClassesMergeTask(final boolean isMinifyEnabled) {
         final TaskProvider task = mProject.tasks.register('mergeClasses' + mVariant.name.capitalize()) {

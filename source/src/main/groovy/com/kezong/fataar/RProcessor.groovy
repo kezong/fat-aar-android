@@ -55,13 +55,6 @@ class RProcessor {
         def RFileTask = createRFileTask(mJavaDir, RClassTask)
 
         reBundleAar.configure {
-            doFirst {
-                mProject.copy {
-                    from mProject.zipTree(mIntermediateAarFile)
-                    into mAarUnZipDir
-                }
-                deleteEmptyDir(mAarUnZipDir)
-            }
             doLast {
                 Utils.logAnytime("target: ${mAarOutputFile.absolutePath}")
             }
@@ -83,6 +76,14 @@ class RProcessor {
                     mIntermediateAarFile.delete()
                 }
                 mJarDir.mkdirs()
+            }
+
+            doLast {
+                mProject.copy {
+                    from mProject.zipTree(mIntermediateAarFile)
+                    into mAarUnZipDir
+                }
+                deleteEmptyDir(mAarUnZipDir)
             }
         }
     }

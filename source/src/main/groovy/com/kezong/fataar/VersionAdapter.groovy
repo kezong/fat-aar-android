@@ -51,7 +51,7 @@ class VersionAdapter {
 
     File getLibsDirFile() {
         if (Utils.compareVersion(mGradlePluginVersion, '3.6.0') >= 0) {
-            return mProject.file("${mProject.buildDir.path}/intermediates/aar_libs_directory/${mVariant.dirName}/libs")
+            return mProject.file("${mProject.buildDir.path}/intermediates/aar_libs_directory/${mVariant.name}/libs")
         } else if (Utils.compareVersion(mGradlePluginVersion, '3.1.0') >= 0) {
             return mProject.file(mProject.buildDir.path + '/intermediates/packaged-classes/' + mVariant.dirName + "/libs")
         } else {

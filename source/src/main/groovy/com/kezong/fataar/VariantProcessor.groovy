@@ -96,7 +96,6 @@ class VariantProcessor {
         }
         TaskProvider bundleTask = FlavorArtifact.getBundleTaskProvider(mProject, mVariant)
 
-        processCache()
         processArtifacts(prepareTask, bundleTask)
         processClassesAndJars(bundleTask)
         if (mAndroidArchiveLibraries.isEmpty()) {
@@ -141,18 +140,6 @@ class VariantProcessor {
                     }
                 }
             }
-        }
-    }
-
-    private void processCache() {
-        if (Utils.compareVersion(mGradlePluginVersion, "3.5.0") >= 0) {
-            mVersionAdapter.getLibsDirFile().deleteDir()
-            mVersionAdapter.getClassPathDirFiles().first().deleteDir()
-        }
-
-        File reBundleFile = mProject.file("${mProject.getBuildDir()}/outputs/${Constants.RE_BUNDLE_FOLDER}/${mVariant.dirName}")
-        if (reBundleFile != null && reBundleFile.exists()) {
-            reBundleFile.delete()
         }
     }
 
@@ -240,9 +227,15 @@ class VariantProcessor {
     }
 
     private TaskProvider handleClassesMergeTask(final boolean isMinifyEnabled) {
-        final TaskProvider task = mProject.tasks.register('mergeClasses' + mVariant.name.capitalize()) {
+        final TaskProvider task = mProject.tasks.register("mergeClasses" + mVariant.name.capitalize()) {
             dependsOn(mExplodeTasks)
             dependsOn(mVersionAdapter.getJavaCompileTask())
+
+            inputs.files(mAndroidArchiveLibraries.stream().map { it.classesJarFile }.collect())
+            if (isMinifyEnabled) {
+                inputs.files(mAndroidArchiveLibraries.stream().map { it.localJars }.collect())
+                inputs.files(mJarFiles)
+            }
             def outputDir = mVersionAdapter.getClassPathDirFiles().first()
             outputs.dir(outputDir)
 
@@ -259,12 +252,16 @@ class VariantProcessor {
     }
 
     private TaskProvider handleJarMergeTask(final TaskProvider syncLibTask) {
-        final TaskProvider task = mProject.tasks.register('mergeJars' + mVariant.name.capitalize()) {
+        final TaskProvider task = mProject.tasks.register("mergeJars" + mVariant.name.capitalize()) {
             dependsOn(mExplodeTasks)
             dependsOn(mVersionAdapter.getJavaCompileTask())
             mustRunAfter(syncLibTask)
+
+            inputs.files(mAndroidArchiveLibraries.stream().map { it.localJars }.collect())
+            inputs.files(mJarFiles)
             def outputDir = mVersionAdapter.getLibsDirFile()
             outputs.dir(outputDir)
+
             doFirst {
                 ExplodedHelper.processLibsIntoLibs(mProject, mAndroidArchiveLibraries, mJarFiles, outputDir)
             }

@@ -261,7 +261,7 @@ class VariantProcessor {
             dependsOn(mVersionAdapter.getJavaCompileTask())
             mustRunAfter(syncLibTask)
 
-            inputs.files(mAndroidArchiveLibraries.stream().map { it.localJars }.collect())
+            inputs.files(mAndroidArchiveLibraries.stream().map { it.libsFolder }.collect())
                     .withPathSensitivity(PathSensitivity.RELATIVE)
             inputs.files(mJarFiles).withPathSensitivity(PathSensitivity.RELATIVE)
             def outputDir = mVersionAdapter.getLibsDirFile()
@@ -292,15 +292,15 @@ class VariantProcessor {
             }
         }
 
-        String taskPath = mVersionAdapter.getSyncLibJarsTaskPath()
-        TaskProvider syncLibTask = mProject.tasks.named(taskPath)
-        if (syncLibTask == null) {
-            throw new RuntimeException("Can not find task ${taskPath}!")
-        }
+        TaskProvider syncLibTask = mProject.tasks.named(mVersionAdapter.getSyncLibJarsTaskPath())
+        TaskProvider extractAnnotationsTask = mProject.tasks.named("extract${mVariant.name.capitalize()}Annotations")
 
         TaskProvider mergeClasses = handleClassesMergeTask(isMinifyEnabled)
         syncLibTask.configure {
             dependsOn(mergeClasses)
+        }
+        extractAnnotationsTask.configure {
+            mustRunAfter(mergeClasses)
         }
 
         if (!isMinifyEnabled) {

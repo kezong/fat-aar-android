@@ -234,9 +234,11 @@ class VariantProcessor {
             dependsOn(mVersionAdapter.getJavaCompileTask())
 
             inputs.files(mAndroidArchiveLibraries.stream().map { it.classesJarFile }.collect())
+                    .withPathSensitivity(PathSensitivity.RELATIVE)
             if (isMinifyEnabled) {
                 inputs.files(mAndroidArchiveLibraries.stream().map { it.localJars }.collect())
-                inputs.files(mJarFiles)
+                        .withPathSensitivity(PathSensitivity.RELATIVE)
+                inputs.files(mJarFiles).withPathSensitivity(PathSensitivity.RELATIVE)
             }
             def outputDir = mVersionAdapter.getClassPathDirFiles().first()
             outputs.dir(outputDir)
@@ -260,7 +262,8 @@ class VariantProcessor {
             mustRunAfter(syncLibTask)
 
             inputs.files(mAndroidArchiveLibraries.stream().map { it.localJars }.collect())
-            inputs.files(mJarFiles)
+                    .withPathSensitivity(PathSensitivity.RELATIVE)
+            inputs.files(mJarFiles).withPathSensitivity(PathSensitivity.RELATIVE)
             def outputDir = mVersionAdapter.getLibsDirFile()
             outputs.dir(outputDir)
 

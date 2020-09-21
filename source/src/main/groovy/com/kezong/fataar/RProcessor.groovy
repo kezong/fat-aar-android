@@ -4,6 +4,7 @@ import com.android.build.gradle.api.LibraryVariant
 import com.android.build.gradle.tasks.BundleAar
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.compile.JavaCompile
@@ -164,8 +165,11 @@ class RProcessor {
     }
 
     private TaskProvider createRFileTask(final File destFolder, final TaskProvider RClassTask) {
-        def task = mProject.tasks.register('createRsFile' + mVariant.name) {
+        def task = mProject.tasks.register("createRsFile${mVariant.name}") {
             finalizedBy(RClassTask)
+
+            inputs.files(mLibraries.stream().map { it.symbolFile }.collect())
+                    .withPathSensitivity(PathSensitivity.RELATIVE)
             outputs.dir(destFolder)
 
             doLast {

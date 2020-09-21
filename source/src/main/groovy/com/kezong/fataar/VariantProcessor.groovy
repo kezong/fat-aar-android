@@ -326,19 +326,15 @@ class VariantProcessor {
         if (resourceGenTask == null) {
             throw new RuntimeException("Can not find task ${taskPath}!")
         }
-        
+
         resourceGenTask.configure {
             dependsOn(mExplodeTasks)
-            inputs.files(mAndroidArchiveLibraries.stream().map { it.resFolder }.collect())
-                    .withPathSensitivity(PathSensitivity.RELATIVE)
 
-            doFirst {
-                mProject.android.sourceSets.each { DefaultAndroidSourceSet sourceSet ->
-                    if (sourceSet.name == mVariant.name) {
-                        for (archiveLibrary in mAndroidArchiveLibraries) {
-                            Utils.logAnytime("Merge resource，Library res：${archiveLibrary.resFolder} into: ${sourceSet.res.srcDirs}")
-                            sourceSet.res.srcDir(archiveLibrary.resFolder)
-                        }
+            mProject.android.sourceSets.each { DefaultAndroidSourceSet sourceSet ->
+                if (sourceSet.name == mVariant.name) {
+                    for (archiveLibrary in mAndroidArchiveLibraries) {
+                        Utils.logInfo("Merge resource，Library res：${archiveLibrary.resFolder}")
+                        sourceSet.res.srcDir(archiveLibrary.resFolder)
                     }
                 }
             }

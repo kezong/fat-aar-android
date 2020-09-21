@@ -205,14 +205,12 @@ class VariantProcessor {
             manifestOutput = mProject.file(processManifestTask.getManifestOutputDirectory().absolutePath + "/AndroidManifest.xml")
         }
 
+        final List<File> inputManifests = new ArrayList<>()
+        for (archiveLibrary in mAndroidArchiveLibraries) {
+            inputManifests.add(archiveLibrary.getManifest())
+        }
+
         TaskProvider<LibraryManifestMerger> manifestsMergeTask = mProject.tasks.register("merge${mVariant.name.capitalize()}Manifest", LibraryManifestMerger) {
-            final List<File> inputManifests = new ArrayList<>()
-            for (archiveLibrary in mAndroidArchiveLibraries) {
-                def manifest = archiveLibrary.getManifest()
-                if (manifest.exists()) {
-                    inputManifests.add(archiveLibrary.getManifest())
-                }
-            }
             setGradleVersion(mProject.getGradle().getGradleVersion())
             setGradlePluginVersion(mGradlePluginVersion)
             setVariantName(mVariant.name)
@@ -222,6 +220,7 @@ class VariantProcessor {
         }
 
         processManifestTask.dependsOn(mExplodeTasks)
+        processManifestTask.inputs.files(inputManifests)
         processManifestTask.doLast {
             // Merge manifests
             manifestsMergeTask.get().doTaskAction()

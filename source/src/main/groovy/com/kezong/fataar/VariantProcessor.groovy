@@ -1,6 +1,7 @@
 package com.kezong.fataar
 
 import com.android.build.gradle.api.LibraryVariant
+import com.android.build.gradle.internal.api.DefaultAndroidSourceSet
 import com.android.build.gradle.tasks.ManifestProcessorTask
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -9,6 +10,7 @@ import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext
 import org.gradle.api.tasks.Copy
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskProvider
 
@@ -307,7 +309,7 @@ class VariantProcessor {
     }
 
     /**
-     * merge R.txt(actually is to fix issue caused by provided configuration) and res
+     * merge R.txt (actually is to fix issue caused by provided configuration) and res
      *
      * Here I have to inject res into "main" instead of "variant.name".
      * To avoid the res from embed dependencies being used, once they have the same res Id with main res.
@@ -316,21 +318,23 @@ class VariantProcessor {
      * Adding "android.disableResourceValidation=true" to "gradle.properties" can do a trick to skip the exception, but is not recommended.
      */
     private void processResourcesAndR() {
-        String taskPath = 'generate' + mVariant.name.capitalize() + 'Resources'
+        String taskPath = "generate" + mVariant.name.capitalize() + "Resources"
         TaskProvider resourceGenTask = mProject.tasks.named(taskPath)
         if (resourceGenTask == null) {
             throw new RuntimeException("Can not find task ${taskPath}!")
         }
-
+        
         resourceGenTask.configure {
             dependsOn(mExplodeTasks)
+            inputs.files(mAndroidArchiveLibraries.stream().map { it.resFolder }.collect())
+                    .withPathSensitivity(PathSensitivity.RELATIVE)
 
             doFirst {
-                for (archiveLibrary in mAndroidArchiveLibraries) {
-                    mProject.android.sourceSets.each {
-                        if (it.name == mVariant.name) {
-                            Utils.logInfo("Merge resource，Library res：${archiveLibrary.resFolder}")
-                            it.res.srcDir(archiveLibrary.resFolder)
+                mProject.android.sourceSets.each { DefaultAndroidSourceSet sourceSet ->
+                    if (sourceSet.name == mVariant.name) {
+                        for (archiveLibrary in mAndroidArchiveLibraries) {
+                            Utils.logAnytime("Merge resource，Library res：${archiveLibrary.resFolder} into: ${sourceSet.res.srcDirs}")
+                            sourceSet.res.srcDir(archiveLibrary.resFolder)
                         }
                     }
                 }

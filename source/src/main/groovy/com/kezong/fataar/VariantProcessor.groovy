@@ -352,20 +352,18 @@ class VariantProcessor {
             throw new RuntimeException("Can not find task in variant.getMergeAssets()!")
         }
 
+        assetsTask.dependsOn(mExplodeTasks)
         assetsTask.doFirst {
-            for (archiveLibrary in mAndroidArchiveLibraries) {
-                if (archiveLibrary.assetsFolder != null && archiveLibrary.assetsFolder.exists()) {
-                    mProject.android.sourceSets.each {
-                        if (it.name == mVariant.name) {
+            mProject.android.sourceSets.each {
+                if (it.name == mVariant.name) {
+                    for (archiveLibrary in mAndroidArchiveLibraries) {
+                        if (archiveLibrary.assetsFolder != null && archiveLibrary.assetsFolder.exists()) {
+                            Utils.logInfo("Merge assets，Library assets folder：${archiveLibrary.assetsFolder}")
                             it.assets.srcDir(archiveLibrary.assetsFolder)
                         }
                     }
                 }
             }
-        }
-
-        mExplodeTasks.each { it ->
-            assetsTask.dependsOn it
         }
     }
 

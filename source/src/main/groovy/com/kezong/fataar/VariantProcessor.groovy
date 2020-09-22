@@ -175,6 +175,11 @@ class VariantProcessor {
                 Task explodeTask = mProject.tasks.create(taskName, Copy) {
                     from mProject.zipTree(artifact.file.absolutePath)
                     into zipFolder
+
+                    doFirst {
+                        // Delete previously extracted data
+                        zipFolder.deleteDir()
+                    }
                 }
 
                 if (dependencies.size() == 0) {

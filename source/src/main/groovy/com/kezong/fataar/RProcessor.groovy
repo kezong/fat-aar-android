@@ -76,6 +76,8 @@ class RProcessor {
                 if (mIntermediateAarFile.exists()) {
                     mIntermediateAarFile.delete()
                 }
+                // Delete previously unzipped data.
+                mAarUnZipDir.deleteDir()
                 mJarDir.mkdirs()
             }
 

@@ -302,6 +302,9 @@ class VariantProcessor {
         TaskProvider mergeClasses = handleClassesMergeTask(isMinifyEnabled)
         syncLibTask.configure {
             dependsOn(mergeClasses)
+            inputs.files(mAndroidArchiveLibraries.stream().map { it.libsFolder }.collect())
+                    .withPathSensitivity(PathSensitivity.RELATIVE)
+            inputs.files(mJarFiles).withPathSensitivity(PathSensitivity.RELATIVE)
         }
         extractAnnotationsTask.configure {
             mustRunAfter(mergeClasses)

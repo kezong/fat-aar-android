@@ -35,18 +35,18 @@ class RProcessor {
         mLibraries = libraries
         mGradlePluginVersion = version
         mVersionAdapter = new VersionAdapter(project, variant, version)
-        // R.java dir
-        mJavaDir = mProject.file("${mProject.getBuildDir()}/intermediates/${Constants.INTERMEDIATES_TEMP_FOLDER}/r/${mVariant.dirName}")
-        // R.class compile dir
-        mClassDir = mProject.file("${mProject.getBuildDir()}/intermediates/${Constants.INTERMEDIATES_TEMP_FOLDER}/r-class/${mVariant.dirName}")
-        // R.jar dir
-        mJarDir = mProject.file("${mProject.getBuildDir()}/outputs/${Constants.RE_BUNDLE_FOLDER}/${mVariant.dirName}/libs")
-        // aar zip file
-        mAarUnZipDir = mJarDir.getParentFile()
         // Aar output file
         mAarOutputFile = mVersionAdapter.getOutputPath()
+        // R.java dir
+        mJavaDir = mProject.file("${mProject.getBuildDir()}/intermediates/${Constants.INTERMEDIATES_TEMP_FOLDER}/r/${mVariant.name}")
+        // R.class compile dir
+        mClassDir = mProject.file("${mProject.getBuildDir()}/intermediates/${Constants.INTERMEDIATES_TEMP_FOLDER}/r-class/${mVariant.name}")
         // Intermediate aar dir
-        mIntermediateAarFile = mProject.file("${mProject.getBuildDir()}/intermediates/${Constants.INTERMEDIATES_TEMP_FOLDER}/aar/${mVariant.dirName}/${mAarOutputFile.name}")
+        mIntermediateAarFile = mProject.file("${mProject.getBuildDir()}/intermediates/${Constants.INTERMEDIATES_TEMP_FOLDER}/aar/${mVariant.name}/${mAarOutputFile.name}")
+        // R.jar dir
+        mJarDir = mProject.file("${mProject.getBuildDir()}/outputs/${Constants.RE_BUNDLE_FOLDER}/${mVariant.name}/libs")
+        // Aar unzip dir
+        mAarUnZipDir = mJarDir.parentFile
     }
 
     void inject(TaskProvider<Task> bundleTask) {

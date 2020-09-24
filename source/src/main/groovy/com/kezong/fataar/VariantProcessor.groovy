@@ -254,7 +254,7 @@ class VariantProcessor {
             outputs.dir(outputDir)
 
             doFirst {
-                // Delete previous output.
+                // Extract relative paths and delete previous output.
                 def pathsToDelete = new ArrayList<Path>()
                 mProject.fileTree(outputDir).forEach {
                     pathsToDelete.add(Paths.get(outputDir.absolutePath).relativize(Paths.get(it.absolutePath)))

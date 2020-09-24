@@ -36,7 +36,7 @@ class RProcessor {
         mGradlePluginVersion = version
         mVersionAdapter = new VersionAdapter(project, variant, version)
         // Aar output file
-        mAarOutputFile = mVersionAdapter.getOutputPath()
+        mAarOutputFile = mVersionAdapter.getOutputFile()
         // R.java dir
         mJavaDir = mProject.file("${mProject.getBuildDir()}/intermediates/${Constants.INTERMEDIATES_TEMP_FOLDER}/r/${mVariant.name}")
         // R.class compile dir

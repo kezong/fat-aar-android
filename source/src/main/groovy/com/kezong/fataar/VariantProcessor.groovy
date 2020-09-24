@@ -2,6 +2,7 @@ package com.kezong.fataar
 
 import com.android.build.gradle.api.LibraryVariant
 import com.android.build.gradle.internal.api.DefaultAndroidSourceSet
+import com.android.build.gradle.internal.tasks.LibraryAarJarsTask
 import com.android.build.gradle.tasks.ManifestProcessorTask
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -13,6 +14,10 @@ import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskProvider
+
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 
 /**
  * Processor for variant
@@ -177,7 +182,7 @@ class VariantProcessor {
                     into zipFolder
 
                     doFirst {
-                        // Delete previously extracted data
+                        // Delete previously extracted data.
                         zipFolder.deleteDir()
                     }
                 }
@@ -244,15 +249,32 @@ class VariantProcessor {
                         .withPathSensitivity(PathSensitivity.RELATIVE)
                 inputs.files(mJarFiles).withPathSensitivity(PathSensitivity.RELATIVE)
             }
-            def outputDir = mVersionAdapter.getClassPathDirFiles().first()
+            File outputDir = mProject.file("${mProject.buildDir}/intermediates/${Constants.INTERMEDIATES_TEMP_FOLDER}/merge_classes/${mVariant.name}")
+            File javacDir = mVersionAdapter.getClassPathDirFiles().first()
             outputs.dir(outputDir)
 
             doFirst {
+                // Delete previous output.
+                def pathsToDelete = new ArrayList<Path>()
+                mProject.fileTree(outputDir).forEach {
+                    pathsToDelete.add(Paths.get(outputDir.absolutePath).relativize(Paths.get(it.absolutePath)))
+                }
+                outputDir.deleteDir()
+                // Delete output files from javac dir.
+                pathsToDelete.forEach {
+                    Files.deleteIfExists(Paths.get("$javacDir.absolutePath/${it.toString()}"))
+                }
+            }
+
+            doLast {
+                ExplodedHelper.processClassesJarInfoClasses(mProject, mAndroidArchiveLibraries, outputDir)
                 if (isMinifyEnabled) {
-                    ExplodedHelper.processClassesJarInfoClasses(mProject, mAndroidArchiveLibraries, outputDir)
                     ExplodedHelper.processLibsIntoClasses(mProject, mAndroidArchiveLibraries, mJarFiles, outputDir)
-                } else {
-                    ExplodedHelper.processClassesJarInfoClasses(mProject, mAndroidArchiveLibraries, outputDir)
+                }
+
+                mProject.copy {
+                    from outputDir
+                    into javacDir
                 }
             }
         }

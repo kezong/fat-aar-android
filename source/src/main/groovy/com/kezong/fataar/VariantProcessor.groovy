@@ -2,7 +2,6 @@ package com.kezong.fataar
 
 import com.android.build.gradle.api.LibraryVariant
 import com.android.build.gradle.internal.api.DefaultAndroidSourceSet
-import com.android.build.gradle.internal.tasks.LibraryAarJarsTask
 import com.android.build.gradle.tasks.ManifestProcessorTask
 import org.gradle.api.Project
 import org.gradle.api.Task

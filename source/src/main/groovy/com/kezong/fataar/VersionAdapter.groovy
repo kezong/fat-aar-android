@@ -1,6 +1,7 @@
 package com.kezong.fataar
 
 import com.android.build.gradle.api.LibraryVariant
+import com.android.build.gradle.tasks.ManifestProcessorTask
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.ConfigurableFileCollection
@@ -50,7 +51,7 @@ class VersionAdapter {
 
     File getLibsDirFile() {
         if (Utils.compareVersion(mGradlePluginVersion, '3.6.0') >= 0) {
-            return mProject.file("${mProject.buildDir.path}/intermediates/aar_libs_directory/${mVariant.dirName}/libs")
+            return mProject.file("${mProject.buildDir.path}/intermediates/aar_libs_directory/${mVariant.name}/libs")
         } else if (Utils.compareVersion(mGradlePluginVersion, '3.1.0') >= 0) {
             return mProject.file(mProject.buildDir.path + '/intermediates/packaged-classes/' + mVariant.dirName + "/libs")
         } else {
@@ -66,7 +67,7 @@ class VersionAdapter {
         }
     }
 
-    Task getProcessManifest() {
+    ManifestProcessorTask getProcessManifest() {
         if (Utils.compareVersion(mGradlePluginVersion, "3.3.0") >= 0) {
             return mVariant.getOutputs().first().getProcessManifestProvider().get()
         } else {
@@ -105,16 +106,16 @@ class VersionAdapter {
         }
     }
 
-    String getOutputPath() {
+    File getOutputFile() {
         if (Utils.compareVersion(mGradlePluginVersion, "3.3.0") >= 0) {
             String fileName = mVariant.outputs.first().outputFileName
             if (Utils.compareVersion(mProject.gradle.gradleVersion, "6.0.1") >= 0) {
-                return new File(mVariant.getPackageLibraryProvider().get().getDestinationDirectory().getAsFile().get(), fileName).absolutePath
+                return new File(mVariant.getPackageLibraryProvider().get().getDestinationDirectory().getAsFile().get(), fileName)
             } else {
-                return new File(mVariant.getPackageLibraryProvider().get().getDestinationDir(), fileName).absolutePath
+                return new File(mVariant.getPackageLibraryProvider().get().getDestinationDir(), fileName)
             }
         } else {
-            return mVariant.outputs.first().outputFile.absolutePath
+            return mVariant.outputs.first().outputFile
         }
     }
 }

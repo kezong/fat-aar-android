@@ -1,8 +1,10 @@
 package com.kezong.fataar
 
 import com.android.build.gradle.api.LibraryVariant
+import com.android.build.gradle.tasks.BundleAar
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.compile.JavaCompile
@@ -21,9 +23,9 @@ class RProcessor {
     private final File mClassDir
     private final File mJarDir
     private final File mAarUnZipDir
-    private final File mAarOutputDir
+    private final File mIntermediateAarFile
+    private final File mAarOutputFile
     private final String mGradlePluginVersion
-    private String mAarOutputPath
     private VersionAdapter mVersionAdapter
     private final Collection<AndroidArchiveLibrary> mLibraries
 
@@ -33,61 +35,58 @@ class RProcessor {
         mLibraries = libraries
         mGradlePluginVersion = version
         mVersionAdapter = new VersionAdapter(project, variant, version)
+        // Aar output file
+        mAarOutputFile = mVersionAdapter.getOutputFile()
         // R.java dir
-        mJavaDir = mProject.file("${mProject.getBuildDir()}/intermediates/${Constants.INTERMEDIATES_TEMP_FOLDER}/r/${mVariant.dirName}")
+        mJavaDir = mProject.file("${mProject.getBuildDir()}/intermediates/${Constants.INTERMEDIATES_TEMP_FOLDER}/r/${mVariant.name}")
         // R.class compile dir
-        mClassDir = mProject.file("${mProject.getBuildDir()}/intermediates/${Constants.INTERMEDIATES_TEMP_FOLDER}/r-class/${mVariant.dirName}")
+        mClassDir = mProject.file("${mProject.getBuildDir()}/intermediates/${Constants.INTERMEDIATES_TEMP_FOLDER}/r-class/${mVariant.name}")
+        // Intermediate aar dir
+        mIntermediateAarFile = mProject.file("${mProject.getBuildDir()}/intermediates/${Constants.INTERMEDIATES_TEMP_FOLDER}/aar/${mVariant.name}/${mAarOutputFile.name}")
         // R.jar dir
-        mJarDir = mProject.file("${mProject.getBuildDir()}/outputs/${Constants.RE_BUNDLE_FOLDER}/${mVariant.dirName}/libs")
-        // aar zip file
-        mAarUnZipDir = mJarDir.getParentFile()
-        // aar output dir
-        mAarOutputDir = mProject.file("${mProject.getBuildDir()}/outputs/aar/")
-
-        mAarOutputPath = mVersionAdapter.getOutputPath()
+        mJarDir = mProject.file("${mProject.getBuildDir()}/outputs/${Constants.RE_BUNDLE_FOLDER}/${mVariant.name}/libs")
+        // Aar unzip dir
+        mAarUnZipDir = mJarDir.parentFile
     }
 
     void inject(TaskProvider<Task> bundleTask) {
-        def reBundleAar = createBundleAarTask(mAarUnZipDir, mAarOutputDir, mAarOutputPath)
+        def reBundleAar = createBundleAarTask(mAarUnZipDir, mAarOutputFile.parentFile, mAarOutputFile.name)
         def RJarTask = createRJarTask(mClassDir, mJarDir, reBundleAar)
         def RClassTask = createRClassTask(mJavaDir, mClassDir, RJarTask)
         def RFileTask = createRFileTask(mJavaDir, RClassTask)
 
         reBundleAar.configure {
-            doFirst {
-                mProject.copy {
-                    from mProject.zipTree(mAarOutputPath)
-                    into mAarUnZipDir
-                }
-                deleteEmptyDir(mAarUnZipDir)
-            }
             doLast {
-                Utils.logAnytime("target: $mAarOutputPath")
+                Utils.logAnytime("target: ${mAarOutputFile.absolutePath}")
             }
         }
 
-        bundleTask.configure {
+        bundleTask.configure { BundleAar it ->
             finalizedBy(RFileTask)
 
+            // Redirect bundle output to intermediate directory to avoid breaking incremental builds
+            // because of bundle and reBundle tasks having the same output
+            if (Utils.compareVersion(mProject.gradle.gradleVersion, "6.0.1") >= 0) {
+                it.getDestinationDirectory().set(mIntermediateAarFile.parentFile)
+            } else {
+                it.destinationDir = mIntermediateAarFile.parentFile
+            }
+
             doFirst {
-                File f = new File(mAarOutputPath)
-                if (f.exists()) {
-                    f.delete()
+                if (mIntermediateAarFile.exists()) {
+                    mIntermediateAarFile.delete()
                 }
+                // Delete previously unzipped data.
+                mAarUnZipDir.deleteDir()
                 mJarDir.mkdirs()
             }
 
             doLast {
-                // support gradle 5.1 && gradle plugin 3.4 before, the outputName is changed
-                File file = new File(mAarOutputPath)
-                if (!file.exists()) {
-                    mAarOutputPath = mAarOutputDir.absolutePath + "/" + mProject.name + ".aar"
-                    if (Utils.compareVersion(mProject.gradle.gradleVersion, "6.0.1") >= 0) {
-                        reBundleAar.getArchiveFileName().set(new File(mAarOutputPath).name)
-                    } else {
-                        reBundleAar.archiveName = new File(mAarOutputPath).name
-                    }
+                mProject.copy {
+                    from mProject.zipTree(mIntermediateAarFile)
+                    into mAarUnZipDir
                 }
+                deleteEmptyDir(mAarUnZipDir)
             }
         }
     }
@@ -168,8 +167,12 @@ class RProcessor {
     }
 
     private TaskProvider createRFileTask(final File destFolder, final TaskProvider RClassTask) {
-        def task = mProject.tasks.register('createRsFile' + mVariant.name) {
+        def task = mProject.tasks.register("createRsFile${mVariant.name}") {
             finalizedBy(RClassTask)
+
+            inputs.files(mLibraries.stream().map { it.symbolFile }.collect())
+                    .withPathSensitivity(PathSensitivity.RELATIVE)
+            outputs.dir(destFolder)
 
             doLast {
                 if (destFolder.exists()) {
@@ -238,16 +241,16 @@ class RProcessor {
         return task
     }
 
-    private TaskProvider createBundleAarTask(final File from, final File destDir, final String filePath) {
+    private TaskProvider createBundleAarTask(final File from, final File destDir, final String aarFileName) {
         String taskName = "reBundleAar${mVariant.name.capitalize()}"
         TaskProvider task = mProject.getTasks().register(taskName, Zip.class) {
             it.from from
             it.include "**"
             if (Utils.compareVersion(mProject.gradle.gradleVersion, "6.0.1") >= 0) {
-                it.getArchiveFileName().set(new File(filePath).name)
+                it.getArchiveFileName().set(aarFileName)
                 it.getDestinationDirectory().set(destDir)
             } else {
-                it.archiveName = new File(filePath).name
+                it.archiveName = aarFileName
                 it.destinationDir = destDir
             }
         }

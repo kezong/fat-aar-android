@@ -1,6 +1,9 @@
 package com.kezong.fataar
 
 import com.android.build.gradle.api.LibraryVariant
+import com.android.build.gradle.internal.api.DefaultAndroidSourceSet
+import com.android.build.gradle.internal.tasks.LibraryAarJarsTask
+import com.android.build.gradle.tasks.ManifestProcessorTask
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
@@ -8,8 +11,13 @@ import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext
 import org.gradle.api.tasks.Copy
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskProvider
+
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 
 /**
  * Processor for variant
@@ -95,7 +103,6 @@ class VariantProcessor {
         }
         TaskProvider bundleTask = FlavorArtifact.getBundleTaskProvider(mProject, mVariant)
 
-        processCache()
         processArtifacts(prepareTask, bundleTask)
         processClassesAndJars(bundleTask)
         if (mAndroidArchiveLibraries.isEmpty()) {
@@ -143,18 +150,6 @@ class VariantProcessor {
         }
     }
 
-    private void processCache() {
-        if (Utils.compareVersion(mGradlePluginVersion, "3.5.0") >= 0) {
-            mVersionAdapter.getLibsDirFile().deleteDir()
-            mVersionAdapter.getClassPathDirFiles().first().deleteDir()
-        }
-
-        File reBundleFile = mProject.file("${mProject.getBuildDir()}/outputs/${Constants.RE_BUNDLE_FOLDER}/${mVariant.dirName}")
-        if (reBundleFile != null && reBundleFile.exists()) {
-            reBundleFile.delete()
-        }
-    }
-
     /**
      * exploded artifact files
      */
@@ -177,7 +172,6 @@ class VariantProcessor {
                         dependencies = context.queue.getFirst().getDependencies()
                     }
                 }
-                archiveLibrary.getRootFolder().deleteDir()
                 final def zipFolder = archiveLibrary.getRootFolder()
                 zipFolder.mkdirs()
                 def group = artifact.getModuleVersion().id.group.capitalize()
@@ -186,6 +180,11 @@ class VariantProcessor {
                 Task explodeTask = mProject.tasks.create(taskName, Copy) {
                     from mProject.zipTree(artifact.file.absolutePath)
                     into zipFolder
+
+                    doFirst {
+                        // Delete previously extracted data.
+                        zipFolder.deleteDir()
+                    }
                 }
 
                 if (dependencies.size() == 0) {
@@ -207,65 +206,75 @@ class VariantProcessor {
      * merge manifest
      */
     private void processManifest() {
-        Task processManifestTask = mVersionAdapter.getProcessManifest()
-        String manifestInputDir = "${mProject.getBuildDir()}/intermediates/${Constants.INTERMEDIATES_TEMP_FOLDER}/manifest"
+        ManifestProcessorTask processManifestTask = mVersionAdapter.getProcessManifest()
+
         File manifestOutput
         if (mGradlePluginVersion != null && Utils.compareVersion(mGradlePluginVersion, "3.3.0") >= 0) {
             manifestOutput = mProject.file("${mProject.buildDir.path}/intermediates/library_manifest/${mVariant.name}/AndroidManifest.xml")
         } else {
-            manifestOutput = mProject.file(processManifestTask.getManifestOutputDirectory().absolutePath + '/AndroidManifest.xml')
+            manifestOutput = mProject.file(processManifestTask.getManifestOutputDirectory().absolutePath + "/AndroidManifest.xml")
         }
 
-        // AGP 4.0.0 brings in a change which wipes out the output files whenever a task gets rerun
-        // See https://android.googlesource.com/platform/tools/base/+/studio-master-dev/build-system/gradle-core/src/main/java/com/android/build/gradle/internal/tasks/NonIncrementalTask.kt
-        // The manifest merging task tries to update the manifest in place, by setting input == output, resulting in the input file being explicitly deleted just before the task gets run
-        // The sleight-of-hand below gets things working again
-        TaskProvider copyTask = mProject.tasks.register("copy${mVariant.name.capitalize()}Manifest", Copy) {
-            dependsOn(processManifestTask)
-            outputs.upToDateWhen { false }
-            from manifestOutput
-            into mProject.file(manifestInputDir)
-        }
-
-        List<File> list = new ArrayList<>()
+        final List<File> inputManifests = new ArrayList<>()
         for (archiveLibrary in mAndroidArchiveLibraries) {
-            list.add(archiveLibrary.getManifest())
+            inputManifests.add(archiveLibrary.getManifest())
         }
-        TaskProvider<LibraryManifestMerger> manifestsMergeTask = mProject.tasks.register("merge${mVariant.name.capitalize()}Manifest", LibraryManifestMerger) {
-            dependsOn(copyTask)
-            dependsOn(mExplodeTasks)
 
+        TaskProvider<LibraryManifestMerger> manifestsMergeTask = mProject.tasks.register("merge${mVariant.name.capitalize()}Manifest", LibraryManifestMerger) {
             setGradleVersion(mProject.getGradle().getGradleVersion())
             setGradlePluginVersion(mGradlePluginVersion)
             setVariantName(mVariant.name)
-            setMainManifestFile(mProject.file("${manifestInputDir}/AndroidManifest.xml"))
-            setSecondaryManifestFiles(list)
+            setMainManifestFile(manifestOutput)
+            setSecondaryManifestFiles(inputManifests)
             setOutputFile(manifestOutput)
-            doFirst {
-                List<File> existFiles = new ArrayList<>()
-                getSecondaryManifestFiles().each {
-                    if (it.exists()) {
-                        existFiles.add(it)
-                    }
-                }
-                setSecondaryManifestFiles(existFiles)
-            }
         }
 
-        processManifestTask.finalizedBy(manifestsMergeTask)
+        processManifestTask.dependsOn(mExplodeTasks)
+        processManifestTask.inputs.files(inputManifests)
+        processManifestTask.doLast {
+            // Merge manifests
+            manifestsMergeTask.get().doTaskAction()
+        }
     }
 
     private TaskProvider handleClassesMergeTask(final boolean isMinifyEnabled) {
-        final TaskProvider task = mProject.tasks.register('mergeClasses' + mVariant.name.capitalize()) {
+        final TaskProvider task = mProject.tasks.register("mergeClasses" + mVariant.name.capitalize()) {
             dependsOn(mExplodeTasks)
             dependsOn(mVersionAdapter.getJavaCompileTask())
+
+            inputs.files(mAndroidArchiveLibraries.stream().map { it.classesJarFile }.collect())
+                    .withPathSensitivity(PathSensitivity.RELATIVE)
+            if (isMinifyEnabled) {
+                inputs.files(mAndroidArchiveLibraries.stream().map { it.localJars }.collect())
+                        .withPathSensitivity(PathSensitivity.RELATIVE)
+                inputs.files(mJarFiles).withPathSensitivity(PathSensitivity.RELATIVE)
+            }
+            File outputDir = mProject.file("${mProject.buildDir}/intermediates/${Constants.INTERMEDIATES_TEMP_FOLDER}/merge_classes/${mVariant.name}")
+            File javacDir = mVersionAdapter.getClassPathDirFiles().first()
+            outputs.dir(outputDir)
+
             doFirst {
-                def dustDir = mVersionAdapter.getClassPathDirFiles().first()
+                // Extract relative paths and delete previous output.
+                def pathsToDelete = new ArrayList<Path>()
+                mProject.fileTree(outputDir).forEach {
+                    pathsToDelete.add(Paths.get(outputDir.absolutePath).relativize(Paths.get(it.absolutePath)))
+                }
+                outputDir.deleteDir()
+                // Delete output files from javac dir.
+                pathsToDelete.forEach {
+                    Files.deleteIfExists(Paths.get("$javacDir.absolutePath/${it.toString()}"))
+                }
+            }
+
+            doLast {
+                ExplodedHelper.processClassesJarInfoClasses(mProject, mAndroidArchiveLibraries, outputDir)
                 if (isMinifyEnabled) {
-                    ExplodedHelper.processClassesJarInfoClasses(mProject, mAndroidArchiveLibraries, dustDir)
-                    ExplodedHelper.processLibsIntoClasses(mProject, mAndroidArchiveLibraries, mJarFiles, dustDir)
-                } else {
-                    ExplodedHelper.processClassesJarInfoClasses(mProject, mAndroidArchiveLibraries, dustDir)
+                    ExplodedHelper.processLibsIntoClasses(mProject, mAndroidArchiveLibraries, mJarFiles, outputDir)
+                }
+
+                mProject.copy {
+                    from outputDir
+                    into javacDir
                 }
             }
         }
@@ -273,12 +282,19 @@ class VariantProcessor {
     }
 
     private TaskProvider handleJarMergeTask(final TaskProvider syncLibTask) {
-        final TaskProvider task = mProject.tasks.register('mergeJars' + mVariant.name.capitalize()) {
+        final TaskProvider task = mProject.tasks.register("mergeJars" + mVariant.name.capitalize()) {
             dependsOn(mExplodeTasks)
             dependsOn(mVersionAdapter.getJavaCompileTask())
             mustRunAfter(syncLibTask)
+
+            inputs.files(mAndroidArchiveLibraries.stream().map { it.libsFolder }.collect())
+                    .withPathSensitivity(PathSensitivity.RELATIVE)
+            inputs.files(mJarFiles).withPathSensitivity(PathSensitivity.RELATIVE)
+            def outputDir = mVersionAdapter.getLibsDirFile()
+            outputs.dir(outputDir)
+
             doFirst {
-                ExplodedHelper.processLibsIntoLibs(mProject, mAndroidArchiveLibraries, mJarFiles, mVersionAdapter.getLibsDirFile())
+                ExplodedHelper.processLibsIntoLibs(mProject, mAndroidArchiveLibraries, mJarFiles, outputDir)
             }
         }
         return task
@@ -302,15 +318,18 @@ class VariantProcessor {
             }
         }
 
-        String taskPath = mVersionAdapter.getSyncLibJarsTaskPath()
-        TaskProvider syncLibTask = mProject.tasks.named(taskPath)
-        if (syncLibTask == null) {
-            throw new RuntimeException("Can not find task ${taskPath}!")
-        }
+        TaskProvider syncLibTask = mProject.tasks.named(mVersionAdapter.getSyncLibJarsTaskPath())
+        TaskProvider extractAnnotationsTask = mProject.tasks.named("extract${mVariant.name.capitalize()}Annotations")
 
         TaskProvider mergeClasses = handleClassesMergeTask(isMinifyEnabled)
         syncLibTask.configure {
             dependsOn(mergeClasses)
+            inputs.files(mAndroidArchiveLibraries.stream().map { it.libsFolder }.collect())
+                    .withPathSensitivity(PathSensitivity.RELATIVE)
+            inputs.files(mJarFiles).withPathSensitivity(PathSensitivity.RELATIVE)
+        }
+        extractAnnotationsTask.configure {
+            mustRunAfter(mergeClasses)
         }
 
         if (!isMinifyEnabled) {
@@ -322,7 +341,7 @@ class VariantProcessor {
     }
 
     /**
-     * merge R.txt(actually is to fix issue caused by provided configuration) and res
+     * merge R.txt (actually is to fix issue caused by provided configuration) and res
      *
      * Here I have to inject res into "main" instead of "variant.name".
      * To avoid the res from embed dependencies being used, once they have the same res Id with main res.
@@ -331,7 +350,7 @@ class VariantProcessor {
      * Adding "android.disableResourceValidation=true" to "gradle.properties" can do a trick to skip the exception, but is not recommended.
      */
     private void processResourcesAndR() {
-        String taskPath = 'generate' + mVariant.name.capitalize() + 'Resources'
+        String taskPath = "generate" + mVariant.name.capitalize() + "Resources"
         TaskProvider resourceGenTask = mProject.tasks.named(taskPath)
         if (resourceGenTask == null) {
             throw new RuntimeException("Can not find task ${taskPath}!")
@@ -340,13 +359,11 @@ class VariantProcessor {
         resourceGenTask.configure {
             dependsOn(mExplodeTasks)
 
-            doFirst {
-                for (archiveLibrary in mAndroidArchiveLibraries) {
-                    mProject.android.sourceSets.each {
-                        if (it.name == mVariant.name) {
-                            Utils.logInfo("Merge resource，Library res：${archiveLibrary.resFolder}")
-                            it.res.srcDir(archiveLibrary.resFolder)
-                        }
+            mProject.android.sourceSets.each { DefaultAndroidSourceSet sourceSet ->
+                if (sourceSet.name == mVariant.name) {
+                    for (archiveLibrary in mAndroidArchiveLibraries) {
+                        Utils.logInfo("Merge resource，Library res：${archiveLibrary.resFolder}")
+                        sourceSet.res.srcDir(archiveLibrary.resFolder)
                     }
                 }
             }
@@ -364,20 +381,18 @@ class VariantProcessor {
             throw new RuntimeException("Can not find task in variant.getMergeAssets()!")
         }
 
+        assetsTask.dependsOn(mExplodeTasks)
         assetsTask.doFirst {
-            for (archiveLibrary in mAndroidArchiveLibraries) {
-                if (archiveLibrary.assetsFolder != null && archiveLibrary.assetsFolder.exists()) {
-                    mProject.android.sourceSets.each {
-                        if (it.name == mVariant.name) {
+            mProject.android.sourceSets.each {
+                if (it.name == mVariant.name) {
+                    for (archiveLibrary in mAndroidArchiveLibraries) {
+                        if (archiveLibrary.assetsFolder != null && archiveLibrary.assetsFolder.exists()) {
+                            Utils.logInfo("Merge assets，Library assets folder：${archiveLibrary.assetsFolder}")
                             it.assets.srcDir(archiveLibrary.assetsFolder)
                         }
                     }
                 }
             }
-        }
-
-        mExplodeTasks.each { it ->
-            assetsTask.dependsOn it
         }
     }
 

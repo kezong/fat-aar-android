@@ -65,13 +65,17 @@ public class AndroidArchiveLibrary {
         return new File(getRootFolder(), "assets");
     }
 
+    public File getLibsFolder() {
+        return new File(getRootFolder(), "libs");
+    }
+
     public File getClassesJarFile() {
         return new File(getRootFolder(), "classes.jar");
     }
 
     public Collection<File> getLocalJars() {
         List<File> localJars = new ArrayList<>();
-        File[] jarList = new File(getRootFolder(), "libs").listFiles();
+        File[] jarList = getLibsFolder().listFiles();
         if (jarList != null) {
             for (File jars : jarList) {
                 if (jars.isFile() && jars.getName().endsWith(".jar")) {

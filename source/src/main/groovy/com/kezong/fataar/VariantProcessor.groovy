@@ -123,7 +123,7 @@ class VariantProcessor {
 
     private void processDataBinding(TaskProvider<Task> bundleTask) {
         bundleTask.configure {
-            doFirst {
+            doLast {
                 for (archiveLibrary in mAndroidArchiveLibraries) {
                     if (archiveLibrary.dataBindingFolder != null && archiveLibrary.dataBindingFolder.exists()) {
                         String filePath = "${mProject.getBuildDir()}/outputs/${Constants.RE_BUNDLE_FOLDER}" +

@@ -5,7 +5,7 @@
 
 - [中文文档](./README_CN.md)
 
-The solution of merging aar works with [the android gradle plugin][3], the android plugin's version of the development is `3.0.1` and higher. (Tested in gradle plugin 3.0.1 - 4.0.0, and gradle 4.6 - 6.1.1)
+The solution of merging aar works with [the android gradle plugin][3], the android plugin's version of the development is `3.0.1` and higher. (Tested in gradle plugin 3.0.1 - 4.0.1, and gradle 4.9 - 6.1.1)
 
 ## Getting Started
 
@@ -20,7 +20,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:xxx'
-        classpath 'com.kezong:fat-aar:1.2.16'
+        classpath 'com.kezong:fat-aar:1.2.17'
     }
 }
 ```
@@ -95,26 +95,32 @@ See [anatomy of an aar file here][2].
 - [x] res merge
 - [x] assets merge
 - [x] jni libs merge
-- [x] proguard.txt merge
 - [x] R.txt merge
 - [x] R.class merge
+- [x] databinding merge
 
 ## Gradle Version Support
 | Version | Gradle Plugin | Gradle |
 | :--------: | :--------:|:-------:|
 | 1.0.1 | 3.1.0 - 3.2.1 | 4.4-6.0 |
 | 1.1.6 | 3.1.0 - 3.4.1 | 4.4-6.0 |
-| 1.1.10| 3.0.1 - 3.4.1 | 4.1-6.0 |
-| 1.2.6 | 3.0.1 - 3.5.0 | 4.1-6.0 |
-| 1.2.8 | 3.0.1+ | 4.1+ |
-| 1.2.11+ | 3.6.0+ | 5.4.1+ |
-| 1.2.15+ | 4.0.0+ | 6.1.1+ |
+| 1.1.10| 3.0.0 - 3.4.1 | 4.1-6.0 |
+| 1.2.6 | 3.0.0 - 3.5.0 | 4.1-6.0 |
+| 1.2.8 | 3.0.0 - 3.5.9 | 4.1+ |
+| 1.2.11 - 1.2.14 | 3.0.0 - 3.6.9 | 4.1+ |
+| 1.2.15 - 1.2.16 | 3.0.0+ | 4.1+|
+| 1.2.17 | 3.0.1+ | 4.9+ |
 
 The following link which version of Gradle is required for each version of the Android Gradle plugin. For the best performance, you should use the latest possible version of both Gradle and the plugin.
 
 [Plugin version and Required Gradle version](https://developer.android.google.cn/studio/releases/gradle-plugin.html)
 
 ## Version Log
+- [1.2.17](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.17>)
+  - Support databing merge[#25](https://github.com/kezong/fat-aar-android/issues/25)[#67](https://github.com/kezong/fat-aar-android/issues/67)[#142](https://github.com/kezong/fat-aar-android/issues/142)
+  - Use Gradle's configuration avoidance APIs[#195](https://github.com/kezong/fat-aar-android/issues/195)
+  - Support incremental build[#199](https://github.com/kezong/fat-aar-android/issues/199) [#185](https://github.com/kezong/fat-aar-android/issues/185)
+  - Fix wrong directory for aar's jar libs[#154](https://github.com/kezong/fat-aar-android/issues/154)
 - [1.2.16](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.16>)
   - Search for android build plugin version in full classpath [#172](https://github.com/kezong/fat-aar-android/issues/172)
   - Fixed a bug where resources might not be found when build in gradle version 4.0 [#163](https://github.com/kezong/fat-aar-android/issues/163)

@@ -36,6 +36,13 @@ android {
 
         }
     }
+
+    packagingOptions {
+        exclude 'lib/x86/*.so'
+        exclude 'lib/x86_64/*.so'
+        exclude 'lib/armeabi/*.so'
+        exclude 'lib/arm64-v8a/*.so'
+    }
 }
 
 // If the value is changed to true, the dependencies of the remote dependency will also be embedded in the final aar.

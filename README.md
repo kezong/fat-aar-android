@@ -117,10 +117,10 @@ The following link which version of Gradle is required for each version of the A
 
 ## Version Log
 - [1.2.17](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.17>)
-  - Support databing merge[#25](https://github.com/kezong/fat-aar-android/issues/25)[#67](https://github.com/kezong/fat-aar-android/issues/67)[#142](https://github.com/kezong/fat-aar-android/issues/142)
-  - Use Gradle's configuration avoidance APIs[#195](https://github.com/kezong/fat-aar-android/issues/195)
-  - Support incremental build[#199](https://github.com/kezong/fat-aar-android/issues/199) [#185](https://github.com/kezong/fat-aar-android/issues/185)
-  - Fix wrong directory for aar's jar libs[#154](https://github.com/kezong/fat-aar-android/issues/154)
+  - Support databing merge [#25](https://github.com/kezong/fat-aar-android/issues/25) [#67](https://github.com/kezong/fat-aar-android/issues/67) [#142](https://github.com/kezong/fat-aar-android/issues/142)
+  - Use Gradle's configuration avoidance APIs [#195](https://github.com/kezong/fat-aar-android/issues/195)
+  - Support incremental build [#199](https://github.com/kezong/fat-aar-android/issues/199) [#185](https://github.com/kezong/fat-aar-android/issues/185)
+  - Fix wrong directory for aar's jar libs [#154](https://github.com/kezong/fat-aar-android/issues/154)
 - [1.2.16](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.16>)
   - Search for android build plugin version in full classpath [#172](https://github.com/kezong/fat-aar-android/issues/172)
   - Fixed a bug where resources might not be found when build in gradle version 4.0 [#163](https://github.com/kezong/fat-aar-android/issues/163)

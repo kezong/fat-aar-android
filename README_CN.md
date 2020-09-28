@@ -116,10 +116,10 @@ AAR是Android提供的一种官方文件形式；
 
 ## 更新日志
 - [1.2.17](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.17>)
-  - 支持databinding合并[#25](https://github.com/kezong/fat-aar-android/issues/25)[#67](https://github.com/kezong/fat-aar-android/issues/67)[#142](https://github.com/kezong/fat-aar-android/issues/142)
-  - Use Gradle's configuration avoidance APIs[#195](https://github.com/kezong/fat-aar-android/issues/195)
-  - Support incremental build[#199](https://github.com/kezong/fat-aar-android/issues/199) [#185](https://github.com/kezong/fat-aar-android/issues/185)
-  - Fix wrong directory for aar's jar libs[#154](https://github.com/kezong/fat-aar-android/issues/154)
+  - 支持databinding合并 [#25](https://github.com/kezong/fat-aar-android/issues/25) [#67](https://github.com/kezong/fat-aar-android/issues/67) [#142](https://github.com/kezong/fat-aar-android/issues/142)
+  - Use Gradle's configuration avoidance APIs [#195](https://github.com/kezong/fat-aar-android/issues/195)
+  - Support incremental build [#199](https://github.com/kezong/fat-aar-android/issues/199) [#185](https://github.com/kezong/fat-aar-android/issues/185)
+  - Fix wrong directory for aar's jar libs [#154](https://github.com/kezong/fat-aar-android/issues/154)
 - [1.2.16](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.16>)
   - 修复gradle plugin版本不在根目录下就找不到的问题 [#172](https://github.com/kezong/fat-aar-android/issues/172)
   - 修复在gradle plugin 4.0构建的产物中有可能styleable资源找不到的问题 [#163](https://github.com/kezong/fat-aar-android/issues/163)

@@ -144,7 +144,7 @@ class FatLibraryPlugin implements Plugin<Project> {
     private void createConfiguration(Configuration embedConf) {
         embedConf.visible = false
         embedConf.transitive = false
-        project.gradle.addListener(new ConfigurationDependencyResolutionListener(project, embedConf))
+        project.gradle.addListener(new EmbedDependencyListener(project, embedConf))
     }
 
     private Set<ResolvedArtifact> resolveArtifacts(Configuration configuration) {

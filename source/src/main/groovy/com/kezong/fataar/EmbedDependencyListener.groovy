@@ -6,13 +6,13 @@ import org.gradle.api.artifacts.DependencyResolutionListener
 import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 
-class ConfigurationDependencyResolutionListener implements DependencyResolutionListener {
+class EmbedDependencyListener implements DependencyResolutionListener {
 
     private final Project project
 
     private final Configuration configuration
 
-    ConfigurationDependencyResolutionListener(Project project, Configuration configuration) {
+    EmbedDependencyListener(Project project, Configuration configuration) {
         this.project = project
         this.configuration = configuration
     }
@@ -27,8 +27,10 @@ class ConfigurationDependencyResolutionListener implements DependencyResolutionL
                 // support that the module can be indexed in Android Studio 4.0.0
                 DefaultProjectDependency dependencyClone = dependency.copy()
                 dependencyClone.targetConfiguration = null;
+                // The purpose is to support the code hints
                 project.dependencies.add('compileOnly', dependencyClone)
             } else {
+                // The purpose is to support the code hints
                 project.dependencies.add('compileOnly', dependency)
             }
         }

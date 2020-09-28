@@ -127,7 +127,7 @@ class VariantProcessor {
                 for (archiveLibrary in mAndroidArchiveLibraries) {
                     if (archiveLibrary.dataBindingFolder != null && archiveLibrary.dataBindingFolder.exists()) {
                         String filePath = "${mProject.getBuildDir()}/outputs/${Constants.RE_BUNDLE_FOLDER}" +
-                                "/${mVariant.dirName}/${archiveLibrary.dataBindingFolder.name}"
+                                "/${mVariant.name}/${archiveLibrary.dataBindingFolder.name}"
                         new File(filePath).mkdirs()
                         mProject.copy {
                             from archiveLibrary.dataBindingFolder
@@ -136,7 +136,7 @@ class VariantProcessor {
                     }
 
                     if (archiveLibrary.dataBindingLogFolder != null && archiveLibrary.dataBindingLogFolder.exists()) {
-                        String filePath = "${mProject.getBuildDir()}/outputs/${Constants.RE_BUNDLE_FOLDER}/${mVariant.dirName}" +
+                        String filePath = "${mProject.getBuildDir()}/outputs/${Constants.RE_BUNDLE_FOLDER}/${mVariant.name}" +
                                 "/${archiveLibrary.dataBindingLogFolder.name}"
                         new File(filePath).mkdirs()
                         mProject.copy {

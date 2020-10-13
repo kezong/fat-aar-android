@@ -38,7 +38,10 @@ class VersionAdapter {
     }
 
     ConfigurableFileCollection getRClassPath() {
-        if (Utils.compareVersion(mGradlePluginVersion, "3.5.0") >= 0) {
+        if (Utils.compareVersion(mGradlePluginVersion, "4.1.0") >= 0) {
+            return mProject.files("${mProject.buildDir.path}/intermediates/" + "compile_r_class_jar/"
+                    + "${mVariant.name}")
+        } else if (Utils.compareVersion(mGradlePluginVersion, "3.5.0") >= 0) {
             return mProject.files("${mProject.buildDir.path}/intermediates/" + "compile_only_not_namespaced_r_class_jar/"
                     + "${mVariant.name}")
         } else if (Utils.compareVersion(mGradlePluginVersion, "3.3.0") >= 0) {

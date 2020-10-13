@@ -1,7 +1,6 @@
 package com.kezong.fataar
 
 import com.android.build.gradle.api.LibraryVariant
-import com.android.build.gradle.tasks.BundleAar
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.PathSensitivity
@@ -61,7 +60,7 @@ class RProcessor {
             }
         }
 
-        bundleTask.configure { BundleAar it ->
+        bundleTask.configure { it ->
             finalizedBy(RFileTask)
 
             // Redirect bundle output to intermediate directory to avoid breaking incremental builds

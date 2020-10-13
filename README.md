@@ -109,7 +109,7 @@ See [anatomy of an aar file here][2].
 | 1.2.8 | 3.0.0 - 3.5.9 | 4.1+ |
 | 1.2.11 - 1.2.14 | 3.0.0 - 3.6.9 | 4.1+ |
 | 1.2.15 - 1.2.16 | 3.0.0+ | 4.1+|
-| 1.2.17 | 3.0.1+ | 4.9+ |
+| 1.2.17 | 3.0.1 - 4.0.2 | 4.9+ |
 
 The following link which version of Gradle is required for each version of the Android Gradle plugin. For the best performance, you should use the latest possible version of both Gradle and the plugin.
 

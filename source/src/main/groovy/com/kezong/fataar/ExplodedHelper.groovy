@@ -51,12 +51,12 @@ class ExplodedHelper {
                 Utils.logInfo('[warning]' + androidLibrary.rootFolder + ' not found!')
                 continue
             }
-            File classJarFile = new File(androidLibrary.classesJarFile);
-            if (classJarFile.exists()) {
-                allJarFiles.add(androidLibrary.classesJarFile)
-            }
+            allJarFiles.add(androidLibrary.classesJarFile)
         }
         for (jarFile in allJarFiles) {
+            if (!jarFile.exists()) {
+                continue;
+            }
             project.copy {
                 from project.zipTree(jarFile)
                 into folderOut

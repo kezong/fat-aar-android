@@ -54,6 +54,9 @@ class ExplodedHelper {
             allJarFiles.add(androidLibrary.classesJarFile)
         }
         for (jarFile in allJarFiles) {
+            if (!jarFile.exists()) {
+                continue;
+            }
             project.copy {
                 from project.zipTree(jarFile)
                 into folderOut

@@ -22,7 +22,6 @@ class RProcessor {
     private final File mClassDir
     private final File mJarDir
     private final File mAarUnZipDir
-    private final File mIntermediateAarFile
     private final File mAarOutputFile
     private final String mGradlePluginVersion
     private VersionAdapter mVersionAdapter
@@ -40,8 +39,6 @@ class RProcessor {
         mJavaDir = mProject.file("${mProject.getBuildDir()}/intermediates/${Constants.INTERMEDIATES_TEMP_FOLDER}/r/${mVariant.name}")
         // R.class compile dir
         mClassDir = mProject.file("${mProject.getBuildDir()}/intermediates/${Constants.INTERMEDIATES_TEMP_FOLDER}/r-class/${mVariant.name}")
-        // Intermediate aar dir
-        mIntermediateAarFile = mProject.file("${mProject.getBuildDir()}/intermediates/${Constants.INTERMEDIATES_TEMP_FOLDER}/aar/${mVariant.name}/${mAarOutputFile.name}")
         // R.jar dir
         mJarDir = mProject.file("${mProject.getBuildDir()}/outputs/${Constants.RE_BUNDLE_FOLDER}/${mVariant.name}/libs")
         // Aar unzip dir
@@ -63,18 +60,13 @@ class RProcessor {
         bundleTask.configure { it ->
             finalizedBy(RFileTask)
 
-            // Redirect bundle output to intermediate directory to avoid breaking incremental builds
-            // because of bundle and reBundle tasks having the same output
             if (Utils.compareVersion(mProject.gradle.gradleVersion, "6.0.1") >= 0) {
-                it.getDestinationDirectory().set(mIntermediateAarFile.parentFile)
+                it.getArchiveFileName().set(mAarOutputFile.name)
             } else {
-                it.destinationDir = mIntermediateAarFile.parentFile
+                it.archiveName = mAarOutputFile
             }
 
             doFirst {
-                if (mIntermediateAarFile.exists()) {
-                    mIntermediateAarFile.delete()
-                }
                 // Delete previously unzipped data.
                 mAarUnZipDir.deleteDir()
                 mJarDir.mkdirs()
@@ -82,7 +74,7 @@ class RProcessor {
 
             doLast {
                 mProject.copy {
-                    from mProject.zipTree(mIntermediateAarFile)
+                    from mProject.zipTree(mAarOutputFile)
                     into mAarUnZipDir
                 }
                 deleteEmptyDir(mAarUnZipDir)

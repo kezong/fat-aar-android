@@ -58,6 +58,9 @@ public class LibraryManifestMerger extends InvokeManifestMerger {
         List<ManifestProvider> manifestProviders = new ArrayList<>();
         if (secondaryManifestFiles != null) {
             for (final File file : secondaryManifestFiles) {
+                if (!file.exists()) {
+                    continue;
+                }
                 manifestProviders.add(new ManifestProvider() {
                     @Override
                     public File getManifest() {

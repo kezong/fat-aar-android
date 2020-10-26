@@ -118,9 +118,9 @@ The following link which version of Gradle is required for each version of the A
 
 ## Version Log
 - [1.2.19](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.19>)
-  - Support embed aar that has no classes.jar #157
-  - Support embed aar that has no AndroidManifest.xml #206
-  - Fix bug that R.class not embed when publish to maven #200
+  - Support embed aar that has no classes.jar [#157](https://github.com/kezong/fat-aar-android/issues/158)
+  - Support embed aar that has no AndroidManifest.xml [#206](https://github.com/kezong/fat-aar-android/issues/206)
+  - Fix bug that R.class not embed when publish to maven [#200](https://github.com/kezong/fat-aar-android/issues/200)
 - [1.2.18](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.18>)
   - Adapt gradle plugin 4.1.0 [#201](https://github.com/kezong/fat-aar-android/issues/201)
 - [1.2.17](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.17>)

@@ -22,7 +22,7 @@ class RProcessor {
     private final File mClassDir
     private final File mJarDir
     private final File mAarUnZipDir
-    private final File mAarOutputFile
+    private File mAarOutputFile
     private final String mGradlePluginVersion
     private VersionAdapter mVersionAdapter
     private final Collection<AndroidArchiveLibrary> mLibraries
@@ -33,8 +33,6 @@ class RProcessor {
         mLibraries = libraries
         mGradlePluginVersion = version
         mVersionAdapter = new VersionAdapter(project, variant, version)
-        // Aar output file
-        mAarOutputFile = mVersionAdapter.getOutputFile()
         // R.java dir
         mJavaDir = mProject.file("${mProject.getBuildDir()}/intermediates/${Constants.INTERMEDIATES_TEMP_FOLDER}/r/${mVariant.name}")
         // R.class compile dir
@@ -46,7 +44,7 @@ class RProcessor {
     }
 
     void inject(TaskProvider<Task> bundleTask) {
-        def reBundleAar = createBundleAarTask(mAarUnZipDir, mAarOutputFile.parentFile, mAarOutputFile.name)
+        def reBundleAar = createBundleAarTask(mAarUnZipDir)
         def RJarTask = createRJarTask(mClassDir, mJarDir, reBundleAar)
         def RClassTask = createRClassTask(mJavaDir, mClassDir, RJarTask)
         def RFileTask = createRFileTask(mJavaDir, RClassTask)
@@ -59,11 +57,10 @@ class RProcessor {
 
         bundleTask.configure { it ->
             finalizedBy(RFileTask)
-
-            if (Utils.compareVersion(mProject.gradle.gradleVersion, "6.0.1") >= 0) {
-                it.getArchiveFileName().set(mAarOutputFile.name)
+            if (Utils.compareVersion(mProject.gradle.gradleVersion, "5.1") >= 0) {
+                mAarOutputFile = new File(it.getDestinationDirectory().getAsFile().get(), it.getArchiveFileName().get())
             } else {
-                it.archiveName = mAarOutputFile
+                mAarOutputFile = new File(it.destinationDir, it.archiveName)
             }
 
             doFirst {
@@ -218,7 +215,7 @@ class RProcessor {
             it.from fromDir.path
             // The destinationDir property has been deprecated.
             // This is scheduled to be removed in Gradle 7.0. Please use the destinationDirectory property instead.
-            if (Utils.compareVersion(mProject.gradle.gradleVersion, "6.0.1") >= 0) {
+            if (Utils.compareVersion(mProject.gradle.gradleVersion, "5.1") >= 0) {
                 it.getArchiveFileName().set("r-classes.jar")
                 it.getDestinationDirectory().set(desFile)
             } else {
@@ -232,17 +229,17 @@ class RProcessor {
         return task
     }
 
-    private TaskProvider createBundleAarTask(final File from, final File destDir, final String aarFileName) {
+    private TaskProvider createBundleAarTask(final File from) {
         String taskName = "reBundleAar${mVariant.name.capitalize()}"
         TaskProvider task = mProject.getTasks().register(taskName, Zip.class) {
             it.from from
             it.include "**"
-            if (Utils.compareVersion(mProject.gradle.gradleVersion, "6.0.1") >= 0) {
-                it.getArchiveFileName().set(aarFileName)
-                it.getDestinationDirectory().set(destDir)
+            if (Utils.compareVersion(mProject.gradle.gradleVersion, "5.1") >= 0) {
+                it.getArchiveFileName().set(mAarOutputFile.getName())
+                it.getDestinationDirectory().set(mAarOutputFile.getParentFile())
             } else {
-                it.archiveName = aarFileName
-                it.destinationDir = destDir
+                it.archiveName = mAarOutputFile.getName()
+                it.destinationDir = mAarOutputFile.getParentFile()
             }
         }
 

@@ -20,7 +20,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:xxx'
-        classpath 'com.kezong:fat-aar:1.2.18'
+        classpath 'com.kezong:fat-aar:1.2.19'
     }
 }
 ```
@@ -110,13 +110,17 @@ See [anatomy of an aar file here][2].
 | 1.2.11 - 1.2.14 | 3.0.0 - 3.6.9 | 4.1+ |
 | 1.2.15 - 1.2.16 | 3.0.0 - 4.0.2 | 4.1+|
 | 1.2.17 | 3.0.0 - 4.0.2 | 4.9+ |
-| 1.2.18 | 3.0.0 - 4.1.0 | 4.9+ |
+| 1.2.18+ | 3.0.0 - 4.1.0 | 4.9+ |
 
 The following link which version of Gradle is required for each version of the Android Gradle plugin. For the best performance, you should use the latest possible version of both Gradle and the plugin.
 
 [Plugin version and Required Gradle version](https://developer.android.google.cn/studio/releases/gradle-plugin.html)
 
 ## Version Log
+- [1.2.19](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.19>)
+  - Support embed aar that has no classes.jar #157
+  - Support embed aar that has no AndroidManifest.xml #206
+  - Fix bug that R.class not embed when publish to maven #200
 - [1.2.18](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.18>)
   - Adapt gradle plugin 4.1.0 [#201](https://github.com/kezong/fat-aar-android/issues/201)
 - [1.2.17](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.17>)

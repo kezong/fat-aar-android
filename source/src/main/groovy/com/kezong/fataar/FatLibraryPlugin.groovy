@@ -30,26 +30,26 @@ class FatLibraryPlugin implements Plugin<Project> {
         Utils.setProject(project)
         checkAndroidPlugin()
         final Configuration embedConf = project.configurations.create('embed')
-        createConfiguration(embedConf)
+        createConfiguration(embedConf, null)
         Utils.logAnytime("Creating configuration embed")
 
         project.android.buildTypes.all { buildType ->
             String configName = buildType.name + CONFIG_SUFFIX
             Configuration configuration = project.configurations.create(configName)
-            createConfiguration(configuration)
+            createConfiguration(configuration, null)
             Utils.logAnytime("Creating configuration " + configName)
         }
 
         project.android.productFlavors.all { flavor ->
             String configName = flavor.name + CONFIG_SUFFIX
             Configuration configuration = project.configurations.create(configName)
-            createConfiguration(configuration)
+            createConfiguration(configuration, flavor.name)
             Utils.logAnytime("Creating configuration " + configName)
             project.android.buildTypes.all { buildType ->
                 String variantName = flavor.name + buildType.name.capitalize()
                 String variantConfigName = variantName + CONFIG_SUFFIX
                 Configuration variantConfiguration = project.configurations.create(variantConfigName)
-                createConfiguration(variantConfiguration)
+                createConfiguration(variantConfiguration, flavor.name)
                 Utils.logAnytime("Creating configuration " + variantConfigName)
             }
         }
@@ -141,10 +141,10 @@ class FatLibraryPlugin implements Plugin<Project> {
         }
     }
 
-    private void createConfiguration(Configuration embedConf) {
+    private void createConfiguration(Configuration embedConf, String flavorName) {
         embedConf.visible = false
         embedConf.transitive = false
-        project.gradle.addListener(new EmbedDependencyListener(project, embedConf))
+        project.gradle.addListener(new EmbedDependencyListener(project, embedConf, flavorName))
     }
 
     private Set<ResolvedArtifact> resolveArtifacts(Configuration configuration) {

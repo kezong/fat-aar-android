@@ -10,15 +10,22 @@ class EmbedDependencyListener implements DependencyResolutionListener {
 
     private final Project project
 
+    private final String flavorName;
+
     private final Configuration configuration
 
-    EmbedDependencyListener(Project project, Configuration configuration) {
+    EmbedDependencyListener(Project project, Configuration configuration, String flavorName) {
         this.project = project
+        this.flavorName = flavorName;
         this.configuration = configuration
     }
 
     @Override
     void beforeResolve(ResolvableDependencies resolvableDependencies) {
+        String configurationName = new String("compileOnly")
+        if (flavorName != null && flavorName != "") {
+            configurationName = flavorName + new String("CompileOnly")
+        }
         configuration.dependencies.each { dependency ->
             if (dependency instanceof DefaultProjectDependency) {
                 if (dependency.targetConfiguration == null) {
@@ -28,10 +35,10 @@ class EmbedDependencyListener implements DependencyResolutionListener {
                 DefaultProjectDependency dependencyClone = dependency.copy()
                 dependencyClone.targetConfiguration = null;
                 // The purpose is to support the code hints
-                project.dependencies.add('compileOnly', dependencyClone)
+                project.dependencies.add(configurationName, dependencyClone)
             } else {
                 // The purpose is to support the code hints
-                project.dependencies.add('compileOnly', dependency)
+                project.dependencies.add(configurationName, dependency)
             }
         }
         project.gradle.removeListener(this)

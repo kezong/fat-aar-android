@@ -59,8 +59,12 @@ class RProcessor {
             finalizedBy(RFileTask)
             if (Utils.compareVersion(mProject.gradle.gradleVersion, "5.1") >= 0) {
                 mAarOutputFile = new File(it.getDestinationDirectory().getAsFile().get(), it.getArchiveFileName().get())
+                reBundleAar.get().getArchiveFileName().set(mAarOutputFile.getName())
+                reBundleAar.get().getDestinationDirectory().set(mAarOutputFile.getParentFile())
             } else {
                 mAarOutputFile = new File(it.destinationDir, it.archiveName)
+                reBundleAar.get().archiveName = mAarOutputFile.getName()
+                reBundleAar.get().destinationDir = mAarOutputFile.getParentFile()
             }
 
             doFirst {
@@ -234,6 +238,9 @@ class RProcessor {
         TaskProvider task = mProject.getTasks().register(taskName, Zip.class) {
             it.from from
             it.include "**"
+            if (mAarOutputFile == null) {
+                mAarOutputFile = mVersionAdapter.getOutputFile()
+            }
             if (Utils.compareVersion(mProject.gradle.gradleVersion, "5.1") >= 0) {
                 it.getArchiveFileName().set(mAarOutputFile.getName())
                 it.getDestinationDirectory().set(mAarOutputFile.getParentFile())

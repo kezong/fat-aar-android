@@ -108,4 +108,17 @@ class VersionAdapter {
             return "transformClassesAndResourcesWithSyncLibJarsFor${mVariant.name.capitalize()}"
         }
     }
+
+    File getOutputFile() {
+        if (Utils.compareVersion(mGradlePluginVersion, "3.3.0") >= 0) {
+            String fileName = mVariant.outputs.first().outputFileName
+            if (Utils.compareVersion(mProject.gradle.gradleVersion, "6.0.1") >= 0) {
+                return new File(mVariant.getPackageLibraryProvider().get().getDestinationDirectory().getAsFile().get(), fileName)
+            } else {
+                return new File(mVariant.getPackageLibraryProvider().get().getDestinationDir(), fileName)
+            }
+        } else {
+            return mVariant.outputs.first().outputFile
+        }
+    }
 }

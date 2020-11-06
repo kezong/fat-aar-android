@@ -220,10 +220,10 @@ class RProcessor {
             // The destinationDir property has been deprecated.
             // This is scheduled to be removed in Gradle 7.0. Please use the destinationDirectory property instead.
             if (Utils.compareVersion(mProject.gradle.gradleVersion, "5.1") >= 0) {
-                it.getArchiveFileName().set("r-classes.jar")
+                it.getArchiveFileName().set("${mVariant.mergedFlavor.applicationId}-r-classes.jar")
                 it.getDestinationDirectory().set(desFile)
             } else {
-                it.archiveName = "r-classes.jar"
+                it.archiveName = "${mVariant.mergedFlavor.applicationId}-r-classes.jar"
                 it.destinationDir = desFile
             }
             doFirst {

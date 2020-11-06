@@ -20,7 +20,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:xxx'
-        classpath 'com.kezong:fat-aar:1.2.19'
+        classpath 'com.kezong:fat-aar:1.2.20'
     }
 }
 ```
@@ -117,6 +117,9 @@ The following link which version of Gradle is required for each version of the A
 [Plugin version and Required Gradle version](https://developer.android.google.cn/studio/releases/gradle-plugin.html)
 
 ## Version Log
+- [1.2.20](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.20>)
+  - Fix error that getName() in a null object. [#214](https://github.com/kezong/fat-aar-android/issues/214)
+  - Rename r-classes.jar with applicationId.
 - [1.2.19](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.19>)
   - Support embed aar that has no classes.jar [#157](https://github.com/kezong/fat-aar-android/issues/158)
   - Support embed aar that has no AndroidManifest.xml [#206](https://github.com/kezong/fat-aar-android/issues/206)

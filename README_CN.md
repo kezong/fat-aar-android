@@ -116,6 +116,9 @@ AAR是Android提供的一种官方文件形式；
 [Gradle Plugin和所需求的Gradle版本官方文档](https://developer.android.google.cn/studio/releases/gradle-plugin.html)
 
 ## 更新日志
+- [1.2.20](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.20>)
+  - 修复获取产物名时的空指针异常. [#214](https://github.com/kezong/fat-aar-android/issues/214)
+  - r-classes.jar重命名，加上包名作为前缀.
 - [1.2.19](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.19>)
   - 支持embed没有class.jar的aar [#157](https://github.com/kezong/fat-aar-android/issues/158)
   - 支持embed没有AndroidManifest.xml的aar [#206](https://github.com/kezong/fat-aar-android/issues/206)

@@ -12,9 +12,25 @@ class EmbedDependencyListener implements DependencyResolutionListener {
 
     private final Configuration configuration
 
+    private final String compileOnlyConfigName;
+
     EmbedDependencyListener(Project project, Configuration configuration) {
         this.project = project
         this.configuration = configuration
+        String prefix = getConfigNamePrefix(configuration.name)
+        if (prefix != null) {
+            this.compileOnlyConfigName = prefix + "CompileOnly"
+        } else {
+            this.compileOnlyConfigName = "compileOnly"
+        }
+    }
+
+    private String getConfigNamePrefix(String configurationName) {
+        if (configurationName.endsWith(FatLibraryPlugin.CONFIG_SUFFIX)) {
+            return configurationName.substring(0, configuration.name.length() - FatLibraryPlugin.CONFIG_SUFFIX.length())
+        } else {
+            return null
+        }
     }
 
     @Override
@@ -28,10 +44,10 @@ class EmbedDependencyListener implements DependencyResolutionListener {
                 DefaultProjectDependency dependencyClone = dependency.copy()
                 dependencyClone.targetConfiguration = null;
                 // The purpose is to support the code hints
-                project.dependencies.add('compileOnly', dependencyClone)
+                project.dependencies.add(compileOnlyConfigName, dependencyClone)
             } else {
                 // The purpose is to support the code hints
-                project.dependencies.add('compileOnly', dependency)
+                project.dependencies.add(compileOnlyConfigName, dependency)
             }
         }
         project.gradle.removeListener(this)

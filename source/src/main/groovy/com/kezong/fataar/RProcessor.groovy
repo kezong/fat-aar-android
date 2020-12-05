@@ -56,7 +56,11 @@ class RProcessor {
         }
 
         bundleTask.configure { it ->
-            finalizedBy(RFileTask)
+            if (mProject.fatLibs.renameR) {
+                finalizedBy(reBundleAar)
+            } else {
+                finalizedBy(RFileTask)
+            }
             if (Utils.compareVersion(mProject.gradle.gradleVersion, "5.1") >= 0) {
                 mAarOutputFile = new File(it.getDestinationDirectory().getAsFile().get(), it.getArchiveFileName().get())
                 reBundleAar.get().getArchiveFileName().set(mAarOutputFile.getName())

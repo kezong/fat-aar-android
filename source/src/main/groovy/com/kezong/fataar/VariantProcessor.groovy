@@ -107,6 +107,7 @@ class VariantProcessor {
         if (mAndroidArchiveLibraries.isEmpty()) {
             return
         }
+        VariantDependenciesStore.putLibraries(mVariant.name, mAndroidArchiveLibraries)
         processManifest()
         processResourcesAndR()
         processAssets()

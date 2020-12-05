@@ -132,8 +132,10 @@ class FatLibraryPlugin implements Plugin<Project> {
             }
         }
 
-        project.extensions.add(FatAarExtension.name, FatAarExtension)
-        project.android.registerTransform(new RTransform(project))
+        project.extensions.add(FatLibraryExtension.name, FatLibraryExtension)
+        File manifest = project.android.sourceSets.main.manifest.srcFile
+        String packageName =  new XmlParser().parse(manifest).@package
+        project.android.registerTransform(new RTransform(project, packageName))
     }
 
     private void checkAndroidPlugin() {

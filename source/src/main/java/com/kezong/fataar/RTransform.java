@@ -5,15 +5,12 @@ import com.android.build.api.transform.Format;
 import com.android.build.api.transform.QualifiedContent;
 import com.android.build.api.transform.Status;
 import com.android.build.api.transform.Transform;
-import com.android.build.api.transform.TransformException;
 import com.android.build.api.transform.TransformInput;
 import com.android.build.api.transform.TransformInvocation;
 import com.android.build.api.transform.TransformOutputProvider;
 import com.android.build.gradle.internal.pipeline.TransformManager;
 
-import org.apache.commons.io.FileUtils;
 import org.gradle.api.Project;
-import org.omg.Messaging.SYNC_WITH_TRANSPORT;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,11 +38,11 @@ import javassist.bytecode.ConstPool;
 import kotlin.io.FilesKt;
 
 /**
- *  com.sdk.R
- *      |-- com.lib1.R
- *      |-- com.lib2.R
- *
- *  rename com.lib1.R and com.lib2.R to com.sdk.R
+ * com.sdk.R
+ * |-- com.lib1.R
+ * |-- com.lib2.R
+ * <p>
+ * rename com.lib1.R and com.lib2.R to com.sdk.R
  */
 public class RTransform extends Transform {
 
@@ -56,9 +53,11 @@ public class RTransform extends Transform {
     private final List<Future<?>> futures = new ArrayList<>();
 
     private Project project;
+    private String targetPackage;
 
-    public RTransform(final Project project) {
+    public RTransform(final Project project, final String targetPackage) {
         this.project = project;
+        this.targetPackage = targetPackage;
     }
 
     @Override
@@ -154,7 +153,6 @@ public class RTransform extends Transform {
                 "drawable", "font", "fraction", "id", "integer", "interpolator", "layout", "menu", "mipmap", "plurals",
                 "raw", "string", "style", "styleable", "transition", "xml");
 
-        String targetPackage = getTargetPackage();
         Collection<AndroidArchiveLibrary> libraries = VariantDependenciesStore.getLibraries(variantName);
         List<String> libraryPackages = libraries
                 .stream()
@@ -172,21 +170,6 @@ public class RTransform extends Transform {
 
         return map;
     }
-
-    private String getTargetPackage() {
-
-        // TODO
-//        File manifestOutput
-//        if (mGradlePluginVersion != null && Utils.compareVersion(mGradlePluginVersion, "3.3.0") >= 0) {
-//            manifestOutput = project.file("${mProject.buildDir.path}/intermediates/library_manifest/${mVariant.name}/AndroidManifest.xml");
-//        } else {
-//            manifestOutput = project.file(processManifestTask.getManifestOutputDirectory().absolutePath + "/AndroidManifest.xml");
-//        }
-
-
-        return "";
-    }
-
 
     private List<File> getChangedClassesList(final DirectoryInput directoryInput) throws IOException {
         final Map<File, Status> changedFiles = directoryInput.getChangedFiles();

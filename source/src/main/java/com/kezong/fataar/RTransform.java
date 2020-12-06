@@ -9,6 +9,7 @@ import com.android.build.api.transform.TransformInput;
 import com.android.build.api.transform.TransformInvocation;
 import com.android.build.api.transform.TransformOutputProvider;
 import com.android.build.gradle.internal.pipeline.TransformManager;
+import com.google.common.collect.ImmutableSet;
 
 import org.gradle.api.Project;
 
@@ -72,7 +73,7 @@ public class RTransform extends Transform {
 
     @Override
     public Set<? super QualifiedContent.Scope> getScopes() {
-        return TransformManager.SCOPE_FULL_PROJECT;
+        return ImmutableSet.of(QualifiedContent.Scope.PROJECT);
     }
 
     @Override
@@ -141,7 +142,7 @@ public class RTransform extends Transform {
         futures.clear();
 
         long endTime = System.currentTimeMillis();
-        System.out.println("Task : transformClassesWithRenameRFor"
+        System.out.println("[fat-aar]Task :transformClassesWithRenameRFor"
                 + transformInvocation.getContext().getVariantName()
                 + " cost "
                 + (endTime - startTime)

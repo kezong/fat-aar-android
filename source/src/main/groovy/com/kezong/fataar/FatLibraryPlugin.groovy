@@ -66,10 +66,10 @@ class FatLibraryPlugin implements Plugin<Project> {
             }
             project.android.libraryVariants.all { variant ->
                 String buildTypeConfigName = variant.getBuildType().name + CONFIG_SUFFIX
-                Configuration buildTypeConfiguration 
+                Configuration buildTypeConfiguration
                 try {
                     buildTypeConfiguration = project.configurations.getByName(buildTypeConfigName)
-                } catch(Exception ignored) {
+                } catch (Exception ignored) {
                     Utils.logAnytime("Ignored configuration " + buildTypeConfigName)
                 }
 
@@ -83,7 +83,7 @@ class FatLibraryPlugin implements Plugin<Project> {
                 if (flavorConfigName != CONFIG_SUFFIX) {
                     try {
                         flavorConfiguration = project.configurations.getByName(flavorConfigName)
-                    } catch(Exception ignored) {
+                    } catch (Exception ignored) {
                         Utils.logAnytime("Ignored configuration " + flavorConfigName)
                     }
                 }
@@ -93,7 +93,7 @@ class FatLibraryPlugin implements Plugin<Project> {
                 if (variantConfigName != buildTypeConfigName) {
                     try {
                         variantConfiguration = project.configurations.getByName(variantConfigName)
-                    } catch(Exception ignored) {
+                    } catch (Exception ignored) {
                         Utils.logAnytime("Ignored configuration " + variantConfigName)
                     }
                 }
@@ -132,10 +132,8 @@ class FatLibraryPlugin implements Plugin<Project> {
             }
         }
 
-        project.extensions.add(FatLibraryExtension.name, FatLibraryExtension)
-        File manifest = project.android.sourceSets.main.manifest.srcFile
-        String packageName =  new XmlParser().parse(manifest).@package
-        project.android.registerTransform(new RTransform(project, packageName))
+        project.extensions.create(FatLibraryExtension.name, FatLibraryExtension)
+        registerTransform()
     }
 
     private void checkAndroidPlugin() {
@@ -205,6 +203,26 @@ class FatLibraryPlugin implements Plugin<Project> {
         if (dependencies != null && dependencies.size() > 0) {
             dependencies.each { it ->
                 Utils.logAnytime("[embed detected']${it.name}")
+            }
+        }
+    }
+
+    private void registerTransform() {
+        File manifest = project.android.sourceSets.main.manifest.srcFile
+        String packageName = new XmlParser().parse(manifest).@package
+        // 在 project.afterEvaluate 内部注册不生效
+        // 不在 project.afterEvaluate 内部获取不到扩展属性值
+        project.android.registerTransform(new RTransform(project, packageName))
+
+        project.afterEvaluate {
+            project.android.libraryVariants.all { variant ->
+                String variantName = variant.name.capitalize()
+                def transformTask = project.tasks.getByName("transformClassesWithRenameRFor${variantName}")
+                if (transformTask) {
+                    transformTask.onlyIf {
+                        project.fatLibs.renameR
+                    }
+                }
             }
         }
     }

@@ -56,8 +56,7 @@ class RProcessor {
         }
 
         bundleTask.configure { it ->
-            FatLibraryExtension extension = mProject.fatlibs
-            if (extension.renameR) {
+            if (mProject.fatLibs.renameR) {
                 finalizedBy(reBundleAar)
             } else {
                 finalizedBy(RFileTask)

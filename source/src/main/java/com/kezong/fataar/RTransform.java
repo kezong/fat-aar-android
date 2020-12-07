@@ -54,16 +54,31 @@ public class RTransform extends Transform {
     private final List<Future<?>> futures = new ArrayList<>();
 
     private Project project;
-    private String targetPackage;
 
-    public RTransform(final Project project, final String targetPackage) {
+    private Map<String, String> targetPackageMap = new HashMap<>();
+
+    private Map<String, Collection<AndroidArchiveLibrary>> archiveLibraryMap = new HashMap<>();
+
+    public RTransform(final Project project) {
         this.project = project;
-        this.targetPackage = targetPackage;
+    }
+
+    /**
+     * Different variants have different package names.
+     * So targetPackageName must set after evaluate
+     * @param targetPackage main module's package name
+     */
+    public void putTargetPackage(String variantName, String targetPackage) {
+        targetPackageMap.put(variantName, targetPackage);
+    }
+
+    public void putLibrary(String variantName, Collection<AndroidArchiveLibrary> libraries) {
+        archiveLibraryMap.put(variantName, libraries);
     }
 
     @Override
     public String getName() {
-        return "renameR";
+        return "transformR";
     }
 
     @Override
@@ -142,9 +157,7 @@ public class RTransform extends Transform {
         futures.clear();
 
         long endTime = System.currentTimeMillis();
-        System.out.println("[fat-aar]Task :transformClassesWithRenameRFor"
-                + transformInvocation.getContext().getVariantName()
-                + " cost "
+        project.getLogger().info("the task cost "
                 + (endTime - startTime)
                 + "ms");
     }
@@ -154,7 +167,7 @@ public class RTransform extends Transform {
                 "drawable", "font", "fraction", "id", "integer", "interpolator", "layout", "menu", "mipmap", "plurals",
                 "raw", "string", "style", "styleable", "transition", "xml");
 
-        Collection<AndroidArchiveLibrary> libraries = VariantDependenciesStore.getLibraries(variantName);
+        Collection<AndroidArchiveLibrary> libraries = archiveLibraryMap.get(variantName);
         List<String> libraryPackages = libraries
                 .stream()
                 .map(AndroidArchiveLibrary::getPackageName)
@@ -162,7 +175,7 @@ public class RTransform extends Transform {
 
         HashMap<String, String> map = new HashMap<>();
         for (String resource : resourceTypes) {
-            String targetClass = targetPackage.replace(".", "/") + "/R$" + resource;
+            String targetClass = targetPackageMap.get(variantName).replace(".", "/") + "/R$" + resource;
             for (String libraryPackage : libraryPackages) {
                 String fromClass = libraryPackage.replace(".", "/") + "/R$" + resource;
                 map.put(fromClass, targetClass);
@@ -193,10 +206,11 @@ public class RTransform extends Transform {
         }
     }
 
-
     private String filePathToClassname(File file) {
-        return file.getPath().replace("/", ".")
-                .replace("\\", ".")
-                .replace(".class", "");
+        // com/classify/module/a.class -> com.classify.module.a.class -> comify.module.a is not expected
+        // so must be replace .class first
+        return file.getPath().replace(".class", "")
+                .replace("/", ".")
+                .replace("\\", ".");
     }
 }

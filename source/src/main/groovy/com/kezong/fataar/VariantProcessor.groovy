@@ -94,7 +94,7 @@ class VariantProcessor {
         mJarFiles.add(jar)
     }
 
-    void processVariant() {
+    void processVariant(RTransform transform) {
         String taskPath = 'pre' + mVariant.name.capitalize() + 'Build'
         TaskProvider prepareTask = mProject.tasks.named(taskPath)
         if (prepareTask == null) {
@@ -107,17 +107,26 @@ class VariantProcessor {
         if (mAndroidArchiveLibraries.isEmpty()) {
             return
         }
-        VariantDependenciesStore.putLibraries(mVariant.name, mAndroidArchiveLibraries)
         processManifest()
-        processResourcesAndR()
+        processResources()
         processAssets()
         processJniLibs()
         processProguardTxt(prepareTask)
-        processR(bundleTask)
+        processR(transform, bundleTask)
         processDataBinding(bundleTask)
     }
 
-    private void processR(TaskProvider<Task> bundleTask) {
+    private void processR(RTransform transform, TaskProvider<Task> bundleTask) {
+        if (transform != null) {
+            // transformR is true
+            transform.putTargetPackage(mVariant.name, mVariant.getApplicationId())
+            transform.putLibrary(mVariant.name, mAndroidArchiveLibraries)
+            mProject.tasks
+                    .named("transformClassesWith${transform.name.capitalize()}For${mVariant.name.capitalize()}")
+                    .configure {
+                        it.dependsOn(mProject.tasks.named("mergeClasses${mVariant.name.capitalize()}"))
+                    }
+        }
         RProcessor rProcessor = new RProcessor(mProject, mVariant, mAndroidArchiveLibraries, mGradlePluginVersion)
         rProcessor.inject(bundleTask)
     }
@@ -349,7 +358,7 @@ class VariantProcessor {
      * Now the same res Id will cause a build exception: Duplicate resources, to encourage you to change res Id.
      * Adding "android.disableResourceValidation=true" to "gradle.properties" can do a trick to skip the exception, but is not recommended.
      */
-    private void processResourcesAndR() {
+    private void processResources() {
         String taskPath = "generate" + mVariant.name.capitalize() + "Resources"
         TaskProvider resourceGenTask = mProject.tasks.named(taskPath)
         if (resourceGenTask == null) {

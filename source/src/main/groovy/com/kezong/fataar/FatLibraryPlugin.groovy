@@ -24,11 +24,14 @@ class FatLibraryPlugin implements Plugin<Project> {
 
     private Project project
 
+    private RTransform transform;
+
     @Override
     void apply(Project project) {
         this.project = project
         Utils.setProject(project)
         checkAndroidPlugin()
+        project.extensions.create(FatAarExtension.NAME, FatAarExtension)
         final Configuration embedConf = project.configurations.create('embed')
         createConfiguration(embedConf)
         Utils.logAnytime("Creating configuration embed")
@@ -52,6 +55,12 @@ class FatLibraryPlugin implements Plugin<Project> {
                 createConfiguration(variantConfiguration)
                 Utils.logAnytime("Creating configuration " + variantConfigName)
             }
+        }
+
+        if (project.fataar.transformR) {
+            transform = new RTransform(project)
+            // register in project.afterEvaluate is invalid.
+            project.android.registerTransform(transform)
         }
 
         project.afterEvaluate {
@@ -131,9 +140,6 @@ class FatLibraryPlugin implements Plugin<Project> {
                 processVariant(variant, artifacts, unResolveArtifacts)
             }
         }
-
-        project.extensions.create(FatLibraryExtension.name, FatLibraryExtension)
-        registerTransform()
     }
 
     private void checkAndroidPlugin() {
@@ -169,7 +175,7 @@ class FatLibraryPlugin implements Plugin<Project> {
         def processor = new VariantProcessor(project, variant)
         processor.addArtifacts(artifacts)
         processor.addUnResolveArtifact(unResolveArtifacts)
-        processor.processVariant()
+        processor.processVariant(transform)
     }
 
     private Set<ResolvedDependency> dealUnResolveArtifacts(Configuration configuration, Set<ResolvedArtifact> artifacts) {
@@ -203,26 +209,6 @@ class FatLibraryPlugin implements Plugin<Project> {
         if (dependencies != null && dependencies.size() > 0) {
             dependencies.each { it ->
                 Utils.logAnytime("[embed detected']${it.name}")
-            }
-        }
-    }
-
-    private void registerTransform() {
-        File manifest = project.android.sourceSets.main.manifest.srcFile
-        String packageName = new XmlParser().parse(manifest).@package
-        // 在 project.afterEvaluate 内部注册不生效
-        // 不在 project.afterEvaluate 内部获取不到扩展属性值
-        project.android.registerTransform(new RTransform(project, packageName))
-
-        project.afterEvaluate {
-            project.android.libraryVariants.all { variant ->
-                String variantName = variant.name.capitalize()
-                def transformTask = project.tasks.getByName("transformClassesWithRenameRFor${variantName}")
-                if (transformTask) {
-                    transformTask.onlyIf {
-                        project.fatLibs.renameR
-                    }
-                }
             }
         }
     }

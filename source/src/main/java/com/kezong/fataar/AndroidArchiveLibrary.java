@@ -1,5 +1,6 @@
 package com.kezong.fataar;
 
+import org.apache.http.util.TextUtils;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
@@ -24,6 +25,8 @@ public class AndroidArchiveLibrary {
     private final ResolvedArtifact mArtifact;
 
     private final String mVariantName;
+
+    private String mPackageName;
 
     public AndroidArchiveLibrary(Project project, ResolvedArtifact artifact, String variantName) {
         if (!"aar".equals(artifact.getType())) {
@@ -114,22 +117,23 @@ public class AndroidArchiveLibrary {
         return new File(getRootFolder(), "R.txt");
     }
 
-    public String getPackageName() {
-        String packageName = null;
-        File manifestFile = getManifest();
-        if (manifestFile.exists()) {
-            try {
-                DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-                Document doc = dbf.newDocumentBuilder().parse(manifestFile);
-                Element element = doc.getDocumentElement();
-                packageName = element.getAttribute("package");
-            } catch (Exception e) {
-                e.printStackTrace();
+    public synchronized String getPackageName() {
+        if (TextUtils.isEmpty(mPackageName)) {
+            File manifestFile = getManifest();
+            if (manifestFile.exists()) {
+                try {
+                    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+                    Document doc = dbf.newDocumentBuilder().parse(manifestFile);
+                    Element element = doc.getDocumentElement();
+                    mPackageName = element.getAttribute("package");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else {
+                throw new RuntimeException(getName() + " module's AndroidManifest not found");
             }
-        } else {
-            throw new RuntimeException(getName() + " module's AndroidManifest not found");
         }
-        return packageName;
+        return mPackageName;
     }
 
     public File getDataBindingFolder() {

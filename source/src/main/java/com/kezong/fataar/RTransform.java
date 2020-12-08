@@ -53,11 +53,11 @@ public class RTransform extends Transform {
 
     private final List<Future<?>> futures = new ArrayList<>();
 
-    private Project project;
+    private final Project project;
 
-    private Map<String, String> targetPackageMap = new HashMap<>();
+    private final Map<String, String> targetPackageMap = new HashMap<>();
 
-    private Map<String, Collection<AndroidArchiveLibrary>> archiveLibraryMap = new HashMap<>();
+    private final Map<String, Collection<String>> libraryPackageMap = new HashMap<>();
 
     public RTransform(final Project project) {
         this.project = project;
@@ -72,8 +72,13 @@ public class RTransform extends Transform {
         targetPackageMap.put(variantName, targetPackage);
     }
 
-    public void putLibrary(String variantName, Collection<AndroidArchiveLibrary> libraries) {
-        archiveLibraryMap.put(variantName, libraries);
+    /**
+     * library packages name must set after exploded task perform
+     * @param variantName variant name
+     * @param libraryPackages sub module's package name, read from AndroidManifest.xml
+     */
+    public void putLibraryPackages(String variantName, Collection<String> libraryPackages) {
+        libraryPackageMap.put(variantName, libraryPackages);
     }
 
     @Override
@@ -167,16 +172,10 @@ public class RTransform extends Transform {
                 "drawable", "font", "fraction", "id", "integer", "interpolator", "layout", "menu", "mipmap", "plurals",
                 "raw", "string", "style", "styleable", "transition", "xml");
 
-        Collection<AndroidArchiveLibrary> libraries = archiveLibraryMap.get(variantName);
-        List<String> libraryPackages = libraries
-                .stream()
-                .map(AndroidArchiveLibrary::getPackageName)
-                .collect(Collectors.toList());
-
         HashMap<String, String> map = new HashMap<>();
         for (String resource : resourceTypes) {
             String targetClass = targetPackageMap.get(variantName).replace(".", "/") + "/R$" + resource;
-            for (String libraryPackage : libraryPackages) {
+            for (String libraryPackage : libraryPackageMap.get(variantName)) {
                 String fromClass = libraryPackage.replace(".", "/") + "/R$" + resource;
                 map.put(fromClass, targetClass);
             }

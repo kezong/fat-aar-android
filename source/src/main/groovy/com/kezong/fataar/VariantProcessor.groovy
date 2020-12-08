@@ -120,11 +120,20 @@ class VariantProcessor {
         if (transform != null) {
             // transformR is true
             transform.putTargetPackage(mVariant.name, mVariant.getApplicationId())
-            transform.putLibrary(mVariant.name, mAndroidArchiveLibraries)
             mProject.tasks
                     .named("transformClassesWith${transform.name.capitalize()}For${mVariant.name.capitalize()}")
                     .configure {
                         it.dependsOn(mProject.tasks.named("mergeClasses${mVariant.name.capitalize()}"))
+                        it.dependsOn(mExplodeTasks)
+                        doFirst {
+                            // library package name parsed by aar's AndroidManifest.xml
+                            // so must put after explode tasks perform.
+                            Collection libraryPackages = mAndroidArchiveLibraries
+                                    .stream()
+                                    .map { it.packageName }
+                                    .collect()
+                            transform.putLibraryPackages(mVariant.name, libraryPackages);
+                        }
                     }
         }
         RProcessor rProcessor = new RProcessor(mProject, mVariant, mAndroidArchiveLibraries, mGradlePluginVersion)

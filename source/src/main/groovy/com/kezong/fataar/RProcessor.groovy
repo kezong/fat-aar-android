@@ -18,10 +18,6 @@ class RProcessor {
     private final Project mProject
     private final LibraryVariant mVariant
 
-    private final File mJavaDir
-    private final File mClassDir
-    private final File mJarDir
-    private final File mAarUnZipDir
     private File mAarOutputFile
     private final String mGradlePluginVersion
     private VersionAdapter mVersionAdapter
@@ -33,21 +29,17 @@ class RProcessor {
         mLibraries = libraries
         mGradlePluginVersion = version
         mVersionAdapter = new VersionAdapter(project, variant, version)
-        // R.java dir
-        mJavaDir = mProject.file("${mProject.getBuildDir()}/intermediates/${Constants.INTERMEDIATES_TEMP_FOLDER}/r/${mVariant.name}")
-        // R.class compile dir
-        mClassDir = mProject.file("${mProject.getBuildDir()}/intermediates/${Constants.INTERMEDIATES_TEMP_FOLDER}/r-class/${mVariant.name}")
-        // R.jar dir
-        mJarDir = mProject.file("${mProject.getBuildDir()}/outputs/${Constants.RE_BUNDLE_FOLDER}/${mVariant.name}/libs")
-        // Aar unzip dir
-        mAarUnZipDir = mJarDir.parentFile
     }
 
     void inject(TaskProvider<Task> bundleTask) {
-        def reBundleAar = createBundleAarTask(mAarUnZipDir)
-        def RJarTask = createRJarTask(mClassDir, mJarDir, reBundleAar)
-        def RClassTask = createRClassTask(mJavaDir, mClassDir, RJarTask)
-        def RFileTask = createRFileTask(mJavaDir, RClassTask)
+        File rJavaDir = DirectoryManager.getRJavaDirectory(mVariant)
+        File rClassDir = DirectoryManager.getRClassDirectory(mVariant)
+        File rJarDir = DirectoryManager.getRJarDirectory(mVariant)
+        File reBundleDir = DirectoryManager.getReBundleDirectory(mVariant)
+        def reBundleAar = createBundleAarTask(reBundleDir)
+        def RJarTask = createRJarTask(rClassDir, rJarDir, reBundleAar)
+        def RClassTask = createRClassTask(rJavaDir, rClassDir, RJarTask)
+        def RFileTask = createRFileTask(rJavaDir, RClassTask)
 
         reBundleAar.configure {
             doLast {
@@ -73,16 +65,16 @@ class RProcessor {
 
             doFirst {
                 // Delete previously unzipped data.
-                mAarUnZipDir.deleteDir()
-                mJarDir.mkdirs()
+                reBundleDir.deleteDir()
+                rJavaDir.mkdirs()
             }
 
             doLast {
                 mProject.copy {
                     from mProject.zipTree(mAarOutputFile)
-                    into mAarUnZipDir
+                    into reBundleDir
                 }
-                deleteEmptyDir(mAarUnZipDir)
+                deleteEmptyDir(reBundleDir)
             }
         }
     }

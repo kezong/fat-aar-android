@@ -145,8 +145,7 @@ class VariantProcessor {
             doLast {
                 for (archiveLibrary in mAndroidArchiveLibraries) {
                     if (archiveLibrary.dataBindingFolder != null && archiveLibrary.dataBindingFolder.exists()) {
-                        String filePath = "${mProject.getBuildDir()}/outputs/${Constants.RE_BUNDLE_FOLDER}" +
-                                "/${mVariant.name}/${archiveLibrary.dataBindingFolder.name}"
+                        String filePath = "${DirectoryManager.getReBundleDirectory(mVariant).path}/${archiveLibrary.dataBindingFolder.name}"
                         new File(filePath).mkdirs()
                         mProject.copy {
                             from archiveLibrary.dataBindingFolder
@@ -155,8 +154,7 @@ class VariantProcessor {
                     }
 
                     if (archiveLibrary.dataBindingLogFolder != null && archiveLibrary.dataBindingLogFolder.exists()) {
-                        String filePath = "${mProject.getBuildDir()}/outputs/${Constants.RE_BUNDLE_FOLDER}/${mVariant.name}" +
-                                "/${archiveLibrary.dataBindingLogFolder.name}"
+                        String filePath = "${DirectoryManager.getReBundleDirectory(mVariant).path}/${archiveLibrary.dataBindingLogFolder.name}"
                         new File(filePath).mkdirs()
                         mProject.copy {
                             from archiveLibrary.dataBindingLogFolder
@@ -267,7 +265,7 @@ class VariantProcessor {
                         .withPathSensitivity(PathSensitivity.RELATIVE)
                 inputs.files(mJarFiles).withPathSensitivity(PathSensitivity.RELATIVE)
             }
-            File outputDir = mProject.file("${mProject.buildDir}/intermediates/${Constants.INTERMEDIATES_TEMP_FOLDER}/merge_classes/${mVariant.name}")
+            File outputDir = DirectoryManager.getMergeClassDirectory(mVariant)
             File javacDir = mVersionAdapter.getClassPathDirFiles().first()
             outputs.dir(outputDir)
 

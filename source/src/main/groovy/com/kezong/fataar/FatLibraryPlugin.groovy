@@ -30,6 +30,7 @@ class FatLibraryPlugin implements Plugin<Project> {
     void apply(Project project) {
         this.project = project
         Utils.setProject(project)
+        DirectoryManager.attach(project)
         checkAndroidPlugin()
         project.extensions.create(FatAarExtension.NAME, FatAarExtension)
         final Configuration embedConf = project.configurations.create('embed')

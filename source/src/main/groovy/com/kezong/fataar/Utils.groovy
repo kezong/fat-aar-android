@@ -48,6 +48,21 @@ class Utils {
         }
     }
 
+    static void deleteEmptyDir(final File file) {
+        file.listFiles().each { x ->
+            if (x.isDirectory()) {
+                if (x.listFiles().size() == 0) {
+                    x.delete()
+                } else {
+                    deleteEmptyDir(x)
+                    if (x.listFiles().size() == 0) {
+                        x.delete()
+                    }
+                }
+            }
+        }
+    }
+
     static int compareVersion(String v1, String v2) {
         if (v1.equals(v2)) {
             return 0

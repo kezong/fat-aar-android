@@ -14,6 +14,7 @@ import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.api.tasks.bundling.Zip
 
 import java.nio.file.Files
 import java.nio.file.Path
@@ -57,7 +58,7 @@ class VariantProcessor {
 
     void processVariant(Collection<ResolvedArtifact> artifacts,
                         Collection<ResolvableDependency> dependencies,
-                        RTransform transform) {
+                        RClassesTransform transform) {
         String taskPath = 'pre' + mVariant.name.capitalize() + 'Build'
         TaskProvider prepareTask = mProject.tasks.named(taskPath)
         if (prepareTask == null) {
@@ -75,7 +76,7 @@ class VariantProcessor {
         processAssets()
         processJniLibs()
         processProguardTxt(prepareTask)
-        processR(transform, bundleTask)
+        processRClasses(transform, bundleTask)
         processDataBinding(bundleTask)
     }
 
@@ -154,28 +155,92 @@ class VariantProcessor {
         }
     }
 
-    private void processR(RTransform transform, TaskProvider<Task> bundleTask) {
+    private TaskProvider configureReBundleAarTask(TaskProvider bundleTask) {
+        File aarOutputFile
+        File reBundleDir = DirectoryManager.getReBundleDirectory(mVariant)
+        bundleTask.configure { it ->
+            if (Utils.compareVersion(mProject.gradle.gradleVersion, "5.1") >= 0) {
+                aarOutputFile = new File(it.getDestinationDirectory().getAsFile().get(), it.getArchiveFileName().get())
+            } else {
+                aarOutputFile = new File(it.destinationDir, it.archiveName)
+            }
+
+            doFirst {
+                // Delete previously unzipped data.
+                reBundleDir.deleteDir()
+            }
+
+            doLast {
+                mProject.copy {
+                    from mProject.zipTree(aarOutputFile)
+                    into reBundleDir
+                }
+                Utils.deleteEmptyDir(reBundleDir)
+            }
+        }
+
+        String taskName = "reBundleAar${mVariant.name.capitalize()}"
+        TaskProvider task = mProject.getTasks().register(taskName, Zip.class) {
+            it.from reBundleDir
+            it.include "**"
+            if (aarOutputFile == null) {
+                aarOutputFile = mVersionAdapter.getOutputFile()
+            }
+            if (Utils.compareVersion(mProject.gradle.gradleVersion, "5.1") >= 0) {
+                it.getArchiveFileName().set(aarOutputFile.getName())
+                it.getDestinationDirectory().set(aarOutputFile.getParentFile())
+            } else {
+                it.archiveName = aarOutputFile.getName()
+                it.destinationDir = aarOutputFile.getParentFile()
+            }
+
+            doLast {
+                Utils.logAnytime("target: ${aarOutputFile.absolutePath}")
+            }
+        }
+
+        return task
+    }
+
+    private void processRClasses(RClassesTransform transform, TaskProvider<Task> bundleTask) {
+        TaskProvider reBundleTask = configureReBundleAarTask(bundleTask)
         if (transform != null) {
             // transformR is true
-            transform.putTargetPackage(mVariant.name, mVariant.getApplicationId())
-            mProject.tasks
-                    .named("transformClassesWith${transform.name.capitalize()}For${mVariant.name.capitalize()}")
-                    .configure {
-                        it.dependsOn(mProject.tasks.named("mergeClasses${mVariant.name.capitalize()}"))
-                        it.dependsOn(mExplodeTasks)
-                        doFirst {
-                            // library package name parsed by aar's AndroidManifest.xml
-                            // so must put after explode tasks perform.
-                            Collection libraryPackages = mAndroidArchiveLibraries
-                                    .stream()
-                                    .map { it.packageName }
-                                    .collect()
-                            transform.putLibraryPackages(mVariant.name, libraryPackages);
-                        }
-                    }
+            transformRClasses(transform, bundleTask, reBundleTask)
+        } else {
+            // tranformR is false
+            generateRClasses(bundleTask, reBundleTask)
         }
-        RProcessor rProcessor = new RProcessor(mProject, mVariant, mAndroidArchiveLibraries, mGradlePluginVersion)
-        rProcessor.inject(bundleTask)
+    }
+
+    private void transformRClasses(RClassesTransform transform, TaskProvider<Task> bundleTask, TaskProvider<Task> reBundleTask) {
+        transform.putTargetPackage(mVariant.name, mVariant.getApplicationId())
+        mProject.tasks
+                .named("transformClassesWith${transform.name.capitalize()}For${mVariant.name.capitalize()}")
+                .configure {
+                    it.dependsOn(mProject.tasks.named("mergeClasses${mVariant.name.capitalize()}"))
+                    it.dependsOn(mExplodeTasks)
+                    doFirst {
+                        // library package name parsed by aar's AndroidManifest.xml
+                        // so must put after explode tasks perform.
+                        Collection libraryPackages = mAndroidArchiveLibraries
+                                .stream()
+                                .map { it.packageName }
+                                .collect()
+                        transform.putLibraryPackages(mVariant.name, libraryPackages);
+                    }
+                }
+        bundleTask.configure {
+            finalizedBy(reBundleTask)
+        }
+    }
+
+    private void generateRClasses(TaskProvider<Task> bundleTask, TaskProvider<Task> reBundleTask) {
+        RClassesGenerate rClassesGenerate = new RClassesGenerate(mProject, mVariant, mAndroidArchiveLibraries, mGradlePluginVersion)
+        TaskProvider RTask = rClassesGenerate.configure(reBundleTask)
+        bundleTask.configure {
+            finalizedBy(RTask)
+        }
     }
 
     private void processDataBinding(TaskProvider<Task> bundleTask) {
@@ -399,9 +464,6 @@ class VariantProcessor {
 
     /**
      * merge R.txt (actually is to fix issue caused by provided configuration) and res
-     *
-     * Here I have to inject res into "main" instead of "variant.name".
-     * To avoid the res from embed dependencies being used, once they have the same res Id with main res.
      *
      * Now the same res Id will cause a build exception: Duplicate resources, to encourage you to change res Id.
      * Adding "android.disableResourceValidation=true" to "gradle.properties" can do a trick to skip the exception, but is not recommended.

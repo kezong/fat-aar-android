@@ -45,7 +45,7 @@ import kotlin.io.FilesKt;
  * <p>
  * rename com.lib1.R and com.lib2.R to com.sdk.R
  */
-public class RTransform extends Transform {
+public class RClassesTransform extends Transform {
 
     private static final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
 
@@ -59,7 +59,7 @@ public class RTransform extends Transform {
 
     private final Map<String, Collection<String>> libraryPackageMap = new HashMap<>();
 
-    public RTransform(final Project project) {
+    public RClassesTransform(final Project project) {
         this.project = project;
     }
 

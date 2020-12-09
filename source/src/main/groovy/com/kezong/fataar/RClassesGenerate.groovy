@@ -5,7 +5,6 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.jvm.tasks.Jar
 
@@ -13,17 +12,16 @@ import org.gradle.jvm.tasks.Jar
  * R file processor
  * @author kezong on 2019/7/16.
  */
-class RProcessor {
+class RClassesGenerate {
 
     private final Project mProject
     private final LibraryVariant mVariant
 
-    private File mAarOutputFile
     private final String mGradlePluginVersion
     private VersionAdapter mVersionAdapter
     private final Collection<AndroidArchiveLibrary> mLibraries
 
-    RProcessor(Project project, LibraryVariant variant, Collection<AndroidArchiveLibrary> libraries, String version) {
+    RClassesGenerate(Project project, LibraryVariant variant, Collection<AndroidArchiveLibrary> libraries, String version) {
         mProject = project
         mVariant = variant
         mLibraries = libraries
@@ -31,52 +29,15 @@ class RProcessor {
         mVersionAdapter = new VersionAdapter(project, variant, version)
     }
 
-    void inject(TaskProvider<Task> bundleTask) {
+    TaskProvider configure(TaskProvider<Task> reBundleTask) {
         File rJavaDir = DirectoryManager.getRJavaDirectory(mVariant)
         File rClassDir = DirectoryManager.getRClassDirectory(mVariant)
         File rJarDir = DirectoryManager.getRJarDirectory(mVariant)
-        File reBundleDir = DirectoryManager.getReBundleDirectory(mVariant)
-        def reBundleAar = createBundleAarTask(reBundleDir)
-        def RJarTask = createRJarTask(rClassDir, rJarDir, reBundleAar)
-        def RClassTask = createRClassTask(rJavaDir, rClassDir, RJarTask)
-        def RFileTask = createRFileTask(rJavaDir, RClassTask)
+        def RJarTask = configureRJarTask(rClassDir, rJarDir, reBundleTask)
+        def RClassTask = configureRClassTask(rJavaDir, rClassDir, RJarTask)
+        def RFileTask = configureRFileTask(rJavaDir, RClassTask)
 
-        reBundleAar.configure {
-            doLast {
-                Utils.logAnytime("target: ${mAarOutputFile.absolutePath}")
-            }
-        }
-
-        bundleTask.configure { it ->
-            if (!mProject.fataar.transformR) {
-                finalizedBy(RFileTask)
-            } else {
-                finalizedBy(reBundleAar)
-            }
-            if (Utils.compareVersion(mProject.gradle.gradleVersion, "5.1") >= 0) {
-                mAarOutputFile = new File(it.getDestinationDirectory().getAsFile().get(), it.getArchiveFileName().get())
-                reBundleAar.get().getArchiveFileName().set(mAarOutputFile.getName())
-                reBundleAar.get().getDestinationDirectory().set(mAarOutputFile.getParentFile())
-            } else {
-                mAarOutputFile = new File(it.destinationDir, it.archiveName)
-                reBundleAar.get().archiveName = mAarOutputFile.getName()
-                reBundleAar.get().destinationDir = mAarOutputFile.getParentFile()
-            }
-
-            doFirst {
-                // Delete previously unzipped data.
-                reBundleDir.deleteDir()
-                rJavaDir.mkdirs()
-            }
-
-            doLast {
-                mProject.copy {
-                    from mProject.zipTree(mAarOutputFile)
-                    into reBundleDir
-                }
-                deleteEmptyDir(reBundleDir)
-            }
-        }
+        return RFileTask
     }
 
     private def createRFile(AndroidArchiveLibrary library, def rFolder, ConfigObject symbolsMap) {
@@ -154,7 +115,7 @@ class RProcessor {
         return map
     }
 
-    private TaskProvider createRFileTask(final File destFolder, final TaskProvider RClassTask) {
+    private TaskProvider configureRFileTask(final File destFolder, final TaskProvider RClassTask) {
         def task = mProject.tasks.register("createRsFile${mVariant.name}") {
             finalizedBy(RClassTask)
 
@@ -178,7 +139,7 @@ class RProcessor {
         return task
     }
 
-    private TaskProvider createRClassTask(final File sourceDir, final File destinationDir, final TaskProvider RJarTask) {
+    private TaskProvider configureRClassTask(final File sourceDir, final File destinationDir, final TaskProvider RJarTask) {
         mProject.mkdir(destinationDir)
 
         def classpath = mVersionAdapter.getRClassPath()
@@ -207,7 +168,7 @@ class RProcessor {
         return task
     }
 
-    private TaskProvider createRJarTask(final File fromDir, final File desFile, final TaskProvider reBundleAarTask) {
+    private TaskProvider configureRJarTask(final File fromDir, final File desFile, final TaskProvider reBundleAarTask) {
         String taskName = "createRsJar${mVariant.name.capitalize()}"
         TaskProvider task = mProject.getTasks().register(taskName, Jar) {
             finalizedBy(reBundleAarTask)
@@ -227,40 +188,5 @@ class RProcessor {
             }
         }
         return task
-    }
-
-    private TaskProvider createBundleAarTask(final File from) {
-        String taskName = "reBundleAar${mVariant.name.capitalize()}"
-        TaskProvider task = mProject.getTasks().register(taskName, Zip.class) {
-            it.from from
-            it.include "**"
-            if (mAarOutputFile == null) {
-                mAarOutputFile = mVersionAdapter.getOutputFile()
-            }
-            if (Utils.compareVersion(mProject.gradle.gradleVersion, "5.1") >= 0) {
-                it.getArchiveFileName().set(mAarOutputFile.getName())
-                it.getDestinationDirectory().set(mAarOutputFile.getParentFile())
-            } else {
-                it.archiveName = mAarOutputFile.getName()
-                it.destinationDir = mAarOutputFile.getParentFile()
-            }
-        }
-
-        return task
-    }
-
-    private void deleteEmptyDir(final File file) {
-        file.listFiles().each { x ->
-            if (x.isDirectory()) {
-                if (x.listFiles().size() == 0) {
-                    x.delete()
-                } else {
-                    deleteEmptyDir(x)
-                    if (x.listFiles().size() == 0) {
-                        x.delete()
-                    }
-                }
-            }
-        }
     }
 }

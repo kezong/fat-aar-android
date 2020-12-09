@@ -27,7 +27,7 @@ class FatLibraryPlugin implements Plugin<Project> {
 
     private Project project
 
-    private RTransform transform
+    private RClassesTransform transform
 
     private final Collection<Configuration> embedConfigurations = new ArrayList<>()
 
@@ -43,7 +43,7 @@ class FatLibraryPlugin implements Plugin<Project> {
         project.extensions.create(FatAarExtension.NAME, FatAarExtension)
         createConfigurations()
         if (project.fataar.transformR) {
-            transform = new RTransform(project)
+            transform = new RClassesTransform(project)
             // register in project.afterEvaluate is invalid.
             project.android.registerTransform(transform)
         }

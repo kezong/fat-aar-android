@@ -5,8 +5,8 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ResolvedArtifact
-import org.gradle.api.artifacts.ResolvedDependency
 
 /**
  * plugin entry
@@ -30,16 +30,17 @@ class FatLibraryPlugin implements Plugin<Project> {
 
     private final Collection<Configuration> embedConfigurations = new ArrayList<>();
 
+    private String mGradlePluginVersion;
+
     @Override
     void apply(Project project) {
         this.project = project
         Utils.setProject(project)
         DirectoryManager.attach(project)
         checkAndroidPlugin()
+        checkGradlePluginVersion()
         project.extensions.create(FatAarExtension.NAME, FatAarExtension)
-
         createConfigurations();
-
         if (project.fataar.transformR) {
             transform = new RTransform(project)
             // register in project.afterEvaluate is invalid.
@@ -52,10 +53,8 @@ class FatLibraryPlugin implements Plugin<Project> {
     }
 
     private void doAfterEvaluate() {
-        Set<ResolvedArtifact> artifacts = new HashSet<>()
-        Set<ResolvedArtifact> unResolveArtifacts = new HashSet<>()
-
         project.android.libraryVariants.all { LibraryVariant variant ->
+            Set<ResolvedArtifact> artifacts = new HashSet<>()
             embedConfigurations.each { configuration ->
                 if (configuration.name == CONFIG_NAME
                         || configuration.name == variant.getBuildType().name + CONFIG_SUFFIX
@@ -63,11 +62,11 @@ class FatLibraryPlugin implements Plugin<Project> {
                         || configuration.name == variant.name + CONFIG_SUFFIX) {
                     Set<ResolvedArtifact> resolvedArtifacts = resolveArtifacts(configuration)
                     artifacts.addAll(resolvedArtifacts)
-                    unResolveArtifacts.addAll(dealUnResolveArtifacts(configuration, resolvedArtifacts))
+                    artifacts.addAll(dealUnResolveArtifacts(configuration, variant, resolvedArtifacts))
                 }
             }
 
-            processVariant(variant, artifacts, unResolveArtifacts)
+            processVariant(variant, artifacts)
         }
     }
 
@@ -125,32 +124,53 @@ class FatLibraryPlugin implements Plugin<Project> {
                 set.add(artifact)
             }
         }
-        return Collections.unmodifiableSet(set)
+        return set
     }
 
-    private void processVariant(LibraryVariant variant, Set<ResolvedArtifact> artifacts, Set<ResolvedDependency> unResolveArtifacts) {
-        def processor = new VariantProcessor(project, variant)
-        processor.addArtifacts(artifacts)
-        processor.addUnResolveArtifact(unResolveArtifacts)
-        processor.processVariant(transform)
+    private void processVariant(LibraryVariant variant, Set<ResolvedArtifact> artifacts) {
+        def processor = new VariantProcessor(project, variant, mGradlePluginVersion)
+        processor.processVariant(artifacts, transform)
     }
 
-    private Set<ResolvedDependency> dealUnResolveArtifacts(Configuration configuration, Set<ResolvedArtifact> artifacts) {
-        def dependencySet = new HashSet()
-        if (configuration != null) {
-            def dependencies = Collections.unmodifiableSet(configuration.resolvedConfiguration.firstLevelModuleDependencies)
-            dependencies.each { dependency ->
-                boolean match = false
-                artifacts.each { artifact ->
-                    if (dependency.moduleName == artifact.name) {
-                        match = true
-                    }
-                }
-                if (!match) {
-                    dependencySet.add(dependency)
+    private Set<ResolvedArtifact> dealUnResolveArtifacts(Configuration configuration, LibraryVariant variant, Set<ResolvedArtifact> artifacts) {
+        def artifactSet = new HashSet()
+        configuration.resolvedConfiguration.firstLevelModuleDependencies.each { dependency ->
+            boolean match = false
+            artifacts.each { artifact ->
+                if (dependency.moduleName == artifact.name) {
+                    match = true
                 }
             }
+            if (!match) {
+                def flavorArtifact = FlavorArtifact.createFlavorArtifact(project, variant, dependency, mGradlePluginVersion)
+                artifactSet.add(flavorArtifact)
+            }
         }
-        return Collections.unmodifiableSet(dependencySet)
+        return artifactSet
+    }
+
+    private void checkGradlePluginVersion() {
+        project.rootProject.buildscript.getConfigurations().getByName("classpath").getDependencies().each { Dependency dep ->
+            if (dep.group == "com.android.tools.build" && dep.name == "gradle") {
+                mGradlePluginVersion = dep.version
+            }
+        }
+
+        if (mGradlePluginVersion == null) {
+            def classpathBuildscriptConfiguration = mProject.rootProject.buildscript.getConfigurations().getByName("classpath")
+            def artifacts = classpathBuildscriptConfiguration.getResolvedConfiguration().getResolvedArtifacts()
+            artifacts.find {
+                def artifactId = it.getModuleVersion().getId()
+                if (artifactId.getGroup() == "com.android.tools.build" && artifactId.getName() == "gradle") {
+                    mGradlePluginVersion = artifactId.getVersion()
+                    return true
+                }
+                return false
+            }
+        }
+
+        if (mGradlePluginVersion == null) {
+            throw new IllegalStateException("com.android.tools.build:gradle not found in buildscript classpath")
+        }
     }
 }

@@ -29,8 +29,6 @@ class VariantProcessor {
 
     private final LibraryVariant mVariant
 
-    private Set<ResolvedArtifact> mResolvedArtifacts = new HashSet<>()
-
     private Collection<AndroidArchiveLibrary> mAndroidArchiveLibraries = new ArrayList<>()
 
     private Collection<File> mJarFiles = new ArrayList<>()
@@ -41,68 +39,30 @@ class VariantProcessor {
 
     private VersionAdapter mVersionAdapter
 
-    VariantProcessor(Project project, LibraryVariant variant) {
+    VariantProcessor(Project project, LibraryVariant variant, String gradlePluginVersion) {
         mProject = project
         mVariant = variant
-        checkGradlePluginVersion()
+        mGradlePluginVersion = gradlePluginVersion;
         mVersionAdapter = new VersionAdapter(project, variant, mGradlePluginVersion)
-    }
-
-    private void checkGradlePluginVersion() {
-        mProject.rootProject.buildscript.getConfigurations().getByName("classpath").getDependencies().each { Dependency dep ->
-            if (dep.group == "com.android.tools.build" && dep.name == "gradle") {
-                mGradlePluginVersion = dep.version
-            }
-        }
-
-        if (mGradlePluginVersion == null) {
-            def classpathBuildscriptConfiguration = mProject.rootProject.buildscript.getConfigurations().getByName("classpath")
-            def artifacts = classpathBuildscriptConfiguration.getResolvedConfiguration().getResolvedArtifacts()
-            artifacts.find {
-                def artifactId = it.getModuleVersion().getId()
-                if (artifactId.getGroup() == "com.android.tools.build" && artifactId.getName() == "gradle") {
-                    mGradlePluginVersion = artifactId.getVersion()
-                    return true
-                }
-                return false
-            }
-        }
-
-        if (mGradlePluginVersion == null) {
-            throw new IllegalStateException("com.android.tools.build:gradle not found in buildscript classpath")
-        }
-    }
-
-    void addArtifacts(Set<ResolvedArtifact> resolvedArtifacts) {
-        mResolvedArtifacts.addAll(resolvedArtifacts)
     }
 
     void addAndroidArchiveLibrary(AndroidArchiveLibrary library) {
         mAndroidArchiveLibraries.add(library)
     }
 
-    void addUnResolveArtifact(Set<ResolvedDependency> dependencies) {
-        if (dependencies != null) {
-            dependencies.each {
-                def artifact = FlavorArtifact.createFlavorArtifact(mProject, mVariant, it, mGradlePluginVersion)
-                mResolvedArtifacts.add(artifact)
-            }
-        }
-    }
-
     void addJarFile(File jar) {
         mJarFiles.add(jar)
     }
 
-    void processVariant(RTransform transform) {
+    void processVariant(Set<ResolvedArtifact> artifacts, RTransform transform) {
         String taskPath = 'pre' + mVariant.name.capitalize() + 'Build'
         TaskProvider prepareTask = mProject.tasks.named(taskPath)
         if (prepareTask == null) {
             throw new RuntimeException("Can not find task ${taskPath}!")
         }
         TaskProvider bundleTask = FlavorArtifact.getBundleTaskProvider(mProject, mVariant)
-        preEmbed(prepareTask)
-        processArtifacts(prepareTask, bundleTask)
+        preEmbed(artifacts, prepareTask)
+        processArtifacts(artifacts, prepareTask, bundleTask)
         processClassesAndJars(bundleTask)
         if (mAndroidArchiveLibraries.isEmpty()) {
             return
@@ -116,11 +76,11 @@ class VariantProcessor {
         processDataBinding(bundleTask)
     }
 
-    private void preEmbed(TaskProvider prepareTask) {
+    private void preEmbed(Set<ResolvedArtifact> artifacts, TaskProvider prepareTask) {
         TaskProvider embedTask = mProject.tasks.register("pre${mVariant.name.capitalize()}Embed") {
             doFirst {
-                mResolvedArtifacts.each { artifact ->
-                    Utils.logAnytime("[embed][$artifact.type]${artifact.moduleVersion.id}")
+                artifacts.each { artifact ->
+                    Utils.logAnytime("[embed detected][$artifact.type]${artifact.moduleVersion.id}")
                 }
             }
         }
@@ -182,8 +142,11 @@ class VariantProcessor {
     /**
      * exploded artifact files
      */
-    private void processArtifacts(TaskProvider<Task> prepareTask, TaskProvider<Task> bundleTask) {
-        for (final ResolvedArtifact artifact in mResolvedArtifacts) {
+    private void processArtifacts(Set<ResolvedArtifact> artifacts, TaskProvider<Task> prepareTask, TaskProvider<Task> bundleTask) {
+        if (artifacts == null) {
+            return
+        }
+        for (final ResolvedArtifact artifact in artifacts) {
             if (FatLibraryPlugin.ARTIFACT_TYPE_JAR == artifact.type) {
                 addJarFile(artifact.file)
             } else if (FatLibraryPlugin.ARTIFACT_TYPE_AAR == artifact.type) {

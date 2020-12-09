@@ -7,6 +7,7 @@ import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ResolvedArtifact
+import org.gradle.api.artifacts.ResolvedDependency
 
 /**
  * plugin entry
@@ -26,11 +27,11 @@ class FatLibraryPlugin implements Plugin<Project> {
 
     private Project project
 
-    private RTransform transform;
+    private RTransform transform
 
-    private final Collection<Configuration> embedConfigurations = new ArrayList<>();
+    private final Collection<Configuration> embedConfigurations = new ArrayList<>()
 
-    private String mGradlePluginVersion;
+    private String mGradlePluginVersion
 
     @Override
     void apply(Project project) {
@@ -40,7 +41,7 @@ class FatLibraryPlugin implements Plugin<Project> {
         checkAndroidPlugin()
         checkGradlePluginVersion()
         project.extensions.create(FatAarExtension.NAME, FatAarExtension)
-        createConfigurations();
+        createConfigurations()
         if (project.fataar.transformR) {
             transform = new RTransform(project)
             // register in project.afterEvaluate is invalid.
@@ -54,19 +55,22 @@ class FatLibraryPlugin implements Plugin<Project> {
 
     private void doAfterEvaluate() {
         project.android.libraryVariants.all { LibraryVariant variant ->
-            Set<ResolvedArtifact> artifacts = new HashSet<>()
+            Collection<ResolvedArtifact> artifacts = new ArrayList()
+            Collection<ResolvedDependency> firstLevelDependencies = new ArrayList<>()
             embedConfigurations.each { configuration ->
                 if (configuration.name == CONFIG_NAME
                         || configuration.name == variant.getBuildType().name + CONFIG_SUFFIX
                         || configuration.name == variant.getFlavorName() + CONFIG_SUFFIX
                         || configuration.name == variant.name + CONFIG_SUFFIX) {
-                    Set<ResolvedArtifact> resolvedArtifacts = resolveArtifacts(configuration)
+                    Collection<ResolvedArtifact> resolvedArtifacts = resolveArtifacts(configuration)
                     artifacts.addAll(resolvedArtifacts)
                     artifacts.addAll(dealUnResolveArtifacts(configuration, variant, resolvedArtifacts))
+                    firstLevelDependencies.addAll(configuration.resolvedConfiguration.firstLevelModuleDependencies)
                 }
             }
 
-            processVariant(variant, artifacts)
+            def processor = new VariantProcessor(project, variant, mGradlePluginVersion)
+            processor.processVariant(artifacts, firstLevelDependencies, transform)
         }
     }
 
@@ -111,11 +115,10 @@ class FatLibraryPlugin implements Plugin<Project> {
         embedConfigurations.add(embedConf)
     }
 
-    private Set<ResolvedArtifact> resolveArtifacts(Configuration configuration) {
-        def set = new HashSet<>()
+    private Collection<ResolvedArtifact> resolveArtifacts(Configuration configuration) {
+        def set = new ArrayList()
         if (configuration != null) {
             configuration.resolvedConfiguration.resolvedArtifacts.each { artifact ->
-                // jar file wouldn't be here
                 if (ARTIFACT_TYPE_AAR == artifact.type || ARTIFACT_TYPE_JAR == artifact.type) {
                     //
                 } else {
@@ -127,13 +130,8 @@ class FatLibraryPlugin implements Plugin<Project> {
         return set
     }
 
-    private void processVariant(LibraryVariant variant, Set<ResolvedArtifact> artifacts) {
-        def processor = new VariantProcessor(project, variant, mGradlePluginVersion)
-        processor.processVariant(artifacts, transform)
-    }
-
-    private Set<ResolvedArtifact> dealUnResolveArtifacts(Configuration configuration, LibraryVariant variant, Set<ResolvedArtifact> artifacts) {
-        def artifactSet = new HashSet()
+    private Collection<ResolvedArtifact> dealUnResolveArtifacts(Configuration configuration, LibraryVariant variant, Collection<ResolvedArtifact> artifacts) {
+        def artifactList = new ArrayList()
         configuration.resolvedConfiguration.firstLevelModuleDependencies.each { dependency ->
             boolean match = false
             artifacts.each { artifact ->
@@ -143,10 +141,10 @@ class FatLibraryPlugin implements Plugin<Project> {
             }
             if (!match) {
                 def flavorArtifact = FlavorArtifact.createFlavorArtifact(project, variant, dependency, mGradlePluginVersion)
-                artifactSet.add(flavorArtifact)
+                artifactList.add(flavorArtifact)
             }
         }
-        return artifactSet
+        return artifactList
     }
 
     private void checkGradlePluginVersion() {

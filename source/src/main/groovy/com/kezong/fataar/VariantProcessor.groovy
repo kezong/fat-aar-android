@@ -5,9 +5,10 @@ import com.android.build.gradle.internal.api.DefaultAndroidSourceSet
 import com.android.build.gradle.tasks.ManifestProcessorTask
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.internal.artifacts.ResolvableDependency
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.PathSensitivity
@@ -54,14 +55,16 @@ class VariantProcessor {
         mJarFiles.add(jar)
     }
 
-    void processVariant(Set<ResolvedArtifact> artifacts, RTransform transform) {
+    void processVariant(Collection<ResolvedArtifact> artifacts,
+                        Collection<ResolvableDependency> dependencies,
+                        RTransform transform) {
         String taskPath = 'pre' + mVariant.name.capitalize() + 'Build'
         TaskProvider prepareTask = mProject.tasks.named(taskPath)
         if (prepareTask == null) {
             throw new RuntimeException("Can not find task ${taskPath}!")
         }
         TaskProvider bundleTask = FlavorArtifact.getBundleTaskProvider(mProject, mVariant)
-        preEmbed(artifacts, prepareTask)
+        preEmbed(artifacts, dependencies, prepareTask)
         processArtifacts(artifacts, prepareTask, bundleTask)
         processClassesAndJars(bundleTask)
         if (mAndroidArchiveLibraries.isEmpty()) {
@@ -76,14 +79,76 @@ class VariantProcessor {
         processDataBinding(bundleTask)
     }
 
-    private void preEmbed(Set<ResolvedArtifact> artifacts, TaskProvider prepareTask) {
-        TaskProvider embedTask = mProject.tasks.register("pre${mVariant.name.capitalize()}Embed") {
-            doFirst {
-                artifacts.each { artifact ->
-                    Utils.logAnytime("[embed detected][$artifact.type]${artifact.moduleVersion.id}")
+    private Map<ResolvedArtifact, List<ResolvedArtifact>> getDependencyMap(Configuration configuration) {
+        Map<ResolvedArtifact, List<ResolvedArtifact>> map = new HashMap<>()
+        configuration.resolvedConfiguration.firstLevelModuleDependencies.each { it ->
+            Utils.logAnytime("dependency:" + it.moduleName)
+            Utils.logAnytime("dependency:" + it.allModuleArtifacts.size())
+
+            ResolvedArtifact parent
+            List<ResolvedArtifact> child = new ArrayList<>()
+            it.allModuleArtifacts.each { artifact ->
+                Utils.logAnytime("dependency sub:" + artifact.name)
+                if (it.moduleName == artifact.name) {
+                    parent = artifact
+                    return
+                }
+                child.add(artifact)
+            }
+            if (parent != null) {
+                map.put(parent, child)
+            }
+        }
+        return map;
+    }
+
+    private static void printEmbedArtifacts(Collection<ResolvedArtifact> artifacts,
+                                     Collection<ResolvedDependency> dependencies) {
+        Collection<String> artifactNames = artifacts.stream().map { it.name }.collect()
+        dependencies.each { dependency ->
+            if (!artifactNames.contains(dependency.moduleName)) {
+                return
+            }
+
+            ResolvedArtifact self = dependency.allModuleArtifacts.find { module ->
+                module.name == dependency.moduleName
+            }
+
+            if (self == null) {
+                return
+            }
+
+            Utils.logAnytime("[embed detected][$self.type]${self.moduleVersion.id}")
+            artifactNames.remove(self.name)
+
+            dependency.allModuleArtifacts.each { artifact ->
+                if (!artifactNames.contains(artifact.name)) {
+                    return
+                }
+                if (artifact != self) {
+                    Utils.logAnytime("    - [embed detected][transitive][$artifact.type]${artifact.moduleVersion.id}")
+                    artifactNames.remove(artifact.name)
                 }
             }
         }
+
+        artifactNames.each { name ->
+            ResolvedArtifact artifact = artifacts.find { it.name == name }
+            if (artifact != null) {
+                Utils.logAnytime("[embed detected][$artifact.type]${artifact.moduleVersion.id}")
+            }
+        }
+    }
+
+    private void preEmbed(Collection<ResolvedArtifact> artifacts,
+                          Collection<ResolvedDependency> dependencies,
+                          TaskProvider prepareTask) {
+        TaskProvider embedTask = mProject.tasks.register("pre${mVariant.name.capitalize()}Embed") {
+            doFirst {
+                printEmbedArtifacts(artifacts, dependencies)
+            }
+        }
+
         prepareTask.configure {
             dependsOn embedTask
         }
@@ -142,7 +207,7 @@ class VariantProcessor {
     /**
      * exploded artifact files
      */
-    private void processArtifacts(Set<ResolvedArtifact> artifacts, TaskProvider<Task> prepareTask, TaskProvider<Task> bundleTask) {
+    private void processArtifacts(Collection<ResolvedArtifact> artifacts, TaskProvider<Task> prepareTask, TaskProvider<Task> bundleTask) {
         if (artifacts == null) {
             return
         }

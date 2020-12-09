@@ -110,7 +110,6 @@ class FatLibraryPlugin implements Plugin<Project> {
 
     private void createConfiguration(Configuration embedConf) {
         embedConf.visible = false
-        embedConf.transitive = false
         project.gradle.addListener(new EmbedDependencyListener(project, embedConf))
         embedConfigurations.add(embedConf)
     }

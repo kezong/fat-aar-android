@@ -101,7 +101,7 @@ class VariantProcessor {
             throw new RuntimeException("Can not find task ${taskPath}!")
         }
         TaskProvider bundleTask = FlavorArtifact.getBundleTaskProvider(mProject, mVariant)
-
+        preEmbed(prepareTask)
         processArtifacts(prepareTask, bundleTask)
         processClassesAndJars(bundleTask)
         if (mAndroidArchiveLibraries.isEmpty()) {
@@ -114,6 +114,19 @@ class VariantProcessor {
         processProguardTxt(prepareTask)
         processR(transform, bundleTask)
         processDataBinding(bundleTask)
+    }
+
+    private void preEmbed(TaskProvider prepareTask) {
+        TaskProvider embedTask = mProject.tasks.register("pre${mVariant.name.capitalize()}Embed") {
+            doFirst {
+                mResolvedArtifacts.each { artifact ->
+                    Utils.logAnytime("[embed][$artifact.type]${artifact.moduleVersion.id}")
+                }
+            }
+        }
+        prepareTask.configure {
+            dependsOn embedTask
+        }
     }
 
     private void processR(RTransform transform, TaskProvider<Task> bundleTask) {

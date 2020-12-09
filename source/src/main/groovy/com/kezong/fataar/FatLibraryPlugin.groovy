@@ -20,11 +20,15 @@ class FatLibraryPlugin implements Plugin<Project> {
 
     public static final String ARTIFACT_TYPE_JAR = 'jar'
 
+    private static final String CONFIG_NAME = "embed"
+
     public static final String CONFIG_SUFFIX = 'Embed'
 
     private Project project
 
     private RTransform transform;
+
+    private final Collection<Configuration> embedConfigurations = new ArrayList<>();
 
     @Override
     void apply(Project project) {
@@ -33,30 +37,8 @@ class FatLibraryPlugin implements Plugin<Project> {
         DirectoryManager.attach(project)
         checkAndroidPlugin()
         project.extensions.create(FatAarExtension.NAME, FatAarExtension)
-        final Configuration embedConf = project.configurations.create('embed')
-        createConfiguration(embedConf)
-        Utils.logAnytime("Creating configuration embed")
 
-        project.android.buildTypes.all { buildType ->
-            String configName = buildType.name + CONFIG_SUFFIX
-            Configuration configuration = project.configurations.create(configName)
-            createConfiguration(configuration)
-            Utils.logAnytime("Creating configuration " + configName)
-        }
-
-        project.android.productFlavors.all { flavor ->
-            String configName = flavor.name + CONFIG_SUFFIX
-            Configuration configuration = project.configurations.create(configName)
-            createConfiguration(configuration)
-            Utils.logAnytime("Creating configuration " + configName)
-            project.android.buildTypes.all { buildType ->
-                String variantName = flavor.name + buildType.name.capitalize()
-                String variantConfigName = variantName + CONFIG_SUFFIX
-                Configuration variantConfiguration = project.configurations.create(variantConfigName)
-                createConfiguration(variantConfiguration)
-                Utils.logAnytime("Creating configuration " + variantConfigName)
-            }
-        }
+        createConfigurations();
 
         if (project.fataar.transformR) {
             transform = new RTransform(project)
@@ -65,80 +47,53 @@ class FatLibraryPlugin implements Plugin<Project> {
         }
 
         project.afterEvaluate {
-            Set<ResolvedArtifact> commonArtifacts = resolveArtifacts(embedConf)
-            Set<ResolvedDependency> commonUnResolveArtifacts = dealUnResolveArtifacts(embedConf, commonArtifacts)
-            if (commonArtifacts.size() > 0 || commonUnResolveArtifacts.size() > 0) {
-                Utils.logAnytime("--------------------------"
-                        + "[common]"
-                        + "--------------------------")
-                printArtifactsInfo(commonArtifacts)
-                printUnResolveArtifactsInfo(commonUnResolveArtifacts)
+            doAfterEvaluate()
+        }
+    }
+
+    private void doAfterEvaluate() {
+        Set<ResolvedArtifact> artifacts = new HashSet<>()
+        Set<ResolvedArtifact> unResolveArtifacts = new HashSet<>()
+
+        project.android.libraryVariants.all { LibraryVariant variant ->
+            embedConfigurations.each { configuration ->
+                if (configuration.name == CONFIG_NAME
+                        || configuration.name == variant.getBuildType().name + CONFIG_SUFFIX
+                        || configuration.name == variant.getFlavorName() + CONFIG_SUFFIX
+                        || configuration.name == variant.name + CONFIG_SUFFIX) {
+                    Set<ResolvedArtifact> resolvedArtifacts = resolveArtifacts(configuration)
+                    artifacts.addAll(resolvedArtifacts)
+                    unResolveArtifacts.addAll(dealUnResolveArtifacts(configuration, resolvedArtifacts))
+                }
             }
-            project.android.libraryVariants.all { variant ->
-                String buildTypeConfigName = variant.getBuildType().name + CONFIG_SUFFIX
-                Configuration buildTypeConfiguration
-                try {
-                    buildTypeConfiguration = project.configurations.getByName(buildTypeConfigName)
-                } catch (Exception ignored) {
-                    Utils.logAnytime("Ignored configuration " + buildTypeConfigName)
-                }
 
-                /**
-                 * Doesn't support more than one flavor dimension: LibraryVariant does not have
-                 * public interface for VariantConfiguration list(which holds flavor configs).
-                 * Also Library plugin doesn't have API for variants in the project.
-                 */
-                String flavorConfigName = variant.getFlavorName() + CONFIG_SUFFIX
-                Configuration flavorConfiguration
-                if (flavorConfigName != CONFIG_SUFFIX) {
-                    try {
-                        flavorConfiguration = project.configurations.getByName(flavorConfigName)
-                    } catch (Exception ignored) {
-                        Utils.logAnytime("Ignored configuration " + flavorConfigName)
-                    }
-                }
+            processVariant(variant, artifacts, unResolveArtifacts)
+        }
+    }
 
-                String variantConfigName = variant.name + CONFIG_SUFFIX
-                Configuration variantConfiguration
-                if (variantConfigName != buildTypeConfigName) {
-                    try {
-                        variantConfiguration = project.configurations.getByName(variantConfigName)
-                    } catch (Exception ignored) {
-                        Utils.logAnytime("Ignored configuration " + variantConfigName)
-                    }
-                }
+    private void createConfigurations() {
+        Configuration embedConf = project.configurations.create(CONFIG_NAME)
+        createConfiguration(embedConf)
+        Utils.logInfo("Creating configuration embed")
 
-                Set<ResolvedArtifact> variantArtifacts = new HashSet<>()
-                variantArtifacts.addAll(resolveArtifacts(buildTypeConfiguration))
-                variantArtifacts.addAll(resolveArtifacts(flavorConfiguration))
-                variantArtifacts.addAll(resolveArtifacts(variantConfiguration))
-                Set<ResolvedArtifact> artifacts = new HashSet<>()
-                artifacts.addAll(commonArtifacts)
-                artifacts.addAll(variantArtifacts)
+        project.android.buildTypes.all { buildType ->
+            String configName = buildType.name + CONFIG_SUFFIX
+            Configuration configuration = project.configurations.create(configName)
+            createConfiguration(configuration)
+            Utils.logInfo("Creating configuration " + configName)
+        }
 
-                Set<ResolvedDependency> variantUnResolveArtifacts = new HashSet<>()
-                variantUnResolveArtifacts.addAll(dealUnResolveArtifacts(buildTypeConfiguration, artifacts))
-                variantUnResolveArtifacts.addAll(dealUnResolveArtifacts(flavorConfiguration, artifacts))
-                variantUnResolveArtifacts.addAll(dealUnResolveArtifacts(variantConfiguration, artifacts))
-                Set<ResolvedDependency> unResolveArtifacts = new HashSet<>()
-                unResolveArtifacts.addAll(commonUnResolveArtifacts)
-                unResolveArtifacts.addAll(variantUnResolveArtifacts)
-
-                if (variantArtifacts.size() > 0 || variantUnResolveArtifacts.size() > 0) {
-                    if (variant.getFlavorName()) {
-                        Utils.logAnytime("--------------------------"
-                                + "[${variant.getFlavorName()}][${variant.getBuildType().name}]"
-                                + "--------------------------")
-                    } else {
-                        Utils.logAnytime("--------------------------"
-                                + "[${variant.getBuildType().name}]"
-                                + "--------------------------")
-                    }
-                    printArtifactsInfo(variantArtifacts)
-                    printUnResolveArtifactsInfo(variantUnResolveArtifacts)
-                }
-
-                processVariant(variant, artifacts, unResolveArtifacts)
+        project.android.productFlavors.all { flavor ->
+            String configName = flavor.name + CONFIG_SUFFIX
+            Configuration configuration = project.configurations.create(configName)
+            createConfiguration(configuration)
+            Utils.logInfo("Creating configuration " + configName)
+            project.android.buildTypes.all { buildType ->
+                String variantName = flavor.name + buildType.name.capitalize()
+                String variantConfigName = variantName + CONFIG_SUFFIX
+                Configuration variantConfiguration = project.configurations.create(variantConfigName)
+                createConfiguration(variantConfiguration)
+                Utils.logInfo("Creating configuration " + variantConfigName)
             }
         }
     }
@@ -154,6 +109,7 @@ class FatLibraryPlugin implements Plugin<Project> {
         embedConf.visible = false
         embedConf.transitive = false
         project.gradle.addListener(new EmbedDependencyListener(project, embedConf))
+        embedConfigurations.add(embedConf)
     }
 
     private Set<ResolvedArtifact> resolveArtifacts(Configuration configuration) {
@@ -196,21 +152,5 @@ class FatLibraryPlugin implements Plugin<Project> {
             }
         }
         return Collections.unmodifiableSet(dependencySet)
-    }
-
-    private static printArtifactsInfo(Set<ResolvedArtifact> artifacts) {
-        if (artifacts != null && artifacts.size() > 0) {
-            artifacts.each { artifact ->
-                Utils.logAnytime("[embed detected][$artifact.type]${artifact.moduleVersion.id}")
-            }
-        }
-    }
-
-    private static printUnResolveArtifactsInfo(Set<ResolvedDependency> dependencies) {
-        if (dependencies != null && dependencies.size() > 0) {
-            dependencies.each { it ->
-                Utils.logAnytime("[embed detected']${it.name}")
-            }
-        }
     }
 }

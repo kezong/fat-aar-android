@@ -36,11 +36,11 @@ class FatLibraryPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
         this.project = project
+        project.extensions.create(FatAarExtension.NAME, FatAarExtension)
         Utils.setProject(project)
         DirectoryManager.attach(project)
         checkAndroidPlugin()
         checkGradlePluginVersion()
-        project.extensions.create(FatAarExtension.NAME, FatAarExtension)
         createConfigurations()
         if (project.fataar.transformR) {
             transform = new RClassesTransform(project)
@@ -110,6 +110,7 @@ class FatLibraryPlugin implements Plugin<Project> {
 
     private void createConfiguration(Configuration embedConf) {
         embedConf.visible = false
+        embedConf.transitive = project.fataar.transitive
         project.gradle.addListener(new EmbedDependencyListener(project, embedConf))
         embedConfigurations.add(embedConf)
     }

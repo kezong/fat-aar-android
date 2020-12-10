@@ -4,7 +4,9 @@ import com.android.build.gradle.api.LibraryVariant
 import com.android.build.gradle.tasks.ManifestProcessorTask
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.UnknownTaskException
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.tasks.TaskProvider
 
 /**
  * @author kezong on 2019/7/16.
@@ -110,15 +112,31 @@ class VersionAdapter {
     }
 
     File getOutputFile() {
-        if (Utils.compareVersion(mGradlePluginVersion, "3.3.0") >= 0) {
-            String fileName = mVariant.outputs.first().outputFileName
-            if (Utils.compareVersion(mProject.gradle.gradleVersion, "5.1") >= 0) {
-                return new File(mVariant.getPackageLibraryProvider().get().getDestinationDirectory().getAsFile().get(), fileName)
+        return outputFile(mProject, mVariant, mGradlePluginVersion)
+    }
+
+    static File getOutputFile(Project project, LibraryVariant variant, String gradlePluginVersion) {
+        if (Utils.compareVersion(gradlePluginVersion, "3.3.0") >= 0) {
+            String fileName = variant.outputs.first().outputFileName
+            if (Utils.compareVersion(project.gradle.gradleVersion, "5.1") >= 0) {
+                return new File(variant.getPackageLibraryProvider().get().getDestinationDirectory().getAsFile().get(), fileName)
             } else {
-                return new File(mVariant.getPackageLibraryProvider().get().getDestinationDir(), fileName)
+                return new File(variant.getPackageLibraryProvider().get().getDestinationDir(), fileName)
             }
         } else {
-            return mVariant.outputs.first().outputFile
+            return variant.outputs.first().outputFile
         }
+    }
+
+    static TaskProvider<Task> getBundleTaskProvider(Project project, LibraryVariant variant) throws UnknownTaskException {
+        def taskPath = "bundle" + variant.name.capitalize()
+        TaskProvider bundleTask
+        try {
+            bundleTask = project.tasks.named(taskPath)
+        } catch (UnknownTaskException ignored) {
+            taskPath += "Aar"
+            bundleTask = project.tasks.named(taskPath)
+        }
+        return bundleTask
     }
 }

@@ -90,16 +90,7 @@ class FlavorArtifact {
         File output
         LibraryVariant subVariant = project.android.libraryVariants.find { it.name == variant.name }
         if (subVariant != null) {
-            if (Utils.compareVersion(version, "3.3.0") >= 0) {
-                String fileName = subVariant.outputs.first().outputFileName
-                if (Utils.compareVersion(project.gradle.gradleVersion, "5.1") >= 0) {
-                    output = new File(subVariant.getPackageLibraryProvider().get().getDestinationDirectory().getAsFile().get(), fileName)
-                } else {
-                    output = new File(subVariant.getPackageLibraryProvider().get().getDestinationDir(), fileName)
-                }
-            } else {
-                output = subVariant.outputs.first().outputFile
-            }
+            output = VersionAdapter.getOutputFile(project, subVariant, version)
         }
 
         if (output == null) {
@@ -109,20 +100,8 @@ class FlavorArtifact {
         return output
     }
 
-    static TaskProvider<Task> getBundleTaskProvider(final Project project, final LibraryVariant variant) throws UnknownTaskException {
-        def taskPath = "bundle" + variant.name.capitalize()
-        TaskProvider bundleTask
-        try {
-            bundleTask = project.tasks.named(taskPath)
-        } catch (UnknownTaskException ignored) {
-            taskPath += "Aar"
-            bundleTask = project.tasks.named(taskPath)
-        }
-        return bundleTask
-    }
-
     private static TaskDependency createTaskDependency(Project project, LibraryVariant variant) {
-        def bundleTaskProvider = getBundleTaskProvider(project, variant)
+        def bundleTaskProvider = VersionAdapter.getBundleTaskProvider(project, variant)
 
         return new TaskDependency() {
             @Override

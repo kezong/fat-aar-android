@@ -87,14 +87,26 @@ class FlavorArtifact {
     }
 
     private static File createArtifactFile(Project project, LibraryVariant variant, ResolvedDependency unResolvedArtifact, String version) {
-        def buildPath = project.buildDir.path
-        def outputName
-        if (Utils.compareVersion(project.gradle.gradleVersion, "5.1.0") >= 0 && Utils.compareVersion(version, "3.4") < 0) {
-            outputName = "$buildPath/outputs/aar/${unResolvedArtifact.moduleName}.aar"
-        } else {
-            outputName = "$buildPath/outputs/aar/$unResolvedArtifact.moduleName-$variant.flavorName-${variant.buildType.name}.aar"
+        File output
+        LibraryVariant subVariant = project.android.libraryVariants.find { it.name == variant.name }
+        if (subVariant != null) {
+            if (Utils.compareVersion(version, "3.3.0") >= 0) {
+                String fileName = subVariant.outputs.first().outputFileName
+                if (Utils.compareVersion(project.gradle.gradleVersion, "5.1") >= 0) {
+                    output = new File(subVariant.getPackageLibraryProvider().get().getDestinationDirectory().getAsFile().get(), fileName)
+                } else {
+                    output = new File(subVariant.getPackageLibraryProvider().get().getDestinationDir(), fileName)
+                }
+            } else {
+                output = subVariant.outputs.first().outputFile
+            }
         }
-        return new File(outputName)
+
+        if (output == null) {
+            def buildPath = project.buildDir.path
+            output = "$buildPath/outputs/aar/$unResolvedArtifact.moduleName-$variant.flavorName-${variant.buildType.name}.aar"
+        }
+        return output
     }
 
     static TaskProvider<Task> getBundleTaskProvider(final Project project, final LibraryVariant variant) throws UnknownTaskException {

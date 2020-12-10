@@ -80,29 +80,6 @@ class VariantProcessor {
         processDataBinding(bundleTask)
     }
 
-    private Map<ResolvedArtifact, List<ResolvedArtifact>> getDependencyMap(Configuration configuration) {
-        Map<ResolvedArtifact, List<ResolvedArtifact>> map = new HashMap<>()
-        configuration.resolvedConfiguration.firstLevelModuleDependencies.each { it ->
-            Utils.logAnytime("dependency:" + it.moduleName)
-            Utils.logAnytime("dependency:" + it.allModuleArtifacts.size())
-
-            ResolvedArtifact parent
-            List<ResolvedArtifact> child = new ArrayList<>()
-            it.allModuleArtifacts.each { artifact ->
-                Utils.logAnytime("dependency sub:" + artifact.name)
-                if (it.moduleName == artifact.name) {
-                    parent = artifact
-                    return
-                }
-                child.add(artifact)
-            }
-            if (parent != null) {
-                map.put(parent, child)
-            }
-        }
-        return map;
-    }
-
     private static void printEmbedArtifacts(Collection<ResolvedArtifact> artifacts,
                                      Collection<ResolvedDependency> dependencies) {
         Collection<String> artifactNames = artifacts.stream().map { it.name }.collect()

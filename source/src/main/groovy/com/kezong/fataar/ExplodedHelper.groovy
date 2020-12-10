@@ -60,7 +60,6 @@ class ExplodedHelper {
             project.copy {
                 from project.zipTree(jarFile)
                 into folderOut
-                exclude 'META-INF/'
             }
         }
     }

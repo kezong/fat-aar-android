@@ -5,7 +5,6 @@ import com.android.build.gradle.internal.api.DefaultAndroidSourceSet
 import com.android.build.gradle.tasks.ManifestProcessorTask
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.internal.artifacts.ResolvableDependency
@@ -41,6 +40,8 @@ class VariantProcessor {
 
     private VersionAdapter mVersionAdapter
 
+    private TaskProvider mMergeClassTask
+
     VariantProcessor(Project project, LibraryVariant variant, String gradlePluginVersion) {
         mProject = project
         mVariant = variant
@@ -67,17 +68,17 @@ class VariantProcessor {
         TaskProvider bundleTask = VersionAdapter.getBundleTaskProvider(mProject, mVariant)
         preEmbed(artifacts, dependencies, prepareTask)
         processArtifacts(artifacts, prepareTask, bundleTask)
-        processClassesAndJars(bundleTask)
         if (mAndroidArchiveLibraries.isEmpty()) {
             return
         }
+        processClassesAndJars(bundleTask)
         processManifest()
         processResources()
         processAssets()
         processJniLibs()
         processProguardTxt(prepareTask)
-        processRClasses(transform, bundleTask)
         processDataBinding(bundleTask)
+        processRClasses(transform, bundleTask)
     }
 
     private static void printEmbedArtifacts(Collection<ResolvedArtifact> artifacts,
@@ -185,7 +186,7 @@ class VariantProcessor {
             // transformR is true
             transformRClasses(transform, bundleTask, reBundleTask)
         } else {
-            // tranformR is false
+            // transformR is false
             generateRClasses(bundleTask, reBundleTask)
         }
     }
@@ -195,7 +196,7 @@ class VariantProcessor {
         mProject.tasks
                 .named("transformClassesWith${transform.name.capitalize()}For${mVariant.name.capitalize()}")
                 .configure {
-                    it.dependsOn(mProject.tasks.named("mergeClasses${mVariant.name.capitalize()}"))
+                    it.dependsOn(mMergeClassTask)
                     it.dependsOn(mExplodeTasks)
                     doFirst {
                         // library package name parsed by aar's AndroidManifest.xml
@@ -220,6 +221,10 @@ class VariantProcessor {
         }
     }
 
+    /**
+     * copy data binding file must be do last in BundleTask, and reBundleTask will be package it.
+     * @param bundleTask
+     */
     private void processDataBinding(TaskProvider<Task> bundleTask) {
         bundleTask.configure {
             doLast {
@@ -340,6 +345,10 @@ class VariantProcessor {
         final TaskProvider task = mProject.tasks.register("mergeClasses" + mVariant.name.capitalize()) {
             dependsOn(mExplodeTasks)
             dependsOn(mVersionAdapter.getJavaCompileTask())
+            TaskProvider kotlinCompile = mProject.tasks.named("compile${mVariant.name.capitalize()}Kotlin")
+            if (kotlinCompile != null) {
+                dependsOn(kotlinCompile)
+            }
 
             inputs.files(mAndroidArchiveLibraries.stream().map { it.classesJarFile }.collect())
                     .withPathSensitivity(PathSensitivity.RELATIVE)
@@ -374,6 +383,13 @@ class VariantProcessor {
                 mProject.copy {
                     from outputDir
                     into javacDir
+                    exclude 'META-INF/'
+                }
+
+                mProject.copy {
+                    from outputDir.absolutePath + "/META-INF"
+                    into DirectoryManager.getKotlinMetaDirectory(mVariant)
+                    include '*.kotlin_module'
                 }
             }
         }
@@ -420,15 +436,15 @@ class VariantProcessor {
         TaskProvider syncLibTask = mProject.tasks.named(mVersionAdapter.getSyncLibJarsTaskPath())
         TaskProvider extractAnnotationsTask = mProject.tasks.named("extract${mVariant.name.capitalize()}Annotations")
 
-        TaskProvider mergeClasses = handleClassesMergeTask(isMinifyEnabled)
+        mMergeClassTask = handleClassesMergeTask(isMinifyEnabled)
         syncLibTask.configure {
-            dependsOn(mergeClasses)
+            dependsOn(mMergeClassTask)
             inputs.files(mAndroidArchiveLibraries.stream().map { it.libsFolder }.collect())
                     .withPathSensitivity(PathSensitivity.RELATIVE)
             inputs.files(mJarFiles).withPathSensitivity(PathSensitivity.RELATIVE)
         }
         extractAnnotationsTask.configure {
-            mustRunAfter(mergeClasses)
+            mustRunAfter(mMergeClassTask)
         }
 
         if (!isMinifyEnabled) {

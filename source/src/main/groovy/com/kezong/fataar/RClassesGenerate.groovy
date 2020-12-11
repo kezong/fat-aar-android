@@ -17,15 +17,13 @@ class RClassesGenerate {
     private final Project mProject
     private final LibraryVariant mVariant
 
-    private final String mGradlePluginVersion
     private VersionAdapter mVersionAdapter
     private final Collection<AndroidArchiveLibrary> mLibraries
 
-    RClassesGenerate(Project project, LibraryVariant variant, Collection<AndroidArchiveLibrary> libraries, String version) {
+    RClassesGenerate(Project project, LibraryVariant variant, Collection<AndroidArchiveLibrary> libraries) {
         mProject = project
         mVariant = variant
         mLibraries = libraries
-        mGradlePluginVersion = version
         mVersionAdapter = new VersionAdapter(project, variant, version)
     }
 
@@ -157,7 +155,7 @@ class RClassesGenerate {
                 Utils.logInfo("Compile R.class, Dir:${sourceDir.path}")
                 Utils.logInfo("Compile R.class, classpath:${classpath.first().absolutePath}")
 
-                if (mGradlePluginVersion != null && Utils.compareVersion(mGradlePluginVersion, "3.3.0") >= 0) {
+                if (Utils.compareVersion(VersionAdapter.AGPVersion, "3.3.0") >= 0) {
                     mProject.copy {
                         from mProject.zipTree(mVersionAdapter.getRClassPath().first().absolutePath + "/R.jar")
                         into mVersionAdapter.getRClassPath().first().absolutePath

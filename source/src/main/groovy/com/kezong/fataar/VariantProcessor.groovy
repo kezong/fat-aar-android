@@ -36,17 +36,14 @@ class VariantProcessor {
 
     private Collection<Task> mExplodeTasks = new ArrayList<>()
 
-    private String mGradlePluginVersion
-
     private VersionAdapter mVersionAdapter
 
     private TaskProvider mMergeClassTask
 
-    VariantProcessor(Project project, LibraryVariant variant, String gradlePluginVersion) {
+    VariantProcessor(Project project, LibraryVariant variant) {
         mProject = project
         mVariant = variant
-        mGradlePluginVersion = gradlePluginVersion;
-        mVersionAdapter = new VersionAdapter(project, variant, mGradlePluginVersion)
+        mVersionAdapter = new VersionAdapter(project, variant)
     }
 
     void addAndroidArchiveLibrary(AndroidArchiveLibrary library) {
@@ -214,7 +211,7 @@ class VariantProcessor {
     }
 
     private void generateRClasses(TaskProvider<Task> bundleTask, TaskProvider<Task> reBundleTask) {
-        RClassesGenerate rClassesGenerate = new RClassesGenerate(mProject, mVariant, mAndroidArchiveLibraries, mGradlePluginVersion)
+        RClassesGenerate rClassesGenerate = new RClassesGenerate(mProject, mVariant, mAndroidArchiveLibraries)
         TaskProvider RTask = rClassesGenerate.configure(reBundleTask)
         bundleTask.configure {
             finalizedBy(RTask)
@@ -313,7 +310,7 @@ class VariantProcessor {
         ManifestProcessorTask processManifestTask = mVersionAdapter.getProcessManifest()
 
         File manifestOutput
-        if (mGradlePluginVersion != null && Utils.compareVersion(mGradlePluginVersion, "3.3.0") >= 0) {
+        if (Utils.compareVersion(VersionAdapter.AGPVersion, "3.3.0") >= 0) {
             manifestOutput = mProject.file("${mProject.buildDir.path}/intermediates/library_manifest/${mVariant.name}/AndroidManifest.xml")
         } else {
             manifestOutput = mProject.file(processManifestTask.getManifestOutputDirectory().absolutePath + "/AndroidManifest.xml")
@@ -326,7 +323,7 @@ class VariantProcessor {
 
         TaskProvider<LibraryManifestMerger> manifestsMergeTask = mProject.tasks.register("merge${mVariant.name.capitalize()}Manifest", LibraryManifestMerger) {
             setGradleVersion(mProject.getGradle().getGradleVersion())
-            setGradlePluginVersion(mGradlePluginVersion)
+            setGradlePluginVersion(VersionAdapter.AGPVersion)
             setVariantName(mVariant.name)
             setMainManifestFile(manifestOutput)
             setSecondaryManifestFiles(inputManifests)

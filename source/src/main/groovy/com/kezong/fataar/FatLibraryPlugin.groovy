@@ -5,7 +5,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
 
@@ -31,8 +30,6 @@ class FatLibraryPlugin implements Plugin<Project> {
 
     private final Collection<Configuration> embedConfigurations = new ArrayList<>()
 
-    private String mGradlePluginVersion
-
     @Override
     void apply(Project project) {
         this.project = project
@@ -40,7 +37,6 @@ class FatLibraryPlugin implements Plugin<Project> {
         Utils.setProject(project)
         DirectoryManager.attach(project)
         checkAndroidPlugin()
-        checkGradlePluginVersion()
         createConfigurations()
         if (project.fataar.transformR) {
             transform = new RClassesTransform(project)
@@ -69,7 +65,7 @@ class FatLibraryPlugin implements Plugin<Project> {
                 }
             }
 
-            def processor = new VariantProcessor(project, variant, mGradlePluginVersion)
+            def processor = new VariantProcessor(project, variant)
             processor.processVariant(artifacts, firstLevelDependencies, transform)
         }
     }
@@ -140,35 +136,10 @@ class FatLibraryPlugin implements Plugin<Project> {
                 }
             }
             if (!match) {
-                def flavorArtifact = FlavorArtifact.createFlavorArtifact(project, variant, dependency, mGradlePluginVersion)
+                def flavorArtifact = FlavorArtifact.createFlavorArtifact(project, variant, dependency)
                 artifactList.add(flavorArtifact)
             }
         }
         return artifactList
-    }
-
-    private void checkGradlePluginVersion() {
-        project.rootProject.buildscript.getConfigurations().getByName("classpath").getDependencies().each { Dependency dep ->
-            if (dep.group == "com.android.tools.build" && dep.name == "gradle") {
-                mGradlePluginVersion = dep.version
-            }
-        }
-
-        if (mGradlePluginVersion == null) {
-            def classpathBuildscriptConfiguration = mProject.rootProject.buildscript.getConfigurations().getByName("classpath")
-            def artifacts = classpathBuildscriptConfiguration.getResolvedConfiguration().getResolvedArtifacts()
-            artifacts.find {
-                def artifactId = it.getModuleVersion().getId()
-                if (artifactId.getGroup() == "com.android.tools.build" && artifactId.getName() == "gradle") {
-                    mGradlePluginVersion = artifactId.getVersion()
-                    return true
-                }
-                return false
-            }
-        }
-
-        if (mGradlePluginVersion == null) {
-            throw new IllegalStateException("com.android.tools.build:gradle not found in buildscript classpath")
-        }
     }
 }

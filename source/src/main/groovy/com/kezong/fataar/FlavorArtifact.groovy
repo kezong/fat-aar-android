@@ -25,11 +25,11 @@ import javax.annotation.Nullable
  */
 class FlavorArtifact {
 
-    static DefaultResolvedArtifact createFlavorArtifact(Project project, LibraryVariant variant, ResolvedDependency unResolvedArtifact, String version) {
+    static DefaultResolvedArtifact createFlavorArtifact(Project project, LibraryVariant variant, ResolvedDependency unResolvedArtifact) {
         ModuleVersionIdentifier identifier = createModuleVersionIdentifier(unResolvedArtifact)
         DefaultIvyArtifactName artifactName = createArtifactName(unResolvedArtifact)
         Project artifactProject = getArtifactProject(project, unResolvedArtifact)
-        File artifactFile = createArtifactFile(artifactProject, variant, unResolvedArtifact, version)
+        File artifactFile = createArtifactFile(artifactProject, variant, unResolvedArtifact)
         Factory<File> fileFactory = new Factory<File>() {
             @Override
             File create() {
@@ -86,11 +86,11 @@ class FlavorArtifact {
         return null
     }
 
-    private static File createArtifactFile(Project project, LibraryVariant variant, ResolvedDependency unResolvedArtifact, String version) {
+    private static File createArtifactFile(Project project, LibraryVariant variant, ResolvedDependency unResolvedArtifact) {
         File output
         LibraryVariant subVariant = project.android.libraryVariants.find { it.name == variant.name }
         if (subVariant != null) {
-            output = VersionAdapter.getOutputFile(project, subVariant, version)
+            output = VersionAdapter.getOutputFile(project, subVariant)
         }
 
         if (output == null) {

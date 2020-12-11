@@ -63,6 +63,26 @@ afterEvaluate {
     }
 }
 
+fataar {
+    /**
+     * Plan A: using bytecode patching to process the merging problem of R files
+     * Plan B: generate sub module's R class to process the merging problem of R files
+     * if transformR is true, use Plan A, else use Plan B.
+     * In the future, Plan B maybe deprecated
+     * Default value is true
+     * @since 1.3.0
+     */
+    transformR = true
+
+    /**
+     * If transitive is true, local jar module and remote library's dependencies will be embed. (local aar module does not support)
+     * If transitive is false, just embed first level dependency
+     * Default value is false
+     * @since 1.3.0
+     */
+    transitive = true
+}
+
 dependencies {
     implementation fileTree(dir: 'libs', include: '*.jar')
     // java dependency
@@ -79,6 +99,10 @@ dependencies {
     embed 'com.google.guava:guava:20.0'
     // remote aar dependency
     embed 'com.facebook.fresco:fresco:1.11.0'
+    // remote aar dependency
+    embed ('com.github.bumptech.glide:glide:4.11.0') {
+        transitive = false
+    }
     // don't want to embed in
     implementation('androidx.appcompat:appcompat:1.2.0')
 }

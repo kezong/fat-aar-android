@@ -17,7 +17,7 @@ public class TestActivity extends Activity {
         binding = DataBindingUtil.setContentView(this, R.layout.databinding);
         User user = new User();
         user.setName("Hello World");
-        user.setSex("male");
+        user.setSex("[success][dataBinding] male");
         binding.setUser(user);
     }
 }

@@ -342,9 +342,14 @@ class VariantProcessor {
         final TaskProvider task = mProject.tasks.register("mergeClasses" + mVariant.name.capitalize()) {
             dependsOn(mExplodeTasks)
             dependsOn(mVersionAdapter.getJavaCompileTask())
-            TaskProvider kotlinCompile = mProject.tasks.named("compile${mVariant.name.capitalize()}Kotlin")
-            if (kotlinCompile != null) {
-                dependsOn(kotlinCompile)
+            try {
+                // main lib maybe not use kotlin
+                TaskProvider kotlinCompile = mProject.tasks.named("compile${mVariant.name.capitalize()}Kotlin")
+                if (kotlinCompile != null) {
+                    dependsOn(kotlinCompile)
+                }
+            } catch(Exception ignore) {
+
             }
 
             inputs.files(mAndroidArchiveLibraries.stream().map { it.classesJarFile }.collect())

@@ -6,4 +6,8 @@ package com.kezong.demo.lib;
 public class MainLibClass {
 
     public static final String TAG = MainLibClass.class.getSimpleName();
+
+    public static int test() {
+        return 200;
+    }
 }

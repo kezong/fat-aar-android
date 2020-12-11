@@ -1,11 +1,14 @@
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion 29
 
     defaultConfig {
         minSdkVersion 16
-        targetSdkVersion 27
+        targetSdkVersion 29
         versionCode 1
         versionName "1.0"
     }
@@ -20,10 +23,27 @@ android {
     dataBinding {
         enabled = true
     }
+
+    flavorDimensions "default"
+
+    productFlavors {
+
+        flavor1 {
+
+        }
+
+        flavor2 {
+
+        }
+    }
+}
+
+android.libraryVariants.all { variant ->
+    variant.outputs.all { output ->
+        outputFileName = "change-name-lib-aar-${variant.name.capitalize()}.aar"
+    }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: '*.jar')
-
-    implementation 'com.android.support:appcompat-v7:27.1.1'
 }

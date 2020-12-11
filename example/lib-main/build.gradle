@@ -1,5 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'com.kezong.fat-aar'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
 
 repositories {
     flatDir {
@@ -8,7 +10,7 @@ repositories {
 }
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion 29
 
     defaultConfig {
         minSdkVersion 16
@@ -45,27 +47,39 @@ android {
     }
 }
 
-// If the value is changed to true, the dependencies of the remote dependency will also be embedded in the final aar.
-// the default value of transitive is false
-configurations.embed.transitive = true
+afterEvaluate {
+    // for app test, copy the final aar to application libs
+    android.libraryVariants.all { variant ->
+        File outputFile = variant.outputs.first().outputFile
+        tasks.named("assemble${variant.name.capitalize()}").configure {
+            doLast {
+                copy {
+                    from outputFile
+                    into "../app/libs"
+                    rename outputFile.name, "fat-aar-final.aar"
+                }
+            }
+        }
+    }
+}
 
 dependencies {
     implementation fileTree(dir: 'libs', include: '*.jar')
     // java dependency
-    embed project(path: ':lib-java', configuration:'default')
+    embed project(path: ':lib-java')
     // aar dependency
-    embed project(path: ':lib-aar', configuration:'default')
+    embed project(path: ':lib-aar')
     // aar dependency
-    embed project(path: ':lib-aar2', configuration:'default')
+    embed project(path: ':lib-aar2')
     // local full aar dependency, just build in flavor1
-    flavor1Embed project(path: ':lib-aar-local', configuration:'default')
+    flavor1Embed project(path: ':lib-aar-local')
     // local full aar dependency, just build in debug
-    debugEmbed (name:'lib-aar-local2',ext:'aar')
+    debugEmbed (name:'lib-aar-local2', ext:'aar')
     // remote jar dependency
     embed 'com.google.guava:guava:20.0'
     // remote aar dependency
     embed 'com.facebook.fresco:fresco:1.11.0'
     // don't want to embed in
-    compileOnly 'com.android.support:appcompat-v7:27.1.1'
+    implementation('androidx.appcompat:appcompat:1.2.0')
 }
 

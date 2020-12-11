@@ -1,8 +1,5 @@
 buildscript {
     repositories {
-//        maven {
-//            url  "http://dl.bintray.com/kezong/maven"
-//        }
         jcenter()
         google()
         maven { url "https://plugins.gradle.org/m2/" }
@@ -10,6 +7,7 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:4.1.0'
         classpath 'com.kezong:fat-aar:1.2.20'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.72"
     }
 }
 

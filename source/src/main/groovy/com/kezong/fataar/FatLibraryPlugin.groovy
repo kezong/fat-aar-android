@@ -140,7 +140,9 @@ class FatLibraryPlugin implements Plugin<Project> {
             }
             if (!match) {
                 def flavorArtifact = FlavorArtifact.createFlavorArtifact(project, variant, dependency)
-                artifactList.add(flavorArtifact)
+                if (flavorArtifact != null) {
+                    artifactList.add(flavorArtifact)
+                }
             }
         }
         return artifactList

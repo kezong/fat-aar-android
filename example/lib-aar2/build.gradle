@@ -20,6 +20,16 @@ android {
     dataBinding {
         enabled = true
     }
+
+    flavorDimensions "default2"
+
+    productFlavors {
+        flavor4 {
+        }
+
+        flavor3 {
+        }
+    }
 }
 
 dependencies {

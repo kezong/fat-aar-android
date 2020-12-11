@@ -29,13 +29,12 @@ android {
     flavorDimensions "default"
 
     productFlavors {
-
         flavor1 {
-
+            missingDimensionStrategy 'default2', 'flavor3'
         }
 
         flavor2 {
-
+            missingDimensionStrategy 'default2', 'flavor3'
         }
     }
 
@@ -92,7 +91,7 @@ dependencies {
     // aar dependency
     embed project(path: ':lib-aar2')
     // local full aar dependency, just build in flavor1
-    flavor1Embed project(path: ':lib-aar-local')
+    embed project(path: ':lib-aar-local')
     // local full aar dependency, just build in debug
     debugEmbed (name:'lib-aar-local2', ext:'aar')
     // remote jar dependency

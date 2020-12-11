@@ -1,9 +1,9 @@
 package com.kezong.fataar
 
 import com.android.build.gradle.api.LibraryVariant
+import com.android.builder.model.ProductFlavor
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.UnknownTaskException
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
@@ -26,10 +26,15 @@ import javax.annotation.Nullable
 class FlavorArtifact {
 
     static DefaultResolvedArtifact createFlavorArtifact(Project project, LibraryVariant variant, ResolvedDependency unResolvedArtifact) {
+        Project artifactProject = getArtifactProject(project, unResolvedArtifact)
+        TaskProvider bundle = getBundleTask(artifactProject, variant)
+        if (bundle == null) {
+            return null
+        }
+
         ModuleVersionIdentifier identifier = createModuleVersionIdentifier(unResolvedArtifact)
         DefaultIvyArtifactName artifactName = createArtifactName(unResolvedArtifact)
-        Project artifactProject = getArtifactProject(project, unResolvedArtifact)
-        File artifactFile = createArtifactFile(artifactProject, variant, unResolvedArtifact)
+        File artifactFile = createArtifactFile(bundle)
         Factory<File> fileFactory = new Factory<File>() {
             @Override
             File create() {
@@ -41,12 +46,12 @@ class FlavorArtifact {
             TaskDependencyContainer taskDependencyContainer = new TaskDependencyContainer() {
                 @Override
                 void visitDependencies(TaskDependencyResolveContext taskDependencyResolveContext) {
-                    taskDependencyResolveContext.add(createTaskDependency(artifactProject, variant))
+                    taskDependencyResolveContext.add(createTaskDependency(bundle))
                 }
             }
             return new DefaultResolvedArtifact(identifier, artifactName, artifactIdentifier, taskDependencyContainer, fileFactory)
         } else {
-            TaskDependency taskDependency = createTaskDependency(artifactProject, variant)
+            TaskDependency taskDependency = createTaskDependency(bundle)
             return new DefaultResolvedArtifact(identifier, artifactName, artifactIdentifier, taskDependency, fileFactory)
         }
     }
@@ -86,28 +91,61 @@ class FlavorArtifact {
         return null
     }
 
-    private static File createArtifactFile(Project project, LibraryVariant variant, ResolvedDependency unResolvedArtifact) {
+    private static File createArtifactFile(TaskProvider bundle) {
         File output
-        LibraryVariant subVariant = project.android.libraryVariants.find { it.name == variant.name }
-        if (subVariant != null) {
-            output = VersionAdapter.getOutputFile(project, subVariant)
-        }
-
-        if (output == null) {
-            def buildPath = project.buildDir.path
-            output = "$buildPath/outputs/aar/$unResolvedArtifact.moduleName-$variant.flavorName-${variant.buildType.name}.aar"
+        bundle.configure { it ->
+            if (Utils.compareVersion(project.gradle.gradleVersion, "5.1") >= 0) {
+                output = new File(it.getDestinationDirectory().getAsFile().get(), it.getArchiveFileName().get())
+            } else {
+                output = new File(it.destinationDir, it.archiveName)
+            }
         }
         return output
     }
 
-    private static TaskDependency createTaskDependency(Project project, LibraryVariant variant) {
-        def bundleTaskProvider = VersionAdapter.getBundleTaskProvider(project, variant)
+    private static TaskProvider getBundleTask(Project project, LibraryVariant variant) {
+        TaskProvider bundleTaskProvider = null
+        project.android.libraryVariants.find { LibraryVariant subVariant ->
 
+            // 1. find same flavor
+            if (variant.name == subVariant.name) {
+                try {
+                    bundleTaskProvider = VersionAdapter.getBundleTaskProvider(project, subVariant)
+                    return true
+                } catch (Exception ignore) {
+                    return false
+                }
+            }
+
+            // 2. find missingStrategies
+            ProductFlavor flavor = variant.productFlavors.first()
+            flavor.missingDimensionStrategies.find { entry ->
+                String toDimension = entry.getKey()
+                String toFlavor = entry.getValue().getFallbacks().first()
+                ProductFlavor subFlavor = subVariant.productFlavors.first()
+                if (toDimension == subFlavor.dimension
+                        && toFlavor == subFlavor.name
+                        && variant.buildType.name == subVariant.buildType.name) {
+                    try {
+                        bundleTaskProvider = VersionAdapter.getBundleTaskProvider(project, subVariant)
+                        return true
+                    } catch (Exception ignore) {
+                        return false
+                    }
+                }
+            }
+            return bundleTaskProvider != null
+        }
+
+        return bundleTaskProvider
+    }
+
+    private static TaskDependency createTaskDependency(TaskProvider bundleTask) {
         return new TaskDependency() {
             @Override
             Set<? extends Task> getDependencies(@Nullable Task task) {
                 def set = new HashSet()
-                set.add(bundleTaskProvider.get())
+                set.add(bundleTask.get())
                 return set
             }
         }

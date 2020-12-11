@@ -50,6 +50,10 @@ class FatLibraryPlugin implements Plugin<Project> {
     }
 
     private void doAfterEvaluate() {
+        embedConfigurations.each {
+            it.transitive = project.fataar.transitive
+        }
+
         project.android.libraryVariants.all { LibraryVariant variant ->
             Collection<ResolvedArtifact> artifacts = new ArrayList()
             Collection<ResolvedDependency> firstLevelDependencies = new ArrayList<>()
@@ -106,7 +110,6 @@ class FatLibraryPlugin implements Plugin<Project> {
 
     private void createConfiguration(Configuration embedConf) {
         embedConf.visible = false
-        embedConf.transitive = project.fataar.transitive
         project.gradle.addListener(new EmbedDependencyListener(project, embedConf))
         embedConfigurations.add(embedConf)
     }

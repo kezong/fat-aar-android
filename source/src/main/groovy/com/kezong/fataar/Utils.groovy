@@ -99,4 +99,18 @@ class Utils {
             return diff > 0 ? 1 : -1
         }
     }
+
+    static String formatDataSize(long size) {
+        String result
+        if (size < 1024) {
+            result = size + "Byte"
+        } else if (size < (1024 * 1024)) {
+            result = String.format("%dK", size / 1024)
+        } else if (size < 1024 * 1024 * 1024) {
+            result = String.format("%.2fM", size / (1024 * 1024.0))
+        } else {
+            result = String.format("%.2fG", size / (1024 * 1024 * 1024.0))
+        }
+        return result
+    }
 }

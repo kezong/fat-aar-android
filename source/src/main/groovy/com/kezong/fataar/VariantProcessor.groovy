@@ -170,7 +170,7 @@ class VariantProcessor {
             }
 
             doLast {
-                Utils.logAnytime("target: ${aarOutputFile.absolutePath}")
+                Utils.logAnytime(" target: ${aarOutputFile.absolutePath} [${Utils.formatDataSize(aarOutputFile.size())}]")
             }
         }
 

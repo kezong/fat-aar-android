@@ -199,12 +199,20 @@ public class MainActivity extends FragmentActivity {
     }
 
     private void testLocalAar1() {
-        String text = AarLocalLibClass.TAG;
-        addTestView("local aar1", text, TextUtils.equals(text, AarLocalLibClass.class.getSimpleName()));
+        try {
+            String text = AarLocalLibClass.TAG;
+            addTestView("local aar1", text, TextUtils.equals(text, AarLocalLibClass.class.getSimpleName()));
+        } catch (Exception e) {
+            addTestView("local aar1", "flavor 2???", false);
+        }
     }
 
     private void testLocalAar2() {
-        String text = AarLocal2LibClass.TAG;
-        addTestView("local aar2", text, TextUtils.equals(text, AarLocal2LibClass.class.getSimpleName()));
+        try {
+            String text = AarLocal2LibClass.TAG;
+            addTestView("local aar2", text, TextUtils.equals(text, AarLocal2LibClass.class.getSimpleName()));
+        } catch (Exception e) {
+            addTestView("local aar2", "release???", false);
+        }
     }
 }

@@ -179,7 +179,7 @@ class VariantProcessor {
 
     private void processRClasses(RClassesTransform transform, TaskProvider<Task> bundleTask) {
         TaskProvider reBundleTask = configureReBundleAarTask(bundleTask)
-        if (transform != null) {
+        if (mProject.fataar.transformR) {
             // transformR is true
             transformRClasses(transform, bundleTask, reBundleTask)
         } else {

@@ -24,7 +24,7 @@ class RClassesGenerate {
         mProject = project
         mVariant = variant
         mLibraries = libraries
-        mVersionAdapter = new VersionAdapter(project, variant, version)
+        mVersionAdapter = new VersionAdapter(project, variant)
     }
 
     TaskProvider configure(TaskProvider<Task> reBundleTask) {

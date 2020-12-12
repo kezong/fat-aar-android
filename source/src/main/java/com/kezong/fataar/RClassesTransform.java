@@ -8,6 +8,7 @@ import com.android.build.api.transform.Transform;
 import com.android.build.api.transform.TransformInput;
 import com.android.build.api.transform.TransformInvocation;
 import com.android.build.api.transform.TransformOutputProvider;
+import com.android.build.api.variant.VariantInfo;
 import com.android.build.gradle.internal.pipeline.TransformManager;
 import com.google.common.collect.ImmutableSet;
 
@@ -15,6 +16,7 @@ import org.gradle.api.Project;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -102,9 +104,31 @@ public class RClassesTransform extends Transform {
     }
 
     @Override
+    public boolean applyToVariant(VariantInfo variant) {
+        Object extension = project.getExtensions().findByName("fataar");
+        if (extension == null) {
+            return false;
+        }
+
+        boolean transformR = false;
+        try {
+            Field field = extension.getClass().getDeclaredField("__transformR__");
+            field.setAccessible(true);
+            transformR = (boolean) field.get(extension);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        return transformR;
+    }
+
+    @Override
     public void transform(TransformInvocation transformInvocation) throws InterruptedException, IOException {
         long startTime = System.currentTimeMillis();
         Map<String, String> transformTable = buildTransformTable(transformInvocation.getContext().getVariantName());
+        if (transformTable == null) {
+            return;
+        }
 
         final boolean isIncremental = transformInvocation.isIncremental() && this.isIncremental();
         final TransformOutputProvider outputProvider = transformInvocation.getOutputProvider();
@@ -168,6 +192,12 @@ public class RClassesTransform extends Transform {
     }
 
     private Map<String, String> buildTransformTable(String variantName) {
+        String targetPackage = targetPackageMap.get(variantName);
+        Collection<String> libraryPackages = libraryPackageMap.get(variantName);
+        if (targetPackage == null || libraryPackages == null) {
+            return null;
+        }
+
         final List<String> resourceTypes = Arrays.asList("anim", "animator", "array", "attr", "bool", "color", "dimen",
                 "drawable", "font", "fraction", "id", "integer", "interpolator", "layout", "menu", "mipmap", "plurals",
                 "raw", "string", "style", "styleable", "transition", "xml");

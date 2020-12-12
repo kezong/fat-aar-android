@@ -33,20 +33,21 @@ class FatLibraryPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
         this.project = project
-        project.extensions.create(FatAarExtension.NAME, FatAarExtension)
-        Utils.setProject(project)
-        DirectoryManager.attach(project)
         checkAndroidPlugin()
+        Utils.attach(project)
+        DirectoryManager.attach(project)
+        project.extensions.create(FatAarExtension.NAME, FatAarExtension)
         createConfigurations()
-        if (project.fataar.transformR) {
-            transform = new RClassesTransform(project)
-            // register in project.afterEvaluate is invalid.
-            project.android.registerTransform(transform)
-        }
-
+        registerTransform()
         project.afterEvaluate {
             doAfterEvaluate()
         }
+    }
+
+    private registerTransform() {
+        transform = new RClassesTransform(project)
+        // register in project.afterEvaluate is invalid.
+        project.android.registerTransform(transform)
     }
 
     private void doAfterEvaluate() {
@@ -69,8 +70,10 @@ class FatLibraryPlugin implements Plugin<Project> {
                 }
             }
 
-            def processor = new VariantProcessor(project, variant)
-            processor.processVariant(artifacts, firstLevelDependencies, transform)
+            if (!artifacts.isEmpty()) {
+                def processor = new VariantProcessor(project, variant)
+                processor.processVariant(artifacts, firstLevelDependencies, transform)
+            }
         }
     }
 
@@ -110,6 +113,7 @@ class FatLibraryPlugin implements Plugin<Project> {
 
     private void createConfiguration(Configuration embedConf) {
         embedConf.visible = false
+        embedConf.transitive = false
         project.gradle.addListener(new EmbedDependencyListener(project, embedConf))
         embedConfigurations.add(embedConf)
     }

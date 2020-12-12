@@ -12,7 +12,7 @@ class Utils {
 
     private static WeakReference<Project> mProjectRef
 
-    def static setProject(Project p) {
+    def static attach(Project p) {
         mProjectRef = new WeakReference<>(p)
     }
 
@@ -105,7 +105,7 @@ class Utils {
         if (size < 1024) {
             result = size + "Byte"
         } else if (size < (1024 * 1024)) {
-            result = String.format("%dK", size / 1024)
+            result = String.format("%.0fK", size / 1024)
         } else if (size < 1024 * 1024 * 1024) {
             result = String.format("%.2fM", size / (1024 * 1024.0))
         } else {

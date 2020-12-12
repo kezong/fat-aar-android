@@ -2,13 +2,18 @@ package com.kezong.fataar;
 
 class FatAarExtension {
 
+    /**
+     * Used in RClassesTransform.java by reflection, don't change the name.
+     */
     static final String NAME = "fataar"
 
     /**
      * Plan A: using bytecode patching to process the merging problem of R files
      * Plan B: generate sub module's R class to process the merging problem of R files
      * if transformR is true, use Plan A, else use Plan B.
-     * In the future, Plan B maybe deprecated
+     * In the future, Plan B maybe deprecated.
+     *
+     * Used in RClassesTransform.java by reflection, don't change the field name.
      * @since 1.3.0
      */
     boolean transformR = true

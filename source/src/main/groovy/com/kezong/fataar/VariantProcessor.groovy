@@ -20,9 +20,8 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 /**
+ * Core
  * Processor for variant
- * Created by Vigi on 2017/2/24.
- * Modified by kezong on 2019/05/29
  */
 class VariantProcessor {
 
@@ -73,7 +72,7 @@ class VariantProcessor {
         processResources()
         processAssets()
         processJniLibs()
-        processProguardTxt(prepareTask)
+        processProguardTxt(bundleTask)
         processDataBinding(bundleTask)
         processRClasses(transform, bundleTask)
     }
@@ -538,30 +537,26 @@ class VariantProcessor {
     }
 
     /**
-     * fixme
      * merge proguard.txt
      */
-    private void processProguardTxt(TaskProvider prepareTask) {
-        String taskPath = 'merge' + mVariant.name.capitalize() + 'ConsumerProguardFiles'
-        TaskProvider mergeFileTask = mProject.tasks.named(taskPath)
+    private void processProguardTxt(TaskProvider bundleTask) {
+        String mergeTaskName = 'merge' + mVariant.name.capitalize() + 'ConsumerProguardFiles'
+        TaskProvider mergeFileTask = mProject.tasks.named(mergeTaskName)
         if (mergeFileTask == null) {
-            throw new RuntimeException("Can not find task ${taskPath}!")
+            throw new RuntimeException("Can not find task ${mergeTaskName}!")
         }
 
-        def proguardFiles = new ArrayList<File>()
-        for (archiveLibrary in mAndroidArchiveLibraries) {
-            List<File> thirdProguardFiles = archiveLibrary.proguardRules
-            for (File file : thirdProguardFiles) {
-                if (file.exists()) {
-                    FatUtils.logInfo('add proguard file: ' + file.absolutePath)
-                    proguardFiles.add(file)
-                }
-            }
+        String embedTaskName = "embed${mVariant.name.capitalize()}ConsumerProguardFiles"
+        TaskProvider embedTask = mProject.tasks.register(embedTaskName, EmbedProguardTask.class) {
+            dependsOn(mExplodeTasks)
+            dependsOn(mergeFileTask)
+            variantName = mVariant.name
+            inputFiles = mAndroidArchiveLibraries.stream().map { it.proguardRules }.collect()
+            outputFile = mProject.file(mergeFileTask.get().outputFile)
         }
 
-        mergeFileTask.configure {
-            dependsOn(prepareTask)
-            inputs.files(proguardFiles)
+        bundleTask.configure {
+            dependsOn(embedTask)
         }
     }
 }

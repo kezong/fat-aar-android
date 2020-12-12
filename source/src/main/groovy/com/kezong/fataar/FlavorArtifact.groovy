@@ -21,7 +21,6 @@ import javax.annotation.Nullable
 
 /**
  * FlavorArtifact
- * @author kezong on 2019/4/25.
  */
 class FlavorArtifact {
 

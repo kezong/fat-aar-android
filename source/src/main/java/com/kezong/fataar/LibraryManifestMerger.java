@@ -21,7 +21,6 @@ import java.util.List;
 
 /**
  * ManifestMerger for Library
- * @author kezong on 2019/7/8.
  */
 public class LibraryManifestMerger extends InvokeManifestMerger {
 

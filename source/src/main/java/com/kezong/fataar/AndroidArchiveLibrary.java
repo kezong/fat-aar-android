@@ -14,10 +14,6 @@ import java.util.List;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
-/**
- * Created by Vigi on 2017/2/16.
- * Modify by kezong on 2019/7/16.
- */
 public class AndroidArchiveLibrary {
 
     private final Project mProject;
@@ -106,11 +102,8 @@ public class AndroidArchiveLibrary {
         return new File(getRootFolder(), "lint.jar");
     }
 
-    public List<File> getProguardRules() {
-        List<File> list = new ArrayList<>();
-        list.add(new File(getRootFolder(), "proguard-rules.pro"));
-        list.add(new File(getRootFolder(), "proguard-project.txt"));
-        return list;
+    public File getProguardRules() {
+        return new File(getRootFolder(), "proguard.txt");
     }
 
     public File getSymbolFile() {

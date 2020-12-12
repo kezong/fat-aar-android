@@ -5,7 +5,7 @@ import com.android.build.gradle.api.LibraryVariant;
 import org.gradle.api.Project;
 
 /**
- * @author yangchao on 2020/12/8.
+ * Temp directory used by fat-aar
  */
 class DirectoryManager {
 

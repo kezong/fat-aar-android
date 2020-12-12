@@ -9,8 +9,9 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.jvm.tasks.Jar
 
 /**
- * R file processor
- * @author kezong on 2019/7/16.
+ * Used to generate R classes
+ * generate R File -> R Class -> R Jar -> unzip aar -> reBundle with R.jar
+ * @deprecated Prefer {@code RClassesTransform}
  */
 class RClassesGenerate {
 

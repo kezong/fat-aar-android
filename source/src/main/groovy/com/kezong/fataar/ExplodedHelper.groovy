@@ -4,8 +4,6 @@ import org.gradle.api.Project
 
 /**
  * process jars and classes
- * Created by Vigi on 2017/1/20.
- * Modified by kezong on 2018/12/18
  */
 class ExplodedHelper {
 

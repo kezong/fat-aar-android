@@ -8,9 +8,6 @@ import org.gradle.api.UnknownTaskException
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.tasks.TaskProvider
 
-/**
- * @author kezong on 2019/7/16.
- */
 class VersionAdapter {
 
     private Project mProject

@@ -1,6 +1,5 @@
 package com.kezong.fataar;
 
-import org.apache.http.util.TextUtils;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
@@ -111,7 +110,7 @@ public class AndroidArchiveLibrary {
     }
 
     public synchronized String getPackageName() {
-        if (TextUtils.isEmpty(mPackageName)) {
+        if (mPackageName == null) {
             File manifestFile = getManifest();
             if (manifestFile.exists()) {
                 try {

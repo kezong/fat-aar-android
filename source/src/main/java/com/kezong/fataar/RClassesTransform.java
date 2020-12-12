@@ -8,7 +8,6 @@ import com.android.build.api.transform.Transform;
 import com.android.build.api.transform.TransformInput;
 import com.android.build.api.transform.TransformInvocation;
 import com.android.build.api.transform.TransformOutputProvider;
-import com.android.build.api.variant.VariantInfo;
 import com.android.build.gradle.internal.pipeline.TransformManager;
 import com.google.common.collect.ImmutableSet;
 
@@ -16,7 +15,6 @@ import org.gradle.api.Project;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -104,32 +102,9 @@ public class RClassesTransform extends Transform {
     }
 
     @Override
-    public boolean applyToVariant(VariantInfo variant) {
-        Object extension = project.getExtensions().findByName("fataar");
-        if (extension == null) {
-            return false;
-        }
-
-        boolean transformR = false;
-        try {
-            Field field = extension.getClass().getDeclaredField("__transformR__");
-            field.setAccessible(true);
-            transformR = (boolean) field.get(extension);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
-
-        return transformR;
-    }
-
-    @Override
     public void transform(TransformInvocation transformInvocation) throws InterruptedException, IOException {
         long startTime = System.currentTimeMillis();
         Map<String, String> transformTable = buildTransformTable(transformInvocation.getContext().getVariantName());
-        if (transformTable == null) {
-            return;
-        }
-
         final boolean isIncremental = transformInvocation.isIncremental() && this.isIncremental();
         final TransformOutputProvider outputProvider = transformInvocation.getOutputProvider();
 
@@ -143,7 +118,6 @@ public class RClassesTransform extends Transform {
             for (final TransformInput input : transformInvocation.getInputs()) {
                 for (final DirectoryInput directoryInput : input.getDirectoryInputs()) {
                     final File directoryFile = directoryInput.getFile();
-
                     final ClassPool classPool = new ClassPool();
                     classPool.insertClassPath(directoryFile.getAbsolutePath());
 
@@ -157,9 +131,11 @@ public class RClassesTransform extends Transform {
                                 File relative = FilesKt.relativeTo(originalClassFile, directoryFile);
                                 String className = filePathToClassname(relative);
                                 final CtClass ctClass = classPool.get(className);
-                                ClassFile classFile = ctClass.getClassFile();
-                                ConstPool constPool = classFile.getConstPool();
-                                constPool.renameClass(transformTable);
+                                if (transformTable != null) {
+                                    ClassFile classFile = ctClass.getClassFile();
+                                    ConstPool constPool = classFile.getConstPool();
+                                    constPool.renameClass(transformTable);
+                                }
                                 ctClass.writeFile(outputDir.getAbsolutePath());
                             } catch (CannotCompileException | NotFoundException | IOException e) {
                                 e.printStackTrace();

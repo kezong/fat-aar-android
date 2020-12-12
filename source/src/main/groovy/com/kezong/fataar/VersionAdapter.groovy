@@ -8,6 +8,8 @@ import org.gradle.api.UnknownTaskException
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.tasks.TaskProvider
 
+import java.lang.reflect.Field
+
 class VersionAdapter {
 
     private Project mProject
@@ -54,7 +56,7 @@ class VersionAdapter {
         } else if (FatUtils.compareVersion(AGPVersion, '3.1.0') >= 0) {
             return mProject.file(mProject.buildDir.path + '/intermediates/packaged-classes/' + mVariant.dirName + "/libs")
         } else {
-            return mProject.file(mProject.buildDir.path + '/intermediates/bundles/' + mVariant.dirName + "/libs")
+            return mProject.file(mProject.buildDir.path + '/intermediates/bundles/' + mVariant.name + "/libs")
         }
     }
 
@@ -137,15 +139,13 @@ class VersionAdapter {
     static String getAGPVersion() {
         // AGP 3.6+
         try {
-            return com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
+            Class aClass = Class.forName("com.android.Version")
+            Field version = aClass.getDeclaredField("ANDROID_GRADLE_PLUGIN_VERSION")
+            return version.get(aClass)
         } catch (Throwable ignore) {
-        }
-
-        // AGP 3.0+
-        try {
-            return com.android.builder.model.Version.ANDROID_GRADLE_PLUGIN_VERSION
-        } catch (Throwable ignore) {
-            throw new IllegalStateException("com.android.tools.build:gradle not found")
+            Class aClass = Class.forName("com.android.builder.model.Version")
+            Field version = aClass.getDeclaredField("ANDROID_GRADLE_PLUGIN_VERSION")
+            return version.get(aClass)
         }
     }
 }

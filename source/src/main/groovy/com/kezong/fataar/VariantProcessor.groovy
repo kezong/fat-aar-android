@@ -72,7 +72,7 @@ class VariantProcessor {
         processResources()
         processAssets()
         processJniLibs()
-        processProguardTxt(bundleTask)
+        processProguardTxt()
         processDataBinding(bundleTask)
         processRClasses(transform, bundleTask)
     }
@@ -178,22 +178,20 @@ class VariantProcessor {
 
     private void processRClasses(RClassesTransform transform, TaskProvider<Task> bundleTask) {
         TaskProvider reBundleTask = configureReBundleAarTask(bundleTask)
+        TaskProvider transformTask = mProject.tasks.named("transformClassesWith${transform.name.capitalize()}For${mVariant.name.capitalize()}")
+        transformTask.configure {
+            it.dependsOn(mMergeClassTask)
+        }
         if (mProject.fataar.transformR) {
-            // transformR is true
-            transformRClasses(transform, bundleTask, reBundleTask)
+            transformRClasses(transform, transformTask, bundleTask, reBundleTask)
         } else {
-            // transformR is false
             generateRClasses(bundleTask, reBundleTask)
         }
     }
 
-    private void transformRClasses(RClassesTransform transform, TaskProvider<Task> bundleTask, TaskProvider<Task> reBundleTask) {
+    private void transformRClasses(RClassesTransform transform, TaskProvider transformTask, TaskProvider bundleTask, TaskProvider reBundleTask) {
         transform.putTargetPackage(mVariant.name, mVariant.getApplicationId())
-        mProject.tasks
-                .named("transformClassesWith${transform.name.capitalize()}For${mVariant.name.capitalize()}")
-                .configure {
-                    it.dependsOn(mMergeClassTask)
-                    it.dependsOn(mExplodeTasks)
+        transformTask.configure {
                     doFirst {
                         // library package name parsed by aar's AndroidManifest.xml
                         // so must put after explode tasks perform.
@@ -539,24 +537,33 @@ class VariantProcessor {
     /**
      * merge proguard.txt
      */
-    private void processProguardTxt(TaskProvider bundleTask) {
+    private void processProguardTxt() {
         String mergeTaskName = 'merge' + mVariant.name.capitalize() + 'ConsumerProguardFiles'
         TaskProvider mergeFileTask = mProject.tasks.named(mergeTaskName)
         if (mergeFileTask == null) {
             throw new RuntimeException("Can not find task ${mergeTaskName}!")
         }
 
-        String embedTaskName = "embed${mVariant.name.capitalize()}ConsumerProguardFiles"
-        TaskProvider embedTask = mProject.tasks.register(embedTaskName, EmbedProguardTask.class) {
+        mergeFileTask.configure {
             dependsOn(mExplodeTasks)
-            dependsOn(mergeFileTask)
-            variantName = mVariant.name
-            inputFiles = mAndroidArchiveLibraries.stream().map { it.proguardRules }.collect()
-            outputFile = mProject.file(mergeFileTask.get().outputFile)
-        }
-
-        bundleTask.configure {
-            dependsOn(embedTask)
+            doLast {
+                try {
+                    Collection<File> files = mAndroidArchiveLibraries.stream().map { it.proguardRules }.collect()
+                    File of
+                    if (outputFile instanceof File) {
+                        of = outputFile
+                    } else {
+                        // RegularFileProperty.class
+                        of = outputFile.get().asFile
+                    }
+                    FatUtils.mergeFiles(files, of)
+                } catch (Exception e) {
+                    e.printStackTrace()
+                    FatUtils.logAnytime(("If you see this error message, please submit issue to " +
+                            "https://github.com/kezong/fat-aar-android/issues with version of AGP and Gradle. Thank you.")
+                    )
+                }
+            }
         }
     }
 }

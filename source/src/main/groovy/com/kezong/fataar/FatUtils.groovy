@@ -1,8 +1,12 @@
 package com.kezong.fataar
 
+import com.android.utils.FileUtils
 import org.gradle.api.Project
 
 import java.lang.ref.WeakReference
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.StandardOpenOption
 
 class FatUtils {
 
@@ -108,5 +112,35 @@ class FatUtils {
             result = String.format("%.2fG", size / (1024 * 1024 * 1024.0))
         }
         return result
+    }
+
+    def static mergeFiles(Collection<File> inputFiles, File output) {
+        if (inputFiles == null) {
+            return
+        }
+        // filter out any non-existent files
+        Collection<File> existingFiles = inputFiles.findAll { it ->
+            it.exists()
+        }
+
+        if (existingFiles.size() == 1) {
+            FileUtils.copyFile(existingFiles[0], output)
+            return
+        }
+
+        // no input? done.
+        if (existingFiles.isEmpty()) {
+            return
+        }
+
+        if (!output.exists()) {
+            output.write("")
+        }
+
+        // otherwise put all the files together append to output file
+        for (file in existingFiles) {
+            def content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8)
+            Files.write(output.toPath(), "\n$content\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND)
+        }
     }
 }

@@ -128,7 +128,7 @@ class RClassesGenerate {
                 if (mLibraries != null && mLibraries.size() > 0) {
                     def symbolsMap = getSymbolsMap()
                     mLibraries.each {
-                        Utils.logInfo("Generate R File, Library:${it.name}")
+                        FatUtils.logInfo("Generate R File, Library:${it.name}")
                         createRFile(it, destFolder, symbolsMap)
                     }
                 }
@@ -152,10 +152,10 @@ class RClassesGenerate {
             it.destinationDir = destinationDir
 
             doFirst {
-                Utils.logInfo("Compile R.class, Dir:${sourceDir.path}")
-                Utils.logInfo("Compile R.class, classpath:${classpath.first().absolutePath}")
+                FatUtils.logInfo("Compile R.class, Dir:${sourceDir.path}")
+                FatUtils.logInfo("Compile R.class, classpath:${classpath.first().absolutePath}")
 
-                if (Utils.compareVersion(VersionAdapter.AGPVersion, "3.3.0") >= 0) {
+                if (FatUtils.compareVersion(VersionAdapter.AGPVersion, "3.3.0") >= 0) {
                     mProject.copy {
                         from mProject.zipTree(mVersionAdapter.getRClassPath().first().absolutePath + "/R.jar")
                         into mVersionAdapter.getRClassPath().first().absolutePath
@@ -174,7 +174,7 @@ class RClassesGenerate {
             it.from fromDir.path
             // The destinationDir property has been deprecated.
             // This is scheduled to be removed in Gradle 7.0. Please use the destinationDirectory property instead.
-            if (Utils.compareVersion(mProject.gradle.gradleVersion, "5.1") >= 0) {
+            if (FatUtils.compareVersion(mProject.gradle.gradleVersion, "5.1") >= 0) {
                 it.getArchiveFileName().set("${mVariant.getApplicationId()}-r-classes.jar")
                 it.getDestinationDirectory().set(desFile)
             } else {
@@ -182,7 +182,7 @@ class RClassesGenerate {
                 it.destinationDir = desFile
             }
             doFirst {
-                Utils.logInfo("Generate R.jar, Dir：$fromDir")
+                FatUtils.logInfo("Generate R.jar, Dir：$fromDir")
             }
         }
         return task

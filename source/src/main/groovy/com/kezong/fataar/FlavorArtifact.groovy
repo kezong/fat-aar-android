@@ -42,7 +42,7 @@ class FlavorArtifact {
             }
         }
         ComponentArtifactIdentifier artifactIdentifier = createComponentIdentifier(artifactFile)
-        if (Utils.compareVersion(project.gradle.gradleVersion, "6.0.0") >= 0) {
+        if (FatUtils.compareVersion(project.gradle.gradleVersion, "6.0.0") >= 0) {
             TaskDependencyContainer taskDependencyContainer = new TaskDependencyContainer() {
                 @Override
                 void visitDependencies(TaskDependencyResolveContext taskDependencyResolveContext) {
@@ -93,7 +93,7 @@ class FlavorArtifact {
 
     private static File createArtifactFile(Project project, Task bundle) {
         File output
-        if (Utils.compareVersion(project.gradle.gradleVersion, "5.1") >= 0) {
+        if (FatUtils.compareVersion(project.gradle.gradleVersion, "5.1") >= 0) {
             output = new File(bundle.getDestinationDirectory().getAsFile().get(), bundle.getArchiveFileName().get())
         } else {
             output = new File(bundle.destinationDir, bundle.archiveName)

@@ -6,7 +6,7 @@ import org.gradle.api.artifacts.DependencyResolutionListener
 import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 
-class EmbedDependencyListener implements DependencyResolutionListener {
+class EmbedResolutionListener implements DependencyResolutionListener {
 
     private final Project project
 
@@ -14,7 +14,7 @@ class EmbedDependencyListener implements DependencyResolutionListener {
 
     private final String compileOnlyConfigName;
 
-    EmbedDependencyListener(Project project, Configuration configuration) {
+    EmbedResolutionListener(Project project, Configuration configuration) {
         this.project = project
         this.configuration = configuration
         String prefix = getConfigNamePrefix(configuration.name)
@@ -26,8 +26,8 @@ class EmbedDependencyListener implements DependencyResolutionListener {
     }
 
     private String getConfigNamePrefix(String configurationName) {
-        if (configurationName.endsWith(FatLibraryPlugin.CONFIG_SUFFIX)) {
-            return configurationName.substring(0, configuration.name.length() - FatLibraryPlugin.CONFIG_SUFFIX.length())
+        if (configurationName.endsWith(FatAarPlugin.CONFIG_SUFFIX)) {
+            return configurationName.substring(0, configuration.name.length() - FatAarPlugin.CONFIG_SUFFIX.length())
         } else {
             return null
         }

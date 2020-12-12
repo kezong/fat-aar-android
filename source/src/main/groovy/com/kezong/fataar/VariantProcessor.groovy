@@ -94,7 +94,7 @@ class VariantProcessor {
                 return
             }
 
-            Utils.logAnytime("[embed detected][$self.type]${self.moduleVersion.id}")
+            FatUtils.logAnytime("[embed detected][$self.type]${self.moduleVersion.id}")
             artifactNames.remove(self.name)
 
             dependency.allModuleArtifacts.each { artifact ->
@@ -102,7 +102,7 @@ class VariantProcessor {
                     return
                 }
                 if (artifact != self) {
-                    Utils.logAnytime("    - [embed detected][transitive][$artifact.type]${artifact.moduleVersion.id}")
+                    FatUtils.logAnytime("    - [embed detected][transitive][$artifact.type]${artifact.moduleVersion.id}")
                     artifactNames.remove(artifact.name)
                 }
             }
@@ -111,7 +111,7 @@ class VariantProcessor {
         artifactNames.each { name ->
             ResolvedArtifact artifact = artifacts.find { it.name == name }
             if (artifact != null) {
-                Utils.logAnytime("[embed detected][$artifact.type]${artifact.moduleVersion.id}")
+                FatUtils.logAnytime("[embed detected][$artifact.type]${artifact.moduleVersion.id}")
             }
         }
     }
@@ -134,7 +134,7 @@ class VariantProcessor {
         File aarOutputFile
         File reBundleDir = DirectoryManager.getReBundleDirectory(mVariant)
         bundleTask.configure { it ->
-            if (Utils.compareVersion(mProject.gradle.gradleVersion, "5.1") >= 0) {
+            if (FatUtils.compareVersion(mProject.gradle.gradleVersion, "5.1") >= 0) {
                 aarOutputFile = new File(it.getDestinationDirectory().getAsFile().get(), it.getArchiveFileName().get())
             } else {
                 aarOutputFile = new File(it.destinationDir, it.archiveName)
@@ -150,7 +150,7 @@ class VariantProcessor {
                     from mProject.zipTree(aarOutputFile)
                     into reBundleDir
                 }
-                Utils.deleteEmptyDir(reBundleDir)
+                FatUtils.deleteEmptyDir(reBundleDir)
             }
         }
 
@@ -161,7 +161,7 @@ class VariantProcessor {
             if (aarOutputFile == null) {
                 aarOutputFile = mVersionAdapter.getOutputFile()
             }
-            if (Utils.compareVersion(mProject.gradle.gradleVersion, "5.1") >= 0) {
+            if (FatUtils.compareVersion(mProject.gradle.gradleVersion, "5.1") >= 0) {
                 it.getArchiveFileName().set(aarOutputFile.getName())
                 it.getDestinationDirectory().set(aarOutputFile.getParentFile())
             } else {
@@ -170,7 +170,7 @@ class VariantProcessor {
             }
 
             doLast {
-                Utils.logAnytime(" target: ${aarOutputFile.absolutePath} [${Utils.formatDataSize(aarOutputFile.size())}]")
+                FatUtils.logAnytime(" target: ${aarOutputFile.absolutePath} [${FatUtils.formatDataSize(aarOutputFile.size())}]")
             }
         }
 
@@ -256,9 +256,9 @@ class VariantProcessor {
             return
         }
         for (final ResolvedArtifact artifact in artifacts) {
-            if (FatLibraryPlugin.ARTIFACT_TYPE_JAR == artifact.type) {
+            if (FatAarPlugin.ARTIFACT_TYPE_JAR == artifact.type) {
                 addJarFile(artifact.file)
-            } else if (FatLibraryPlugin.ARTIFACT_TYPE_AAR == artifact.type) {
+            } else if (FatAarPlugin.ARTIFACT_TYPE_AAR == artifact.type) {
                 AndroidArchiveLibrary archiveLibrary = new AndroidArchiveLibrary(mProject, artifact, mVariant.name)
                 addAndroidArchiveLibrary(archiveLibrary)
                 Set<Task> dependencies
@@ -310,7 +310,7 @@ class VariantProcessor {
         ManifestProcessorTask processManifestTask = mVersionAdapter.getProcessManifest()
 
         File manifestOutput
-        if (Utils.compareVersion(VersionAdapter.AGPVersion, "3.3.0") >= 0) {
+        if (FatUtils.compareVersion(VersionAdapter.AGPVersion, "3.3.0") >= 0) {
             manifestOutput = mProject.file("${mProject.buildDir.path}/intermediates/library_manifest/${mVariant.name}/AndroidManifest.xml")
         } else {
             manifestOutput = mProject.file(processManifestTask.getManifestOutputDirectory().absolutePath + "/AndroidManifest.xml")
@@ -428,7 +428,7 @@ class VariantProcessor {
                 List<File> thirdProguardFiles = archiveLibrary.proguardRules
                 for (File file : thirdProguardFiles) {
                     if (file.exists()) {
-                        Utils.logInfo('add proguard file: ' + file.absolutePath)
+                        FatUtils.logInfo('add proguard file: ' + file.absolutePath)
                         mProject.android.getDefaultConfig().proguardFile(file)
                     }
                 }
@@ -476,7 +476,7 @@ class VariantProcessor {
             mProject.android.sourceSets.each { DefaultAndroidSourceSet sourceSet ->
                 if (sourceSet.name == mVariant.name) {
                     for (archiveLibrary in mAndroidArchiveLibraries) {
-                        Utils.logInfo("Merge resource，Library res：${archiveLibrary.resFolder}")
+                        FatUtils.logInfo("Merge resource，Library res：${archiveLibrary.resFolder}")
                         sourceSet.res.srcDir(archiveLibrary.resFolder)
                     }
                 }
@@ -501,7 +501,7 @@ class VariantProcessor {
                 if (it.name == mVariant.name) {
                     for (archiveLibrary in mAndroidArchiveLibraries) {
                         if (archiveLibrary.assetsFolder != null && archiveLibrary.assetsFolder.exists()) {
-                            Utils.logInfo("Merge assets，Library assets folder：${archiveLibrary.assetsFolder}")
+                            FatUtils.logInfo("Merge assets，Library assets folder：${archiveLibrary.assetsFolder}")
                             it.assets.srcDir(archiveLibrary.assetsFolder)
                         }
                     }
@@ -553,7 +553,7 @@ class VariantProcessor {
             List<File> thirdProguardFiles = archiveLibrary.proguardRules
             for (File file : thirdProguardFiles) {
                 if (file.exists()) {
-                    Utils.logInfo('add proguard file: ' + file.absolutePath)
+                    FatUtils.logInfo('add proguard file: ' + file.absolutePath)
                     proguardFiles.add(file)
                 }
             }

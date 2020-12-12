@@ -8,7 +8,7 @@ import java.lang.ref.WeakReference
  * Utils
  * @author kezong @since 2018-12-10 17:28
  */
-class Utils {
+class FatUtils {
 
     private static WeakReference<Project> mProjectRef
 

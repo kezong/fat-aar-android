@@ -10,11 +10,8 @@ import org.gradle.api.artifacts.ResolvedDependency
 
 /**
  * plugin entry
- *
- * Created by Vigi on 2017/1/14.
- * Modified by kezong on 2018/12/18
  */
-class FatLibraryPlugin implements Plugin<Project> {
+class FatAarPlugin implements Plugin<Project> {
 
     public static final String ARTIFACT_TYPE_AAR = 'aar'
 
@@ -34,7 +31,7 @@ class FatLibraryPlugin implements Plugin<Project> {
     void apply(Project project) {
         this.project = project
         checkAndroidPlugin()
-        Utils.attach(project)
+        FatUtils.attach(project)
         DirectoryManager.attach(project)
         project.extensions.create(FatAarExtension.NAME, FatAarExtension)
         createConfigurations()
@@ -80,26 +77,26 @@ class FatLibraryPlugin implements Plugin<Project> {
     private void createConfigurations() {
         Configuration embedConf = project.configurations.create(CONFIG_NAME)
         createConfiguration(embedConf)
-        Utils.logInfo("Creating configuration embed")
+        FatUtils.logInfo("Creating configuration embed")
 
         project.android.buildTypes.all { buildType ->
             String configName = buildType.name + CONFIG_SUFFIX
             Configuration configuration = project.configurations.create(configName)
             createConfiguration(configuration)
-            Utils.logInfo("Creating configuration " + configName)
+            FatUtils.logInfo("Creating configuration " + configName)
         }
 
         project.android.productFlavors.all { flavor ->
             String configName = flavor.name + CONFIG_SUFFIX
             Configuration configuration = project.configurations.create(configName)
             createConfiguration(configuration)
-            Utils.logInfo("Creating configuration " + configName)
+            FatUtils.logInfo("Creating configuration " + configName)
             project.android.buildTypes.all { buildType ->
                 String variantName = flavor.name + buildType.name.capitalize()
                 String variantConfigName = variantName + CONFIG_SUFFIX
                 Configuration variantConfiguration = project.configurations.create(variantConfigName)
                 createConfiguration(variantConfiguration)
-                Utils.logInfo("Creating configuration " + variantConfigName)
+                FatUtils.logInfo("Creating configuration " + variantConfigName)
             }
         }
     }
@@ -114,7 +111,7 @@ class FatLibraryPlugin implements Plugin<Project> {
     private void createConfiguration(Configuration embedConf) {
         embedConf.visible = false
         embedConf.transitive = false
-        project.gradle.addListener(new EmbedDependencyListener(project, embedConf))
+        project.gradle.addListener(new EmbedResolutionListener(project, embedConf))
         embedConfigurations.add(embedConf)
     }
 

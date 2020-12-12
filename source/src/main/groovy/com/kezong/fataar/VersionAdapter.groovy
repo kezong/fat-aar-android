@@ -24,10 +24,10 @@ class VersionAdapter {
 
     ConfigurableFileCollection getClassPathDirFiles() {
         ConfigurableFileCollection classpath
-        if (Utils.compareVersion(AGPVersion, "3.5.0") >= 0) {
+        if (FatUtils.compareVersion(AGPVersion, "3.5.0") >= 0) {
             classpath = mProject.files("${mProject.buildDir.path}/intermediates/" +
                     "javac/${mVariant.name}/classes")
-        } else if (Utils.compareVersion(AGPVersion, "3.2.0") >= 0) { // >= Versions 3.2.X
+        } else if (FatUtils.compareVersion(AGPVersion, "3.2.0") >= 0) { // >= Versions 3.2.X
             classpath = mProject.files("${mProject.buildDir.path}/intermediates/" +
                     "javac/${mVariant.name}/compile${mVariant.name.capitalize()}JavaWithJavac/classes")
         } else { // Versions 3.0.x and 3.1.x
@@ -37,13 +37,13 @@ class VersionAdapter {
     }
 
     ConfigurableFileCollection getRClassPath() {
-        if (Utils.compareVersion(AGPVersion, "4.1.0") >= 0) {
+        if (FatUtils.compareVersion(AGPVersion, "4.1.0") >= 0) {
             return mProject.files("${mProject.buildDir.path}/intermediates/" + "compile_r_class_jar/"
                     + "${mVariant.name}")
-        } else if (Utils.compareVersion(AGPVersion, "3.5.0") >= 0) {
+        } else if (FatUtils.compareVersion(AGPVersion, "3.5.0") >= 0) {
             return mProject.files("${mProject.buildDir.path}/intermediates/" + "compile_only_not_namespaced_r_class_jar/"
                     + "${mVariant.name}")
-        } else if (Utils.compareVersion(AGPVersion, "3.3.0") >= 0) {
+        } else if (FatUtils.compareVersion(AGPVersion, "3.3.0") >= 0) {
             return mProject.files("${mProject.buildDir.path}/intermediates/" + "compile_only_not_namespaced_r_class_jar/"
                     + "${mVariant.name}/generate${mVariant.name.capitalize()}RFile")
         } else {
@@ -52,9 +52,9 @@ class VersionAdapter {
     }
 
     File getLibsDirFile() {
-        if (Utils.compareVersion(AGPVersion, '3.6.0') >= 0) {
+        if (FatUtils.compareVersion(AGPVersion, '3.6.0') >= 0) {
             return mProject.file("${mProject.buildDir.path}/intermediates/aar_libs_directory/${mVariant.name}/libs")
-        } else if (Utils.compareVersion(AGPVersion, '3.1.0') >= 0) {
+        } else if (FatUtils.compareVersion(AGPVersion, '3.1.0') >= 0) {
             return mProject.file(mProject.buildDir.path + '/intermediates/packaged-classes/' + mVariant.dirName + "/libs")
         } else {
             return mProject.file(mProject.buildDir.path + '/intermediates/bundles/' + mVariant.dirName + "/libs")
@@ -62,7 +62,7 @@ class VersionAdapter {
     }
 
     Task getJavaCompileTask() {
-        if (Utils.compareVersion(AGPVersion, "3.3.0") >= 0) {
+        if (FatUtils.compareVersion(AGPVersion, "3.3.0") >= 0) {
             return mVariant.getJavaCompileProvider().get()
         } else {
             return mVariant.getJavaCompiler()
@@ -70,7 +70,7 @@ class VersionAdapter {
     }
 
     ManifestProcessorTask getProcessManifest() {
-        if (Utils.compareVersion(AGPVersion, "3.3.0") >= 0) {
+        if (FatUtils.compareVersion(AGPVersion, "3.3.0") >= 0) {
             return mVariant.getOutputs().first().getProcessManifestProvider().get()
         } else {
             return mVariant.getOutputs().first().getProcessManifest()
@@ -78,7 +78,7 @@ class VersionAdapter {
     }
 
     Task getMergeAssets() {
-        if (Utils.compareVersion(AGPVersion, "3.3.0") >= 0) {
+        if (FatUtils.compareVersion(AGPVersion, "3.3.0") >= 0) {
             return mVariant.getMergeAssetsProvider().get()
         } else {
             return mVariant.getMergeAssets()
@@ -91,9 +91,9 @@ class VersionAdapter {
      */
     File getLocalSymbolFile() {
         // > 3.6.0, R.txt contains remote resources, so we use R-def.txt
-        if (Utils.compareVersion(AGPVersion, "3.6.0") >= 0) {
+        if (FatUtils.compareVersion(AGPVersion, "3.6.0") >= 0) {
             return mProject.file(mProject.buildDir.path + '/intermediates/local_only_symbol_list/' + mVariant.name + "/R-def.txt")
-        } else if (Utils.compareVersion(AGPVersion, "3.1.0") >= 0) {
+        } else if (FatUtils.compareVersion(AGPVersion, "3.1.0") >= 0) {
             return mProject.file(mProject.buildDir.path + '/intermediates/symbols/' + mVariant.dirName + "/R.txt")
         } else {
             return mProject.file(mProject.buildDir.path + '/intermediates/bundles/' + mVariant.name + "/R.txt")
@@ -101,7 +101,7 @@ class VersionAdapter {
     }
 
     String getSyncLibJarsTaskPath() {
-        if (Utils.compareVersion(AGPVersion, '3.6.0') >= 0) {
+        if (FatUtils.compareVersion(AGPVersion, '3.6.0') >= 0) {
             return "sync${mVariant.name.capitalize()}LibJars"
         } else {
             return "transformClassesAndResourcesWithSyncLibJarsFor${mVariant.name.capitalize()}"
@@ -113,9 +113,9 @@ class VersionAdapter {
     }
 
     static File getOutputFile(Project project, LibraryVariant variant) {
-        if (Utils.compareVersion(AGPVersion, "3.3.0") >= 0) {
+        if (FatUtils.compareVersion(AGPVersion, "3.3.0") >= 0) {
             String fileName = variant.outputs.first().outputFileName
-            if (Utils.compareVersion(project.gradle.gradleVersion, "5.1") >= 0) {
+            if (FatUtils.compareVersion(project.gradle.gradleVersion, "5.1") >= 0) {
                 return new File(variant.getPackageLibraryProvider().get().getDestinationDirectory().getAsFile().get(), fileName)
             } else {
                 return new File(variant.getPackageLibraryProvider().get().getDestinationDir(), fileName)

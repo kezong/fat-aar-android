@@ -27,14 +27,14 @@ class FlavorArtifact {
 
     static DefaultResolvedArtifact createFlavorArtifact(Project project, LibraryVariant variant, ResolvedDependency unResolvedArtifact) {
         Project artifactProject = getArtifactProject(project, unResolvedArtifact)
-        TaskProvider bundle = getBundleTask(artifactProject, variant)
-        if (bundle == null) {
+        TaskProvider bundleProvider = getBundleTask(artifactProject, variant)
+        if (bundleProvider == null) {
             return null
         }
 
         ModuleVersionIdentifier identifier = createModuleVersionIdentifier(unResolvedArtifact)
         DefaultIvyArtifactName artifactName = createArtifactName(unResolvedArtifact)
-        File artifactFile = createArtifactFile(bundle)
+        File artifactFile = createArtifactFile(artifactProject, bundleProvider.get())
         Factory<File> fileFactory = new Factory<File>() {
             @Override
             File create() {
@@ -46,12 +46,12 @@ class FlavorArtifact {
             TaskDependencyContainer taskDependencyContainer = new TaskDependencyContainer() {
                 @Override
                 void visitDependencies(TaskDependencyResolveContext taskDependencyResolveContext) {
-                    taskDependencyResolveContext.add(createTaskDependency(bundle))
+                    taskDependencyResolveContext.add(createTaskDependency(bundleProvider.get()))
                 }
             }
             return new DefaultResolvedArtifact(identifier, artifactName, artifactIdentifier, taskDependencyContainer, fileFactory)
         } else {
-            TaskDependency taskDependency = createTaskDependency(bundle)
+            TaskDependency taskDependency = createTaskDependency(bundleProvider.get())
             return new DefaultResolvedArtifact(identifier, artifactName, artifactIdentifier, taskDependency, fileFactory)
         }
     }
@@ -91,14 +91,12 @@ class FlavorArtifact {
         return null
     }
 
-    private static File createArtifactFile(TaskProvider bundle) {
+    private static File createArtifactFile(Project project, Task bundle) {
         File output
-        bundle.configure { it ->
-            if (Utils.compareVersion(project.gradle.gradleVersion, "5.1") >= 0) {
-                output = new File(it.getDestinationDirectory().getAsFile().get(), it.getArchiveFileName().get())
-            } else {
-                output = new File(it.destinationDir, it.archiveName)
-            }
+        if (Utils.compareVersion(project.gradle.gradleVersion, "5.1") >= 0) {
+            output = new File(bundle.getDestinationDirectory().getAsFile().get(), bundle.getArchiveFileName().get())
+        } else {
+            output = new File(bundle.destinationDir, bundle.archiveName)
         }
         return output
     }
@@ -106,7 +104,6 @@ class FlavorArtifact {
     private static TaskProvider getBundleTask(Project project, LibraryVariant variant) {
         TaskProvider bundleTaskProvider = null
         project.android.libraryVariants.find { LibraryVariant subVariant ->
-
             // 1. find same flavor
             if (variant.name == subVariant.name) {
                 try {
@@ -140,12 +137,12 @@ class FlavorArtifact {
         return bundleTaskProvider
     }
 
-    private static TaskDependency createTaskDependency(TaskProvider bundleTask) {
+    private static TaskDependency createTaskDependency(Task bundleTask) {
         return new TaskDependency() {
             @Override
             Set<? extends Task> getDependencies(@Nullable Task task) {
                 def set = new HashSet()
-                set.add(bundleTask.get())
+                set.add(bundleTask)
                 return set
             }
         }

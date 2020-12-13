@@ -218,10 +218,6 @@ The following link which version of Gradle is required for each version of the A
   - If `minifyEnabled` is set to true, classes not referenced in the project will be filtered according to Proguard rules during compile, resulting in ClassNotFound during app compile.
    Most AAR is SDK that provide interfaces. It is recommended that you carefully comb Proguard files and add keep rules.
 
-- **Other files except class in jar package are missing**
-  - Gradle will filter out all unnecessary files in jar file at compile time. Currently, there is no good solution. If you have a idea, welcome to PR.
-  - The current solution is to set `minifyEnabled` to true, and then declare no obfuscation optimization in Proguard. When minify is turned on, gradle will not filter out the files in Jar file.
-
 ## Thanks
 
 - [android-fat-aar][1]

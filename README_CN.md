@@ -230,11 +230,6 @@ AAR是Android提供的一种官方文件形式；
 - **关于混淆**
   - 如果`minifyEnabled`设置为true，编译时会根据proguard规则过滤工程中没有引用到的类，导致App集成时找不到对象，因为大多数AAR都是提供接口的SDK，建议大家仔细梳理proguard文件。
 
-- **Jar包中除了class之外的其他文件丢失**
-  - Gradle会在编译时过滤掉Jar包中所有非必要文件，目前没有很好的办法解决，如果你有解决方案，希望可以对项目进行PR。
-  - 目前找到的办法就是将`minifyEnabled`设置为true，然后在proguard中声明不混淆优化，Gradle在minify打开的情况下，不会过滤掉Jar包中的文件。
-
-
 ## 致谢
 * [android-fat-aar][1]
 * [fat-aar-plugin][4]

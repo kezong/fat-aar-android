@@ -72,7 +72,8 @@ class VariantProcessor {
         processResources()
         processAssets()
         processJniLibs()
-        processProguardTxt()
+        processConsumerProguard()
+        processGenerateProguard()
         processDataBinding(bundleTask)
         processRClasses(transform, bundleTask)
     }
@@ -419,18 +420,6 @@ class VariantProcessor {
      */
     private void processClassesAndJars(TaskProvider<Task> bundleTask) {
         boolean isMinifyEnabled = mVariant.getBuildType().isMinifyEnabled()
-        if (isMinifyEnabled) {
-            //merge proguard file
-            for (archiveLibrary in mAndroidArchiveLibraries) {
-                List<File> thirdProguardFiles = archiveLibrary.proguardRules
-                for (File file : thirdProguardFiles) {
-                    if (file.exists()) {
-                        FatUtils.logInfo('add proguard file: ' + file.absolutePath)
-                        mProject.android.getDefaultConfig().proguardFile(file)
-                    }
-                }
-            }
-        }
 
         TaskProvider syncLibTask = mProject.tasks.named(mVersionAdapter.getSyncLibJarsTaskPath())
         TaskProvider extractAnnotationsTask = mProject.tasks.named("extract${mVariant.name.capitalize()}Annotations")
@@ -537,7 +526,7 @@ class VariantProcessor {
     /**
      * merge proguard.txt
      */
-    private void processProguardTxt() {
+    private void processConsumerProguard() {
         String mergeTaskName = 'merge' + mVariant.name.capitalize() + 'ConsumerProguardFiles'
         TaskProvider mergeFileTask = mProject.tasks.named(mergeTaskName)
         if (mergeFileTask == null) {
@@ -545,6 +534,42 @@ class VariantProcessor {
         }
 
         mergeFileTask.configure {
+            dependsOn(mExplodeTasks)
+            doLast {
+                try {
+                    Collection<File> files = mAndroidArchiveLibraries.stream().map { it.proguardRules }.collect()
+                    File of
+                    if (outputFile instanceof File) {
+                        of = outputFile
+                    } else {
+                        // RegularFileProperty.class
+                        of = outputFile.get().asFile
+                    }
+                    FatUtils.mergeFiles(files, of)
+                } catch (Exception e) {
+                    FatUtils.logAnytime(("If you see this error message, please submit issue to " +
+                            "https://github.com/kezong/fat-aar-android/issues with version of AGP and Gradle. Thank you.")
+                    )
+                    e.printStackTrace()
+                }
+            }
+        }
+    }
+
+    /**
+     * merge consumer proguard to generate proguard
+     * @since AGP 3.6
+     */
+    private void processGenerateProguard() {
+        TaskProvider mergeGenerateProguardTask
+        try {
+            String mergeName = 'merge' + mVariant.name.capitalize() + 'GeneratedProguardFiles'
+            mergeGenerateProguardTask = mProject.tasks.named(mergeName)
+        } catch(Exception ignore) {
+            return
+        }
+
+        mergeGenerateProguardTask.configure {
             dependsOn(mExplodeTasks)
             doLast {
                 try {

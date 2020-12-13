@@ -26,7 +26,13 @@ class FlavorArtifact {
 
     static DefaultResolvedArtifact createFlavorArtifact(Project project, LibraryVariant variant, ResolvedDependency unResolvedArtifact) {
         Project artifactProject = getArtifactProject(project, unResolvedArtifact)
-        TaskProvider bundleProvider = getBundleTask(artifactProject, variant)
+        TaskProvider bundleProvider = null;
+        try {
+            bundleProvider = getBundleTask(artifactProject, variant)
+        } catch (Exception ignore) {
+            return null
+        }
+
         if (bundleProvider == null) {
             return null
         }
@@ -113,6 +119,9 @@ class FlavorArtifact {
                 }
             }
 
+            if (variant.productFlavors.isEmpty()) {
+                return false
+            }
             // 2. find missingStrategies
             ProductFlavor flavor = variant.productFlavors.first()
             flavor.missingDimensionStrategies.find { entry ->

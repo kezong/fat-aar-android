@@ -1,6 +1,5 @@
 buildscript {
     repositories {
-        maven { url "http://mapmo.baidu.com/artifactory/libs-release" }
         jcenter()
         google()
         maven { url "https://plugins.gradle.org/m2/" }
@@ -14,7 +13,6 @@ buildscript {
 
 allprojects {
     repositories {
-        maven { url "http://mapmo.baidu.com/artifactory/libs-release" }
         google()
         jcenter()
     }

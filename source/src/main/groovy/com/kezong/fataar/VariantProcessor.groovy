@@ -558,10 +558,10 @@ class VariantProcessor {
                     }
                     FatUtils.mergeFiles(files, of)
                 } catch (Exception e) {
-                    e.printStackTrace()
                     FatUtils.logAnytime(("If you see this error message, please submit issue to " +
                             "https://github.com/kezong/fat-aar-android/issues with version of AGP and Gradle. Thank you.")
                     )
+                    e.printStackTrace()
                 }
             }
         }

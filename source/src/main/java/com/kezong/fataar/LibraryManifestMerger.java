@@ -40,11 +40,11 @@ public class LibraryManifestMerger extends InvokeManifestMerger {
         try {
             doFullTaskAction();
         } catch (Exception e) {
-            e.printStackTrace();
             System.out.println("Gradle Plugin Version:" + mGradlePluginVersion);
             System.out.println("Gradle Version:" + mGradleVersion);
             System.out.println("If you see this error message, please submit issue to " +
                     "https://github.com/kezong/fat-aar-android/issues with Gradle version. Thank you.");
+            e.printStackTrace();
         }
     }
 

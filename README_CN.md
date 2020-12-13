@@ -2,7 +2,7 @@
 [![license](http://img.shields.io/badge/license-Apache2.0-brightgreen.svg?style=flat)](https://github.com/kezong/fat-aar-android/blob/master/LICENSE)
 [![Download](https://api.bintray.com/packages/kezong/maven/fat-aar/images/download.svg)](https://bintray.com/kezong/maven/fat-aar/_latestVersion)
 
-该插件提供了将library以及它依赖的module一起打包成一个完整aar的解决方案，支持gradle plugin 3.0.1及以上。（目前测试的版本范围是gradle plugin 3.0.1 - 4.1.0，gradle 4.9 - 6.5）
+该插件提供了将library以及它依赖的library一起打包成一个完整aar的解决方案，支持AGP 3.0及以上。（目前测试的版本范围是AGP 3.0 - 4.1.1，Gradle 4.9 - 6.5）
 
 ## 如何使用
 
@@ -10,50 +10,63 @@
 
 添加以下代码到你工程根目录下的`build.gradle`文件中:
 
-```gradle
+```groovy
 buildscript {
     repositories {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:xxx'
-        classpath 'com.kezong:fat-aar:1.2.19'
+        classpath 'com.kezong:fat-aar:1.3.1'
     }
 }
 ```
 
 添加以下代码到你的主library的`build.gradle`中:
 
-```gradle
+```groovy
 apply plugin: 'com.kezong.fat-aar'
 ```
 
 #### 第二步: Embed dependencies
-- 将`implementation`或者`api`改成`embed`
+- `embed`你所需要的工程, 用法类似`implementation`
 
 代码所示：
-```gradle
+```groovy
 dependencies {
     implementation fileTree(dir: 'libs', include: '*.jar')
     // java dependency
-    embed project(path: ':lib-java', configuration:'default')
+    embed project(':lib-java')
     // aar dependency
-    embed project(path: ':lib-aar', configuration:'default')
+    embed project(':lib-aar')
     // aar dependency
-    embed project(path: ':lib-aar2', configuration:'default')
+    embed project(':lib-aar2')
     // local full aar dependency, just build in flavor1
-    flavor1Embed project(path: ':lib-aar-local', configuration:'default')
+    flavor1Embed project(':lib-aar-local')
     // local full aar dependency, just build in debug
-    debugEmbed (name:'lib-aar-local2',ext:'aar')
+    debugEmbed (name:'lib-aar-local2', ext:'aar')
     // remote jar dependency
     embed 'com.google.guava:guava:20.0'
     // remote aar dependency
     embed 'com.facebook.fresco:fresco:1.11.0'
     // don't want to embed in
-    // 不建议使用implementation，因为该依赖可能与application的依赖版本不一致，使用implementation可能会导致R类找不到的问题
-    compileOnly 'com.android.support:appcompat-v7:27.1.1'
+    implementation('androidx.appcompat:appcompat:1.2.0')
 }
 ```
+
+### 第三步: 执行assemble命令
+
+- 在你的工程目录下执行assemble指令，其中lib-main为你主library的工程名称，你可以根据不同的flavor以及不同的buildType来决定执行具体的assemble指令
+```shell script
+# assemble all 
+./gradlew :lib-main:assemble
+
+# assemble debug
+./gradlew :lib-main:assembleDebug
+
+# assemble flavor
+./gradlew :lib-main:assembleFlavor1Debug
+```
+最终合并产物会覆盖原有aar，同时路径会打印在log信息中.
 
 ### 多级依赖
 
@@ -65,17 +78,27 @@ dependencies {
 
 #### 远程依赖
 
-如果你想将所有远程依赖在pom中声明的依赖项同时打入在最终产物里的话，你需要在`build.gradle`中将`embed`的transitive值改为true，例如：
-```gradle
-// the default value is false
-// invalid for local aar dependency
-configurations.embed.transitive = true
+如果你想将所有远程依赖在pom中声明的依赖项同时打入在最终产物里的话，你需要在`build.gradle`中将transitive值改为true，例如：
+```groovy
+fataar {
+    /**
+     * If transitive is true, local jar module and remote library's dependencies will be embed.
+     * If transitive is false, just embed first level dependency
+     * Local aar project does not support transitive, always embed first level
+     * Default value is false
+     * @since 1.3.0
+     */
+    transitive = true
+}
 ```
 
 如果你将transitive的值改成了true，并且想忽略pom文件中的某一个依赖项，你可以添加`exclude`关键字，例如：
-```gradle
+```groovy
 embed('com.facebook.fresco:fresco:1.11.0') {
+    // exclude any group or module
     exclude(group:'com.facebook.soloader', module:'soloader')
+    // exclude all dependencies
+    transitive = false
 }
 ```
 
@@ -88,16 +111,18 @@ AAR是Android提供的一种官方文件形式；
 
 **支持功能列表:**
 
-- [x] 支持library以及module中含有flavor
+- [x] 支持flavor配置
 - [x] AndroidManifest合并
-- [x] classes以及jar合并
-- [x] res合并
-- [x] assets合并
-- [x] jni合并
+- [x] Classes合并
+- [x] Jar合并
+- [x] Res合并
+- [x] Assets合并
+- [x] Jni合并
 - [x] R.txt合并
 - [x] R.class合并
-- [x] databinding合并
-- [ ] proguard合并（混淆合并现在看来有些问题，建议将所有混淆文件都写在主Library中）
+- [x] DataBinding合并
+- [x] Proguard合并
+- [x] Kotlin module合并
 
 ## Gradle版本支持
 
@@ -112,10 +137,19 @@ AAR是Android提供的一种官方文件形式；
 | 1.2.15 - 1.2.16 | 3.0.0 - 4.0.2 | 4.1+ |
 | 1.2.17 | 3.0.0 - 4.0.2 | 4.9+ |
 | 1.2.18+ | 3.0.0 - 4.1.0 | 4.9+ |
+| 1.3.+ | 3.0.0 - 4.1.0 | 4.9+ |
 
 [Gradle Plugin和所需求的Gradle版本官方文档](https://developer.android.google.cn/studio/releases/gradle-plugin.html)
 
 ## 更新日志
+- [1.3.1](<https://github.com/kezong/fat-aar-android/releases/tag/v1.3.1>)
+  - R.class合并采用Transform，解决大部分R class找不到的问题.
+  - 支持consumerProguardFiles合并
+  - 支持kotlin_module合并，支持top-level机制
+  - 支持flavor中missingDimensionStrategy
+  - 修复依赖的flavor产物更名后无法找到的问题
+  - 修复AGP 3.0 - 3.1 Jar包无法合并的问题
+  - 修复某些情况下AGP版本获取不到的问题
 - [1.2.20](<https://github.com/kezong/fat-aar-android/releases/tag/v1.2.20>)
   - 修复获取产物名时的空指针异常. [#214](https://github.com/kezong/fat-aar-android/issues/214)
   - r-classes.jar重命名，加上包名作为前缀.
@@ -186,11 +220,21 @@ AAR是Android提供的一种官方文件形式；
   
 ## 常见问题
 
-* **混淆日志：** 当开启proguard时，可能会产生大量的`Note: duplicate definition of library class`日志，如果你想忽略这些日志，你可以在`proguard-rules.pro`中加上`-dontnote`关键字；
-* **资源冲突：** 如果library和module中含有同名的资源(比如 `string/app_name`)，编译将会报`duplication resources`的相关错误，有两种方法可以解决这个问题：
-  * 考虑将library以及module中的资源都加一个前缀来避免资源冲突； 
-  * 在`gradle.properties`中添加`android.disableResourceValidation=true`可以忽略资源冲突的编译错误，程序会采用第一个找到的同名资源作为实际资源，不建议这样做，如果资源同名但实际资源不一样会造成不可预期的问题。
-  
+- **Application无法直接依赖embed工程：** application无法直接依赖你的embed工程，必须依赖你embed工程所编译生成的aar文件
+  - 为了调试方便，你可以在选择在打包aar时，在主library工程中使用`embed`，需要直接运行app时，采用`implementation`或者`api`
+
+- **资源冲突：** 如果library和module中含有同名的资源(比如 `string/app_name`)，编译将会报`duplication resources`的相关错误，有两种方法可以解决这个问题：
+  - 考虑将library以及module中的资源都加一个前缀来避免资源冲突； 
+  - 在`gradle.properties`中添加`android.disableResourceValidation=true`可以忽略资源冲突的编译错误，程序会采用第一个找到的同名资源作为实际资源，不建议这样做，如果资源同名但实际资源不一样会造成不可预期的问题。
+
+- **关于混淆**
+  - 如果`minifyEnabled`设置为true，编译时会根据proguard规则过滤工程中没有引用到的类，导致App集成时找不到对象，因为大多数AAR都是提供接口的SDK，建议大家仔细梳理proguard文件。
+
+- **Jar包中除了class之外的其他文件丢失**
+  - Gradle会在编译时过滤掉Jar包中所有非必要文件，目前没有很好的办法解决，如果你有解决方案，希望可以对项目进行PR。
+  - 目前找到的办法就是将`minifyEnabled`设置为true，然后在proguard中声明不混淆优化，Gradle在minify打开的情况下，不会过滤掉Jar包中的文件。
+
+
 ## 致谢
 * [android-fat-aar][1]
 * [fat-aar-plugin][4]

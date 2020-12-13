@@ -1,40 +1,25 @@
 package com.kezong.fataar
 
-import com.android.utils.FileUtils
 import org.gradle.api.Project
-
-import java.lang.ref.WeakReference
-import java.nio.charset.StandardCharsets
-import java.nio.file.Files
-import java.nio.file.StandardOpenOption
 
 class FatUtils {
 
-    private static WeakReference<Project> mProjectRef
+    private static Project sProject
 
     def static attach(Project p) {
-        mProjectRef = new WeakReference<>(p)
+        sProject = p
     }
 
     def static logError(def msg) {
-        Project p = mProjectRef.get()
-        if (p != null) {
-            p.logger.error("[fat-aar]${msg}")
-        }
+        sProject.logger.error("[fat-aar]${msg}")
     }
 
     def static logInfo(def msg) {
-        Project p = mProjectRef.get()
-        if (p != null) {
-            p.logger.info("[fat-aar]${msg}")
-        }
+        sProject.logger.info("[fat-aar]${msg}")
     }
 
     def static logAnytime(def msg) {
-        Project p = mProjectRef.get()
-        if (p != null) {
-            p.println("[fat-aar]${msg}")
-        }
+        sProject.println("[fat-aar]${msg}")
     }
 
     def static showDir(int indent, File file) throws IOException {
@@ -123,24 +108,18 @@ class FatUtils {
             it.exists()
         }
 
-        if (existingFiles.size() == 1) {
-            FileUtils.copyFile(existingFiles[0], output)
-            return
-        }
-
         // no input? done.
         if (existingFiles.isEmpty()) {
             return
         }
 
         if (!output.exists()) {
-            output.write("")
+            output.createNewFile()
         }
 
         // otherwise put all the files together append to output file
-        for (file in existingFiles) {
-            def content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8)
-            Files.write(output.toPath(), "\n$content\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND)
+        for (File file in existingFiles) {
+            output.append("\n${file.getText("UTF-8")}\n")
         }
     }
 }

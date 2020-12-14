@@ -212,7 +212,7 @@ The following link which version of Gradle is required for each version of the A
 
 - **Res merge conflicts.** If the library res folder and embedded dependencies res have the same res Id(mostly `string/app_name`). A duplicate resources build exception will be thrown. To avoid res conflicts:
   - consider using a prefix to each res Id, both in library res and aar dependencies if possible. 
-  - Adding "android.disableResourceValidation=true" to "gradle.properties" can do a trick to skip the exception, but is not recommended.
+  - Adding `android.disableResourceValidation=true` to `gradle.properties` can do a trick to skip the exception.
   
 - **Proguard**
   - If `minifyEnabled` is set to true, classes not referenced in the project will be filtered according to Proguard rules during compile, resulting in ClassNotFound during app compile.

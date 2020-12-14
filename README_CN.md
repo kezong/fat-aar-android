@@ -225,7 +225,7 @@ AAR是Android提供的一种官方文件形式；
 
 - **资源冲突：** 如果library和module中含有同名的资源(比如 `string/app_name`)，编译将会报`duplication resources`的相关错误，有两种方法可以解决这个问题：
   - 考虑将library以及module中的资源都加一个前缀来避免资源冲突； 
-  - 在`gradle.properties`中添加`android.disableResourceValidation=true`可以忽略资源冲突的编译错误，程序会采用第一个找到的同名资源作为实际资源，不建议这样做，如果资源同名但实际资源不一样会造成不可预期的问题。
+  - 在`gradle.properties`中添加`android.disableResourceValidation=true`可以忽略资源冲突的编译错误，程序会采用第一个找到的同名资源作为实际资源.
 
 - **关于混淆**
   - 如果`minifyEnabled`设置为true，编译时会根据proguard规则过滤工程中没有引用到的类，导致App集成时找不到对象，因为大多数AAR都是提供接口的SDK，建议大家仔细梳理proguard文件。

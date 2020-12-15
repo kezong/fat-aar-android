@@ -143,7 +143,7 @@ AAR是Android提供的一种官方文件形式；
 
 ## 更新日志
 - [1.3.3](<https://github.com/kezong/fat-aar-android/releases/tag/v1.3.3>)
-  - 修复异常"Can not find task bundleDebugAar". #84
+  - 修复异常"Can not find task bundleDebugAar". [#84](https://github.com/kezong/fat-aar-android/issues/84)
   - 修复当工程解析失败时产生的异常.
   - 当AndroidManifest合并时抛出异常.
 - [1.3.1](<https://github.com/kezong/fat-aar-android/releases/tag/v1.3.1>)

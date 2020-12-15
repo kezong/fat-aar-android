@@ -132,7 +132,7 @@ The following link which version of Gradle is required for each version of the A
 
 ## Version Log
 - [1.3.3](<https://github.com/kezong/fat-aar-android/releases/tag/v1.3.3>)
-  - Fix bug that "Can not find task bundleDebugAar". #84
+  - Fix bug that "Can not find task bundleDebugAar". [#84](https://github.com/kezong/fat-aar-android/issues/84)
   - Fix bug that crash when module can not resolve.
   - Throw a runtime exception when manifest merge fail.
 - [1.3.1](<https://github.com/kezong/fat-aar-android/releases/tag/v1.3.1>)

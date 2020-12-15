@@ -80,14 +80,14 @@ class VariantProcessor {
 
     private static void printEmbedArtifacts(Collection<ResolvedArtifact> artifacts,
                                      Collection<ResolvedDependency> dependencies) {
-        Collection<String> artifactNames = artifacts.stream().map { it.name }.collect()
+        Collection<String> moduleNames = artifacts.stream().map { it.moduleVersion.id.name }.collect()
         dependencies.each { dependency ->
-            if (!artifactNames.contains(dependency.moduleName)) {
+            if (!moduleNames.contains(dependency.moduleName)) {
                 return
             }
 
             ResolvedArtifact self = dependency.allModuleArtifacts.find { module ->
-                module.name == dependency.moduleName
+                module.moduleVersion.id.name == dependency.moduleName
             }
 
             if (self == null) {
@@ -95,21 +95,21 @@ class VariantProcessor {
             }
 
             FatUtils.logAnytime("[embed detected][$self.type]${self.moduleVersion.id}")
-            artifactNames.remove(self.name)
+            moduleNames.remove(self.moduleVersion.id.name)
 
             dependency.allModuleArtifacts.each { artifact ->
-                if (!artifactNames.contains(artifact.name)) {
+                if (!moduleNames.contains(artifact.moduleVersion.id.name)) {
                     return
                 }
                 if (artifact != self) {
                     FatUtils.logAnytime("    - [embed detected][transitive][$artifact.type]${artifact.moduleVersion.id}")
-                    artifactNames.remove(artifact.name)
+                    moduleNames.remove(artifact.moduleVersion.id.name)
                 }
             }
         }
 
-        artifactNames.each { name ->
-            ResolvedArtifact artifact = artifacts.find { it.name == name }
+        moduleNames.each { name ->
+            ResolvedArtifact artifact = artifacts.find { it.moduleVersion.id.name == name }
             if (artifact != null) {
                 FatUtils.logAnytime("[embed detected][$artifact.type]${artifact.moduleVersion.id}")
             }

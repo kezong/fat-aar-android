@@ -30,6 +30,7 @@ class FlavorArtifact {
         try {
             bundleProvider = getBundleTask(artifactProject, variant)
         } catch (Exception ignore) {
+            FatUtils.logError("[$variant.name]Can not resove :$unResolvedArtifact.moduleName")
             return null
         }
 
@@ -38,8 +39,8 @@ class FlavorArtifact {
         }
 
         ModuleVersionIdentifier identifier = createModuleVersionIdentifier(unResolvedArtifact)
-        DefaultIvyArtifactName artifactName = createArtifactName(unResolvedArtifact)
         File artifactFile = createArtifactFile(artifactProject, bundleProvider.get())
+        DefaultIvyArtifactName artifactName = createArtifactName(artifactFile)
         Factory<File> fileFactory = new Factory<File>() {
             @Override
             File create() {
@@ -69,8 +70,8 @@ class FlavorArtifact {
         )
     }
 
-    private static DefaultIvyArtifactName createArtifactName(ResolvedDependency unResolvedArtifact) {
-        return new DefaultIvyArtifactName(unResolvedArtifact.getModuleName(), "aar", "")
+    private static DefaultIvyArtifactName createArtifactName(File artifactFile) {
+        return new DefaultIvyArtifactName(artifactFile.getName(), "aar", "")
     }
 
     private static ComponentArtifactIdentifier createComponentIdentifier(final File artifactFile) {

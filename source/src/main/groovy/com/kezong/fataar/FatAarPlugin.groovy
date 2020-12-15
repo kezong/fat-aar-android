@@ -133,12 +133,10 @@ class FatAarPlugin implements Plugin<Project> {
     private Collection<ResolvedArtifact> dealUnResolveArtifacts(Configuration configuration, LibraryVariant variant, Collection<ResolvedArtifact> artifacts) {
         def artifactList = new ArrayList()
         configuration.resolvedConfiguration.firstLevelModuleDependencies.each { dependency ->
-            boolean match = false
-            artifacts.each { artifact ->
-                if (dependency.moduleName == artifact.name) {
-                    match = true
-                }
+            def match = artifacts.any { artifact ->
+                dependency.moduleName == artifact.moduleVersion.id.name
             }
+
             if (!match) {
                 def flavorArtifact = FlavorArtifact.createFlavorArtifact(project, variant, dependency)
                 if (flavorArtifact != null) {

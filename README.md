@@ -19,7 +19,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.kezong:fat-aar:1.3.1'
+        classpath 'com.kezong:fat-aar:1.3.3'
     }
 }
 ```
@@ -30,7 +30,7 @@ Add snippet below to the `build.gradle` of your android library:
 apply plugin: 'com.kezong.fat-aar'
 ```
 
-### Step 2: Embed dependencie
+### Step 2: Embed dependencies
 
 Declare `embed` for the dependencies you want to merge in `build.gradle`. 
 
@@ -131,6 +131,10 @@ The following link which version of Gradle is required for each version of the A
 [Plugin version and Required Gradle version](https://developer.android.google.cn/studio/releases/gradle-plugin.html)
 
 ## Version Log
+- [1.3.3](<https://github.com/kezong/fat-aar-android/releases/tag/v1.3.3>)
+  - Fix bug that "Can not find task bundleDebugAar". #84
+  - Fix bug that crash when module can not resolve.
+  - Throw a runtime exception when manifest merge fail.
 - [1.3.1](<https://github.com/kezong/fat-aar-android/releases/tag/v1.3.1>)
   - Implement bytecode patching to process R class
   - Support merge consumerProguardFiles

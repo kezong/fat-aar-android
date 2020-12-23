@@ -39,10 +39,13 @@ class VariantProcessor {
 
     private TaskProvider mMergeClassTask
 
-    VariantProcessor(Project project, LibraryVariant variant) {
+    private FatAarExtension mPluginConfig
+
+    VariantProcessor(Project project, LibraryVariant variant, FatAarExtension pluginConfig) {
         mProject = project
         mVariant = variant
         mVersionAdapter = new VersionAdapter(project, variant)
+        mPluginConfig = pluginConfig
     }
 
     void addAndroidArchiveLibrary(AndroidArchiveLibrary library) {
@@ -169,6 +172,10 @@ class VariantProcessor {
                 it.destinationDir = aarOutputFile.getParentFile()
             }
 
+            doFirst{
+                PackerHelper.splitValuesXmlRepeatAttr(reBundleDir)
+            }
+
             doLast {
                 FatUtils.logAnytime(" target: ${aarOutputFile.absolutePath} [${FatUtils.formatDataSize(aarOutputFile.size())}]")
             }
@@ -283,6 +290,26 @@ class VariantProcessor {
                     doFirst {
                         // Delete previously extracted data.
                         zipFolder.deleteDir()
+                    }
+
+                    doLast {
+
+                        mPluginConfig.excludeDeclareStyleAttrs.each {
+                            if (archiveLibrary.getMavenCoord().contains(it.key)) {
+                                PackerHelper.excludeDeclareStyleAttr(archiveLibrary.getResValuesFile(), it.value)
+                            }
+                        }
+
+                        PackerHelper.excludeApplicationAttr(archiveLibrary.getManifest(), mPluginConfig.excludeApplicationAttr)
+
+                        PackerHelper.abiFilter(archiveLibrary.getJniFolder(), mPluginConfig.abiFilter)
+
+                        mPluginConfig.excludeSos.each {
+                            if (archiveLibrary.getMavenCoord().contains(it.key)) {
+                                PackerHelper.excludeSo(archiveLibrary.getJniFolder(), it.value)
+                            }
+                        }
+
                     }
                 }
 

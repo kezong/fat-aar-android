@@ -25,6 +25,8 @@ class FatAarPlugin implements Plugin<Project> {
 
     private RClassesTransform transform
 
+    private FatAarExtension pluginExtension;
+
     private final Collection<Configuration> embedConfigurations = new ArrayList<>()
 
     @Override
@@ -33,7 +35,7 @@ class FatAarPlugin implements Plugin<Project> {
         checkAndroidPlugin()
         FatUtils.attach(project)
         DirectoryManager.attach(project)
-        project.extensions.create(FatAarExtension.NAME, FatAarExtension)
+        pluginExtension = project.extensions.create(FatAarExtension.NAME, FatAarExtension)
         createConfigurations()
         registerTransform()
         project.afterEvaluate {
@@ -48,6 +50,9 @@ class FatAarPlugin implements Plugin<Project> {
     }
 
     private void doAfterEvaluate() {
+
+        PackerHelper.init()
+
         embedConfigurations.each {
             it.transitive = project.fataar.transitive
         }
@@ -68,7 +73,7 @@ class FatAarPlugin implements Plugin<Project> {
             }
 
             if (!artifacts.isEmpty()) {
-                def processor = new VariantProcessor(project, variant)
+                def processor = new VariantProcessor(project, variant, pluginExtension)
                 processor.processVariant(artifacts, firstLevelDependencies, transform)
             }
         }

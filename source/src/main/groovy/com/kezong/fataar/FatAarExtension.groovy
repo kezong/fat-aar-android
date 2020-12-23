@@ -25,4 +25,26 @@ class FatAarExtension {
      * @since 1.3.0
      */
     boolean transitive = false
+
+
+    /**
+     * support delete sub aar <declare-style/> , avoid bundle aar failed
+     * */
+    public HashMap<String, HashSet<String>> excludeDeclareStyleAttrs = new HashMap<>()
+
+    /**
+     * support delete sub aar <application/> attribute, avoid bundle aar failed
+     * */
+    public List<String> excludeApplicationAttr = new ArrayList<>()
+
+    /**
+     * support delete sub aar so, avoid bundle aar failed
+     * */
+    public List<String> abiFilter = new ArrayList<>()
+
+    /**
+     * support delete duplicate sub aar so, avoid bundle aar failed
+     * */
+    public HashMap<String, HashSet<String>> excludeSos = new HashMap<>()
+
 }

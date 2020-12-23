@@ -109,6 +109,14 @@ public class AndroidArchiveLibrary {
         return new File(getRootFolder(), "R.txt");
     }
 
+    public File getResValuesFile(){
+        return new File(new File(getResFolder().getAbsolutePath()+"/values"), "values.xml");
+    }
+
+    public String getMavenCoord(){
+        return mArtifact.getModuleVersion().getId().toString();
+    }
+
     public synchronized String getPackageName() {
         if (mPackageName == null) {
             File manifestFile = getManifest();

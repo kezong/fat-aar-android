@@ -13,6 +13,7 @@ class DirectoryManager {
 
     private static final String INTERMEDIATES_TEMP_FOLDER = "fat-aar";
 
+
     private static Project sProject;
 
     static void attach(Project project) {
@@ -41,5 +42,9 @@ class DirectoryManager {
 
     static File getKotlinMetaDirectory(LibraryVariant variant) {
         return sProject.file("${sProject.getBuildDir()}/tmp/kotlin-classes/${variant.name}/META-INF")
+    }
+
+    static File getLogDir(){
+        return sProject.file("${sProject.getBuildDir()}/intermediates/${INTERMEDIATES_TEMP_FOLDER}")
     }
 }

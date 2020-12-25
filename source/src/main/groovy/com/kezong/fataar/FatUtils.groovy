@@ -1,25 +1,66 @@
 package com.kezong.fataar
 
+import org.gradle.BuildAdapter
+import org.gradle.BuildResult
 import org.gradle.api.Project
+
+import java.util.logging.FileHandler
+import java.util.logging.Handler
+import java.util.logging.LogRecord
+import java.util.logging.Logger
+import java.util.logging.SimpleFormatter
 
 class FatUtils {
 
     private static Project sProject
+    static Logger fLogger = null
 
     def static attach(Project p) {
         sProject = p
+        fLogger = Logger.getLogger("fat-aar")
+        def logDir = DirectoryManager.getLogDir()
+        logDir.mkdirs()
+        def logFile = new File(logDir, "log.txt")
+        def fh = new FileHandler(logFile.absolutePath)
+        fLogger.addHandler(fh)
+        fh.setFormatter(new SimpleFormatter() {
+            @Override
+            synchronized String format(final LogRecord log) {
+                if (log == null) return "";
+                return "[" + log.getLevel() + "] " + log.getMessage() + " \n";
+            }
+        })
+        PackerHelper.init(fLogger)
     }
 
     def static logError(def msg) {
-        sProject.logger.error("[fat-aar]${msg}")
+        if (fLogger != null) {
+            fLogger.warning(msg)
+        }
     }
 
     def static logInfo(def msg) {
-        sProject.logger.info("[fat-aar]${msg}")
+        if (fLogger != null) {
+            fLogger.info(msg);
+        }
     }
 
     def static logAnytime(def msg) {
-        sProject.println("[fat-aar]${msg}")
+        if (fLogger != null) {
+            fLogger.info(msg)
+        }
+    }
+
+    def static getBuildListener() {
+        return new BuildAdapter() {
+            @Override
+            void buildFinished(BuildResult result) {
+                Handler[] hands = fLogger.getHandlers()
+                for (Handler handler : hands) {
+                    handler.close()
+                }
+            }
+        }
     }
 
     def static showDir(int indent, File file) throws IOException {

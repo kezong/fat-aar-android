@@ -8,16 +8,18 @@ import org.dom4j.Namespace;
 import org.dom4j.QName;
 import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * wangpengcheng.wpc create at 2020/12/21
- *
+ * <p>
  * Dealing with aar issues, Guarantee successful packaging
  */
 public class PackerHelper {
@@ -25,9 +27,11 @@ public class PackerHelper {
     private static HashMap<String, String> namespaces = new HashMap();
     private static String ELE_ATTR = "attr";
     private static String ELE_DECLARE_STYLEABLE = "declare-styleable";
+    private static Logger fLogger = null;
 
 
-    public static void init(){
+    public static void init(Logger logger) {
+        fLogger = logger;
         namespaces.put("android", "http://schemas.android.com/apk/res/android");
     }
 
@@ -37,7 +41,7 @@ public class PackerHelper {
             return;
         }
 
-//        FatUtils.logInfo("start exclude attr : " + file.getAbsolutePath());
+        logInfo("start exclude attr : " + file.getAbsolutePath());
 
         try {
 
@@ -55,7 +59,7 @@ public class PackerHelper {
 
             for (Element declareStyle : styleableEles) {
                 if (attrs.contains(getName(declareStyle))) {
-//                    FatUtils.logInfo("remove declare-styleable :" + getName(declareStyle));
+                    logInfo("remove declare-styleable :" + getName(declareStyle));
                     declareStyle.getParent().remove(declareStyle);
                 }
             }
@@ -65,23 +69,23 @@ public class PackerHelper {
             writer.close();
 
         } catch (Exception e) {
-//            FatUtils.logInfo("exclude attr failed : " + e.getMessage());
+            logInfo("exclude attr failed : " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    public static void excludeApplicationAttr(File file, List<String> deletedAttrs) {
+    public static void excludeApplicationAttr(AndroidArchiveLibrary archiveLibrary, List<String> deletedAttrs) {
 
 
         try {
 
+            File file = archiveLibrary.getManifest();
+
             if (file == null || !file.exists()) {
-                 System.out.println("deleteApplicationAttr -> file :" + file.getAbsolutePath() + " no exists");
                 return;
             }
 
             if (deletedAttrs == null) {
-                 System.out.println("deleteApplicationAttr -> deletedAttrs is null");
                 return;
             }
 
@@ -93,28 +97,21 @@ public class PackerHelper {
             final Element rootEle = doc.getRootElement();
 
             if (rootEle == null) {
-                System.out.println("deleteApplicationAttr -> rootEle == null");
                 return;
             }
 
             final Element application = rootEle.element("application");
 
             if (application == null) {
-                System.out.println("deleteApplicationAttr -> application == null");
                 return;
             }
 
             for (String attrDel : deletedAttrs) {
-                System.out.println("delete attr :  "+attrDel);
-
                 String[] qNames = attrDel.split(":");
                 String nameSpacesUrl = "";
                 if (qNames.length > 1) {
                     nameSpacesUrl = namespaces.get(qNames[0]);
                 }
-
-                System.out.println("try  delete attr  "+nameSpacesUrl+":"+qNames[1]);
-
                 Attribute deletedAttr = null;
                 if (nameSpacesUrl != null && nameSpacesUrl.length() > 0) {
                     Namespace namespace = new Namespace(qNames[0], nameSpacesUrl);
@@ -125,8 +122,7 @@ public class PackerHelper {
 
                 if (deletedAttr != null) {
                     application.remove(deletedAttr);
-                    System.out.println("delete application attr : " + deletedAttr.getQualifiedName());
-//                    FatUtils.logInfo("delete application attr : " + deletedAttr.getQualifiedName());
+                    logInfo("delete application attr :" + archiveLibrary.getMavenCoord() + "->" + deletedAttr.getQualifiedName());
                 }
             }
 
@@ -135,25 +131,26 @@ public class PackerHelper {
             writer.close();
 
         } catch (Exception e) {
-            System.out.println("delete application attr failed : " + e.getMessage());
-//            FatUtils.logInfo("delete application attr failed : " + e.getMessage());
+            logInfo("delete application attr failed : " + e.getMessage());
             e.printStackTrace();
         }
     }
 
 
-    public static void abiFilter(File soDir, List<String> supportAbi) {
+    public static void abiFilter(AndroidArchiveLibrary archiveLibrary, List<String> supportAbi) {
 
         if (supportAbi != null && supportAbi.isEmpty()) {
             return;
         }
 
+        File soDir = archiveLibrary.getJniFolder();
+
         File[] abiDir = soDir.listFiles();
 
         if (abiDir != null && abiDir.length > 0) {
+            logInfo("abi filter : " + archiveLibrary.getMavenCoord());
             for (File abi : abiDir) {
                 if (!supportAbi.contains(abi.getName())) {
-//                    FatUtils.logInfo("abi filter delete :" + abi.getAbsolutePath());
                     removeDir(abi);
                     abi.delete();
                 }
@@ -170,7 +167,7 @@ public class PackerHelper {
                 if (abi.isDirectory() && abi.listFiles().length > 0) {
                     for (File soFile : abi.listFiles()) {
                         if (soList.contains(soFile.getName())) {
-//                            FatUtils.logInfo("delete so " + soFile.getAbsolutePath());
+                            logInfo("delete so :" + soFile.getAbsolutePath());
                             soFile.delete();
                         }
                     }
@@ -196,10 +193,10 @@ public class PackerHelper {
     }
 
     public static void splitValuesXmlRepeatAttr(File pkgFile) {
-//        FatUtils.logInfo("handleResFile : " + pkgFile.getAbsolutePath());
+        logInfo("handleResFile : " + pkgFile.getAbsolutePath());
         final File valueXml = new File(pkgFile, "res/values/values.xml");
         if (!valueXml.exists()) {
-//            FatUtils.logInfo("un exist " + valueXml.getAbsolutePath());
+            logInfo("un exist " + valueXml.getAbsolutePath());
             return;
         }
         try {
@@ -215,7 +212,7 @@ public class PackerHelper {
     private static void splitRepeatAttr(File valueXmlDir, final File file) {
 
         try {
-//            FatUtils.logInfo("deleteDuplicateAttr : " + file.getAbsolutePath());
+            logInfo("deleteDuplicateAttr : " + file.getAbsolutePath());
 
             HashMap<String, ArrayList<Element>> needMovedDeclareStyles = new HashMap<String, ArrayList<Element>>();
 
@@ -230,8 +227,6 @@ public class PackerHelper {
             }
 
             List<Element> styleableEles = rootEle.elements(ELE_DECLARE_STYLEABLE);
-
-//            FatUtils.logInfo("declare-styleable size : " + styleableEles.size());
 
             final HashSet<StyleAttr> repeatStyleAttr = new HashSet<StyleAttr>();
             final HashSet<StyleAttr> styleAttrs = new HashSet<StyleAttr>();
@@ -258,6 +253,7 @@ public class PackerHelper {
                         if (repeatStyleAttr.contains(repeatAttr)) {
 
                             if (needMovedDeclareStyles.get(repeatAttr.name) == null) {
+                                logInfo("split attr : " + repeatAttr.name);
                                 needMovedDeclareStyles.put(repeatAttr.name, new ArrayList());
                             }
 
@@ -300,14 +296,15 @@ public class PackerHelper {
                     }
                 }
 
-//                FatUtils.logInfo("write split attr to file : " + newValuesFile.getAbsolutePath());
+                logInfo("write split attr to file : " + newValuesFile.getAbsolutePath());
+
                 XMLWriter newWriter = new XMLWriter(new FileOutputStream(newValuesFile));
                 newWriter.write(newDoc);
                 newWriter.close();
             }
 
         } catch (Exception e) {
-//            FatUtils.logInfo("重复 attr 剔除失败 : " + e.getMessage());
+            logInfo("重复 attr 剔除失败 : " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -341,5 +338,12 @@ public class PackerHelper {
     private static String getName(Element ele) {
         return ele.attribute(StyleAttr.ATTR_NAME).getValue();
     }
+
+    public static void logInfo(String msg) {
+        if (fLogger != null) {
+            fLogger.info(msg);
+        }
+    }
+
 
 }

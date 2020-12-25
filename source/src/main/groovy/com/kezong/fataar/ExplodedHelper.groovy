@@ -17,7 +17,7 @@ class ExplodedHelper {
                 continue
             }
             if (androidLibrary.localJars.isEmpty()) {
-                FatUtils.logInfo("Not found jar file, Library: ${androidLibrary.name}")
+//                FatUtils.logInfo("Not found jar file, Library: ${androidLibrary.name}")
             } else {
                 FatUtils.logInfo("Merge ${androidLibrary.name} local jar files")
                 project.copy {
@@ -42,7 +42,6 @@ class ExplodedHelper {
     static void processClassesJarInfoClasses(Project project,
                                              Collection<AndroidArchiveLibrary> androidLibraries,
                                              File folderOut) {
-        FatUtils.logInfo('Merge ClassesJar')
         Collection<File> allJarFiles = new ArrayList<>()
         for (androidLibrary in androidLibraries) {
             if (!androidLibrary.rootFolder.exists()) {
@@ -66,14 +65,14 @@ class ExplodedHelper {
                                        Collection<AndroidArchiveLibrary> androidLibraries,
                                        Collection<File> jarFiles,
                                        File folderOut) {
-        FatUtils.logInfo('Merge Libs')
+        FatUtils.logInfo('Merge embed aar Libs')
         Collection<File> allJarFiles = new ArrayList<>()
         for (androidLibrary in androidLibraries) {
             if (!androidLibrary.rootFolder.exists()) {
                 FatUtils.logInfo('[warning]' + androidLibrary.rootFolder + ' not found!')
                 continue
             }
-            FatUtils.logInfo('[androidLibrary]' + androidLibrary.getName())
+//            FatUtils.logInfo('  [androidLibrary]' + androidLibrary.getName())
             allJarFiles.addAll(androidLibrary.localJars)
         }
         for (jarFile in jarFiles) {

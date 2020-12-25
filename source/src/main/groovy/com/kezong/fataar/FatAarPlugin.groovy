@@ -33,8 +33,9 @@ class FatAarPlugin implements Plugin<Project> {
     void apply(Project project) {
         this.project = project
         checkAndroidPlugin()
-        FatUtils.attach(project)
         DirectoryManager.attach(project)
+        FatUtils.attach(project)
+        project.gradle.addBuildListener(FatUtils.buildListener)
         pluginExtension = project.extensions.create(FatAarExtension.NAME, FatAarExtension)
         createConfigurations()
         registerTransform()
@@ -50,8 +51,6 @@ class FatAarPlugin implements Plugin<Project> {
     }
 
     private void doAfterEvaluate() {
-
-        PackerHelper.init()
 
         embedConfigurations.each {
             it.transitive = project.fataar.transitive

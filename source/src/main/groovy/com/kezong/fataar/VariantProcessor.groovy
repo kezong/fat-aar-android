@@ -82,7 +82,10 @@ class VariantProcessor {
     }
 
     private static void printEmbedArtifacts(Collection<ResolvedArtifact> artifacts,
-                                     Collection<ResolvedDependency> dependencies) {
+                                            Collection<ResolvedDependency> dependencies) {
+
+        FatUtils.logInfo("all embed dependencies ->")
+
         Collection<String> moduleNames = artifacts.stream().map { it.moduleVersion.id.name }.collect()
         dependencies.each { dependency ->
             if (!moduleNames.contains(dependency.moduleName)) {
@@ -97,7 +100,7 @@ class VariantProcessor {
                 return
             }
 
-            FatUtils.logAnytime("[embed detected][$self.type]${self.moduleVersion.id}")
+            FatUtils.logAnytime("[$self.type]${self.moduleVersion.id}")
             moduleNames.remove(self.moduleVersion.id.name)
 
             dependency.allModuleArtifacts.each { artifact ->
@@ -105,7 +108,7 @@ class VariantProcessor {
                     return
                 }
                 if (artifact != self) {
-                    FatUtils.logAnytime("    - [embed detected][transitive][$artifact.type]${artifact.moduleVersion.id}")
+                    FatUtils.logAnytime("    - [$artifact.type]${artifact.moduleVersion.id}")
                     moduleNames.remove(artifact.moduleVersion.id.name)
                 }
             }
@@ -114,7 +117,7 @@ class VariantProcessor {
         moduleNames.each { name ->
             ResolvedArtifact artifact = artifacts.find { it.moduleVersion.id.name == name }
             if (artifact != null) {
-                FatUtils.logAnytime("[embed detected][$artifact.type]${artifact.moduleVersion.id}")
+                FatUtils.logAnytime("[$artifact.type]${artifact.moduleVersion.id}")
             }
         }
     }
@@ -172,7 +175,7 @@ class VariantProcessor {
                 it.destinationDir = aarOutputFile.getParentFile()
             }
 
-            doFirst{
+            doFirst {
                 PackerHelper.splitValuesXmlRepeatAttr(reBundleDir)
             }
 
@@ -200,16 +203,16 @@ class VariantProcessor {
     private void transformRClasses(RClassesTransform transform, TaskProvider transformTask, TaskProvider bundleTask, TaskProvider reBundleTask) {
         transform.putTargetPackage(mVariant.name, mVariant.getApplicationId())
         transformTask.configure {
-                    doFirst {
-                        // library package name parsed by aar's AndroidManifest.xml
-                        // so must put after explode tasks perform.
-                        Collection libraryPackages = mAndroidArchiveLibraries
-                                .stream()
-                                .map { it.packageName }
-                                .collect()
-                        transform.putLibraryPackages(mVariant.name, libraryPackages);
-                    }
-                }
+            doFirst {
+                // library package name parsed by aar's AndroidManifest.xml
+                // so must put after explode tasks perform.
+                Collection libraryPackages = mAndroidArchiveLibraries
+                        .stream()
+                        .map { it.packageName }
+                        .collect()
+                transform.putLibraryPackages(mVariant.name, libraryPackages);
+            }
+        }
         bundleTask.configure {
             finalizedBy(reBundleTask)
         }
@@ -300,9 +303,9 @@ class VariantProcessor {
                             }
                         }
 
-                        PackerHelper.excludeApplicationAttr(archiveLibrary.getManifest(), mPluginConfig.excludeApplicationAttr)
+                        PackerHelper.excludeApplicationAttr(archiveLibrary, mPluginConfig.excludeApplicationAttr)
 
-                        PackerHelper.abiFilter(archiveLibrary.getJniFolder(), mPluginConfig.abiFilter)
+                        PackerHelper.abiFilter(archiveLibrary, mPluginConfig.abiFilter)
 
                         mPluginConfig.excludeSos.each {
                             if (archiveLibrary.getMavenCoord().contains(it.key)) {
@@ -373,7 +376,7 @@ class VariantProcessor {
                 if (kotlinCompile != null) {
                     dependsOn(kotlinCompile)
                 }
-            } catch(Exception ignore) {
+            } catch (Exception ignore) {
 
             }
 
@@ -402,8 +405,12 @@ class VariantProcessor {
             }
 
             doLast {
+
+                FatUtils.logInfo("unzip all embed aar class.jar to javac/classes dir")
+
                 ExplodedHelper.processClassesJarInfoClasses(mProject, mAndroidArchiveLibraries, outputDir)
                 if (isMinifyEnabled) {
+                    FatUtils.logInfo("unzip all embed aar lib/jar and *.jar to javac/classes for minify")
                     ExplodedHelper.processLibsIntoClasses(mProject, mAndroidArchiveLibraries, mJarFiles, outputDir)
                 }
 
@@ -436,6 +443,7 @@ class VariantProcessor {
             outputs.dir(outputDir)
 
             doFirst {
+                FatUtils.logInfo("direct copy jar to ${outputDir.absolutePath}")
                 ExplodedHelper.processLibsIntoLibs(mProject, mAndroidArchiveLibraries, mJarFiles, outputDir)
             }
         }
@@ -485,11 +493,12 @@ class VariantProcessor {
 
         resourceGenTask.configure {
             dependsOn(mExplodeTasks)
-
+            doFirst {
+                FatUtils.logInfo("merge resources")
+            }
             mProject.android.sourceSets.each { DefaultAndroidSourceSet sourceSet ->
                 if (sourceSet.name == mVariant.name) {
                     for (archiveLibrary in mAndroidArchiveLibraries) {
-                        FatUtils.logInfo("Merge resource，Library res：${archiveLibrary.resFolder}")
                         sourceSet.res.srcDir(archiveLibrary.resFolder)
                     }
                 }
@@ -510,11 +519,12 @@ class VariantProcessor {
 
         assetsTask.dependsOn(mExplodeTasks)
         assetsTask.doFirst {
+            FatUtils.logInfo("merge assets")
             mProject.android.sourceSets.each {
                 if (it.name == mVariant.name) {
                     for (archiveLibrary in mAndroidArchiveLibraries) {
                         if (archiveLibrary.assetsFolder != null && archiveLibrary.assetsFolder.exists()) {
-                            FatUtils.logInfo("Merge assets，Library assets folder：${archiveLibrary.assetsFolder}")
+//                            FatUtils.logInfo("Merge assets，Library assets folder：${archiveLibrary.assetsFolder}")
                             it.assets.srcDir(archiveLibrary.assetsFolder)
                         }
                     }
@@ -537,6 +547,7 @@ class VariantProcessor {
             dependsOn(mExplodeTasks)
 
             doFirst {
+                FatUtils.logInfo("merge jni libs")
                 for (archiveLibrary in mAndroidArchiveLibraries) {
                     if (archiveLibrary.jniFolder != null && archiveLibrary.jniFolder.exists()) {
                         mProject.android.sourceSets.each {
@@ -564,6 +575,7 @@ class VariantProcessor {
             dependsOn(mExplodeTasks)
             doLast {
                 try {
+                    FatUtils.logInfo("merge consumer proguard")
                     Collection<File> files = mAndroidArchiveLibraries.stream().map { it.proguardRules }.collect()
                     File of
                     if (outputFile instanceof File) {
@@ -592,7 +604,7 @@ class VariantProcessor {
         try {
             String mergeName = 'merge' + mVariant.name.capitalize() + 'GeneratedProguardFiles'
             mergeGenerateProguardTask = mProject.tasks.named(mergeName)
-        } catch(Exception ignore) {
+        } catch (Exception ignore) {
             return
         }
 

@@ -66,8 +66,9 @@ public class RClassesTransform extends Transform {
     /**
      * Different variants have different package names.
      * So targetPackageName must set after evaluate
+     *
      * @param targetPackage main module's package name
-     * @param variantName main module's package name
+     * @param variantName   main module's package name
      */
     public void putTargetPackage(String variantName, String targetPackage) {
         targetPackageMap.put(variantName, targetPackage);
@@ -75,7 +76,8 @@ public class RClassesTransform extends Transform {
 
     /**
      * library packages name must set after exploded task perform
-     * @param variantName variant name
+     *
+     * @param variantName     variant name
      * @param libraryPackages sub module's package name, read from AndroidManifest.xml
      */
     public void putLibraryPackages(String variantName, Collection<String> libraryPackages) {
@@ -112,6 +114,8 @@ public class RClassesTransform extends Transform {
         if (!isIncremental) {
             outputProvider.deleteAll();
         }
+
+        PackerHelper.logInfo("start execute R Transform ");
 
         final File outputDir = outputProvider.getContentLocation("classes", getOutputTypes(), getScopes(), Format.DIRECTORY);
 
@@ -163,7 +167,7 @@ public class RClassesTransform extends Transform {
         futures.clear();
 
         long endTime = System.currentTimeMillis();
-        project.getLogger().info("the task cost "
+        PackerHelper.logInfo("transform R cost : " + "the task cost "
                 + (endTime - startTime)
                 + "ms");
     }

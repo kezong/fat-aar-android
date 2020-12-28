@@ -51,6 +51,9 @@ class BuildClassFilterTransform extends Transform {
 
     @Override
     void transform(TransformInvocation transformInvocation) throws TransformException, InterruptedException, IOException {
+
+        FatUtils.logInfo("start exclude class:")
+
         TransformOutputProvider outputProvider = transformInvocation.outputProvider
         if (!transformInvocation.isIncremental()) {
             outputProvider.deleteAll()
@@ -95,7 +98,7 @@ class BuildClassFilterTransform extends Transform {
 
         for (String pattern : patternList) {
             if (Pattern.compile(pattern).matcher(file).matches()) {
-                FatUtils.logInfo("delete class : ${file}")
+                FatUtils.logInfo("  delete class : ${file}")
                 return true
             }
         }

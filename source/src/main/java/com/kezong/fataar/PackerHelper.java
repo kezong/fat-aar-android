@@ -35,6 +35,7 @@ public class PackerHelper {
         namespaces.put("android", "http://schemas.android.com/apk/res/android");
     }
 
+
     public static void excludeDeclareStyleAttr(File file, List<String> attrs) {
 
         if (!file.exists()) {
@@ -344,6 +345,4 @@ public class PackerHelper {
             fLogger.info(msg);
         }
     }
-
-
 }

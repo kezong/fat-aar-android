@@ -210,7 +210,7 @@ class VariantProcessor {
                         .stream()
                         .map { it.packageName }
                         .collect()
-                transform.putLibraryPackages(mVariant.name, libraryPackages);
+                transform.putLibraryPackages(mVariant.name, libraryPackages)
             }
         }
         bundleTask.configure {
@@ -524,7 +524,6 @@ class VariantProcessor {
                 if (it.name == mVariant.name) {
                     for (archiveLibrary in mAndroidArchiveLibraries) {
                         if (archiveLibrary.assetsFolder != null && archiveLibrary.assetsFolder.exists()) {
-//                            FatUtils.logInfo("Merge assets，Library assets folder：${archiveLibrary.assetsFolder}")
                             it.assets.srcDir(archiveLibrary.assetsFolder)
                         }
                     }

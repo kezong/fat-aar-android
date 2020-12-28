@@ -8,3 +8,5 @@ obj/
 *.iml
 Gemfile.lock
 _site/
+
+/source/publish.gradle

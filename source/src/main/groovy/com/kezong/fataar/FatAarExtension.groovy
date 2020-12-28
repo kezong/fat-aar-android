@@ -47,4 +47,7 @@ class FatAarExtension {
      * */
     public HashMap<String, HashSet<String>> excludeSos = new HashMap<>()
 
+
+    public List<String> excludeClasses = new ArrayList<>()
+
 }

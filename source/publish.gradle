@@ -1,0 +1,40 @@
+apply plugin: 'com.novoda.bintray-release'
+apply plugin: 'maven'
+
+publish {
+
+    userOrg = 'bytedance'
+    groupId = 'com.bytedance.android'
+    artifactId = 'fat-aar'
+    publishVersion = '0.0.81-SNAPSHOT'
+    desc = 'A gradle plugin that merge dependencies into the final aar file works with AGP 3.+'
+    website = 'https://github.com/kezong/fat-aar-android'
+}
+
+
+uploadArchives {
+    repositories {
+//        configuration = configurations.archives
+        mavenDeployer {
+            pom {
+                groupId = "com.bytedance.android"
+                artifactId = "fat-aar"
+                version = "0.0.80-SNAPSHOT"
+                packaging = "aar"
+            }
+
+//            repository(url: "file://${projectDir.absolutePath}/repo")
+
+            //提交到远程服务器：
+            repository(url: "https://maven.byted.org/nexus/content/repositories/ugc_android/") {
+                authentication(userName: "ugc_android", password: "wer0]fN-7t[jsdcBdfm/")
+            }
+
+            snapshotRepository(url: "https://maven.byted.org/repository/bytedance_android_snapshots/") {
+                authentication(userName: "ugc_android", password: "wer0]fN-7t[jsdcBdfm/")
+            }
+
+        }
+
+    }
+}

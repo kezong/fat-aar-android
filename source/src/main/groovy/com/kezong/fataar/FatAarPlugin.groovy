@@ -1,5 +1,6 @@
 package com.kezong.fataar
 
+import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.api.LibraryVariant
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -37,6 +38,8 @@ class FatAarPlugin implements Plugin<Project> {
         FatUtils.attach(project)
         project.gradle.addBuildListener(FatUtils.buildListener)
         pluginExtension = project.extensions.create(FatAarExtension.NAME, FatAarExtension)
+        //exclude class transform
+        ((BaseExtension) project.extensions.getByName("android")).registerTransform(new BuildClassFilterTransform(project, pluginExtension))
         createConfigurations()
         registerTransform()
         project.afterEvaluate {

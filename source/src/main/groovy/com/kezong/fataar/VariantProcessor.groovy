@@ -301,7 +301,7 @@ class VariantProcessor {
                     doLast {
 
                         mPluginConfig.excludeDeclareStyleAttrs.each {
-                            if (archiveLibrary.getMavenCoord().contains(it.key)) {
+                            if (archiveLibrary.getMavenCoordString().contains(it.key)) {
                                 PackerHelper.excludeDeclareStyleAttr(archiveLibrary.getResValuesFile(), it.value)
                             }
                         }
@@ -309,7 +309,7 @@ class VariantProcessor {
                         PackerHelper.excludeApplicationAttr(archiveLibrary, mPluginConfig.excludeApplicationAttr)
 
                         mPluginConfig.excludeSos.each {
-                            if (archiveLibrary.getMavenCoord().contains(it.key)) {
+                            if (archiveLibrary.getMavenCoordString().contains(it.key)) {
                                 PackerHelper.excludeSo(archiveLibrary.getJniFolder(), it.value)
                             }
                         }

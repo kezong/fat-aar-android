@@ -113,8 +113,8 @@ public class AndroidArchiveLibrary {
         return new File(new File(getResFolder().getAbsolutePath()+"/values"), "values.xml");
     }
 
-    public String getMavenCoord(){
-        return mArtifact.getModuleVersion().getId().toString();
+    public String getMavenCoordString(){
+        return mArtifact.getModuleVersion().getId().getModule().toString();
     }
 
     public synchronized String getPackageName() {

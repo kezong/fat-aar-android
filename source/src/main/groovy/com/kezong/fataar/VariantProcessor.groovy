@@ -156,7 +156,10 @@ class VariantProcessor {
                     from mProject.zipTree(aarOutputFile)
                     into reBundleDir
                 }
+
                 FatUtils.deleteEmptyDir(reBundleDir)
+
+                PackerHelper.abiFilter(reBundleDir, mPluginConfig.abiFilter, mPluginConfig.replaceV5WithV7So)
             }
         }
 
@@ -210,7 +213,7 @@ class VariantProcessor {
                         .stream()
                         .map { it.packageName }
                         .collect()
-                transform.putLibraryPackages(mVariant.name, libraryPackages);
+                transform.putLibraryPackages(mVariant.name, libraryPackages)
             }
         }
         bundleTask.configure {
@@ -304,8 +307,6 @@ class VariantProcessor {
                         }
 
                         PackerHelper.excludeApplicationAttr(archiveLibrary, mPluginConfig.excludeApplicationAttr)
-
-                        PackerHelper.abiFilter(archiveLibrary, mPluginConfig.abiFilter)
 
                         mPluginConfig.excludeSos.each {
                             if (archiveLibrary.getMavenCoord().contains(it.key)) {
@@ -524,7 +525,6 @@ class VariantProcessor {
                 if (it.name == mVariant.name) {
                     for (archiveLibrary in mAndroidArchiveLibraries) {
                         if (archiveLibrary.assetsFolder != null && archiveLibrary.assetsFolder.exists()) {
-//                            FatUtils.logInfo("Merge assets，Library assets folder：${archiveLibrary.assetsFolder}")
                             it.assets.srcDir(archiveLibrary.assetsFolder)
                         }
                     }

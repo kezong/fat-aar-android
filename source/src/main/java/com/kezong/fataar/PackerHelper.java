@@ -1,5 +1,7 @@
 package com.kezong.fataar;
 
+import com.android.utils.FileUtils;
+
 import org.dom4j.Attribute;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
@@ -134,28 +136,6 @@ public class PackerHelper {
         } catch (Exception e) {
             logInfo("delete application attr failed : " + e.getMessage());
             e.printStackTrace();
-        }
-    }
-
-
-    public static void abiFilter(AndroidArchiveLibrary archiveLibrary, List<String> supportAbi) {
-
-        if (supportAbi != null && supportAbi.isEmpty()) {
-            return;
-        }
-
-        File soDir = archiveLibrary.getJniFolder();
-
-        File[] abiDir = soDir.listFiles();
-
-        if (abiDir != null && abiDir.length > 0) {
-            logInfo("abi filter : " + archiveLibrary.getMavenCoord());
-            for (File abi : abiDir) {
-                if (!supportAbi.contains(abi.getName())) {
-                    removeDir(abi);
-                    abi.delete();
-                }
-            }
         }
     }
 
@@ -345,4 +325,40 @@ public class PackerHelper {
             fLogger.info(msg);
         }
     }
+
+    /**
+     * abi filter
+     */
+    public static void abiFilter(File aarDir, List<String> supportAbi, boolean renameV7Tov5) {
+
+        File jniDir = new File(aarDir, "/jni");
+        if (!jniDir.exists() || jniDir.listFiles().length <= 0) {
+            logInfo("error jniDir : " + jniDir.getAbsolutePath());
+            return;
+        }
+
+        for (File abiDir : jniDir.listFiles()) {
+            if (!supportAbi.contains(abiDir.getName())) {
+                removeDir(abiDir);
+                abiDir.delete();
+            }
+        }
+
+        if (renameV7Tov5) {
+            File v7Dir = new File(aarDir, "/jni/armeabi-v7a");
+            File v5Dir = new File(aarDir, "/jni/armeabi");
+            if (v5Dir.exists()) {
+                v5Dir.delete();
+            }
+            if (v7Dir.exists()) {
+                try {
+                    FileUtils.renameTo(v7Dir, v5Dir);
+                } catch (Exception e) {
+                    logInfo("abiFilter error : " + e.getMessage());
+                }
+            }
+        }
+
+    }
+
 }

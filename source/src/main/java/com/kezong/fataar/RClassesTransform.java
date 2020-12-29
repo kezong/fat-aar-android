@@ -123,6 +123,7 @@ public class RClassesTransform extends Transform {
             for (final TransformInput input : transformInvocation.getInputs()) {
                 for (final DirectoryInput directoryInput : input.getDirectoryInputs()) {
                     final File directoryFile = directoryInput.getFile();
+                    PackerHelper.logInfo("rename R for : "+directoryFile.getAbsolutePath());
                     final ClassPool classPool = new ClassPool();
                     classPool.insertClassPath(directoryFile.getAbsolutePath());
 

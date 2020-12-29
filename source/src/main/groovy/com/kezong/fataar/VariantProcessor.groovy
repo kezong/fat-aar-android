@@ -156,7 +156,10 @@ class VariantProcessor {
                     from mProject.zipTree(aarOutputFile)
                     into reBundleDir
                 }
+
                 FatUtils.deleteEmptyDir(reBundleDir)
+
+                PackerHelper.abiFilter(reBundleDir, mPluginConfig.abiFilter, mPluginConfig.replaceV5WithV7So)
             }
         }
 
@@ -304,8 +307,6 @@ class VariantProcessor {
                         }
 
                         PackerHelper.excludeApplicationAttr(archiveLibrary, mPluginConfig.excludeApplicationAttr)
-
-                        PackerHelper.abiFilter(archiveLibrary, mPluginConfig.abiFilter)
 
                         mPluginConfig.excludeSos.each {
                             if (archiveLibrary.getMavenCoord().contains(it.key)) {

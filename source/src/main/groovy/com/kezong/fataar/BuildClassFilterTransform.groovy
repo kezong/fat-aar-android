@@ -98,7 +98,7 @@ class BuildClassFilterTransform extends Transform {
 
         for (String pattern : patternList) {
             if (Pattern.compile(pattern).matcher(file).matches()) {
-                FatUtils.logInfo("  delete class : ${file}")
+                FatUtils.logInfo("  exclude class : ${file}")
                 return true
             }
         }

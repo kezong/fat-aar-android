@@ -41,7 +41,7 @@ class FatUtils {
 
     def static logInfo(def msg) {
         if (fLogger != null) {
-            fLogger.info(msg);
+            fLogger.info(msg)
         }
     }
 
@@ -163,4 +163,5 @@ class FatUtils {
             output.append("\n${file.getText("UTF-8")}\n")
         }
     }
+
 }

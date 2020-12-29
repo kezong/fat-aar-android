@@ -24,7 +24,7 @@ class FatAarPlugin implements Plugin<Project> {
 
     private Project project
 
-    private RClassesTransform transform
+    private RClassesTransform rTransform
 
     private FatAarExtension pluginExtension;
 
@@ -48,9 +48,9 @@ class FatAarPlugin implements Plugin<Project> {
     }
 
     private registerTransform() {
-        transform = new RClassesTransform(project)
+        rTransform = new RClassesTransform(project)
         // register in project.afterEvaluate is invalid.
-        project.android.registerTransform(transform)
+        project.android.registerTransform(rTransform)
     }
 
     private void doAfterEvaluate() {
@@ -76,7 +76,7 @@ class FatAarPlugin implements Plugin<Project> {
 
             if (!artifacts.isEmpty()) {
                 def processor = new VariantProcessor(project, variant, pluginExtension)
-                processor.processVariant(artifacts, firstLevelDependencies, transform)
+                processor.processVariant(artifacts, firstLevelDependencies, rTransform)
             }
         }
     }

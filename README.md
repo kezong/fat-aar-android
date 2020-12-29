@@ -1,33 +1,19 @@
 fork from : https://github.com/kezong/fat-aar-android
 
-extra support :
+额外支持 :
 
->FatAarExtension.groovy
-```
-  /**
-    * support delete sub aar <declare-style/> , avoid bundle aar failed
-    * */
-  public HashMap<String, HashSet<String>> excludeDeclareStyleAttrs = new HashMap<>()
+1. 剔除子aar异常定义在`values.xml`中的`<declare-style/>`
 
-  /**
-    * support delete sub aar <application/> attribute, avoid bundle aar failed
-    * */
-  public List<String> excludeApplicationAttr = new ArrayList<>()
+>比如子aar定义的`<declare-style/>`和support库冲突了
 
-  /**
-    * support delete sub aar so, avoid bundle aar failed
-    * */
-  public List<String> abiFilter = new ArrayList<>()
+2. 剔除子aar重复定义的`<application/>` 中的`attr`
 
-  /**
-    * support delete duplicate sub aar so, avoid bundle aar failed
-    * */
-  public HashMap<String, HashSet<String>> excludeSos = new HashMap<>()
+3. 剔除子aar中的so，避免so冲突
+
+4. 剔除子aar中指定的class，避免类冲突
+
+5. 支持abiFilter, 保证打出的fataar只有一个jni目录
+
+6. 支持重复的`<declare-style/>`分离，避免fataar打包失败
 
 
-  /**
-    * support exclude classes, avoid class duplicated
-    * */
-  public List<String> excludeClasses = new ArrayList<>()
-
-```

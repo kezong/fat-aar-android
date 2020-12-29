@@ -26,7 +26,7 @@ class FatAarPlugin implements Plugin<Project> {
 
     private RClassesTransform rTransform
 
-    private FatAarExtension pluginExtension;
+    private FatAarExtension pluginExtension
 
     private final Collection<Configuration> embedConfigurations = new ArrayList<>()
 
@@ -39,7 +39,6 @@ class FatAarPlugin implements Plugin<Project> {
         project.gradle.addBuildListener(FatUtils.buildListener)
         pluginExtension = project.extensions.create(FatAarExtension.NAME, FatAarExtension)
         //exclude class transform
-        ((BaseExtension) project.extensions.getByName("android")).registerTransform(new BuildClassFilterTransform(project, pluginExtension))
         createConfigurations()
         registerTransform()
         project.afterEvaluate {
@@ -51,6 +50,7 @@ class FatAarPlugin implements Plugin<Project> {
         rTransform = new RClassesTransform(project)
         // register in project.afterEvaluate is invalid.
         project.android.registerTransform(rTransform)
+        project.android..registerTransform(new BuildClassFilterTransform(project, pluginExtension))
     }
 
     private void doAfterEvaluate() {

@@ -46,7 +46,7 @@ class BuildClassFilterTransform extends Transform {
 
     @Override
     boolean isIncremental() {
-        return false
+        return true
     }
 
     @Override
@@ -134,4 +134,5 @@ class BuildClassFilterTransform extends Transform {
             }
         }
     }
+
 }

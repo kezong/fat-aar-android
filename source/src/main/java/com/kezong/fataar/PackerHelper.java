@@ -31,12 +31,10 @@ public class PackerHelper {
     private static String ELE_DECLARE_STYLEABLE = "declare-styleable";
     private static Logger fLogger = null;
 
-
     public static void init(Logger logger) {
         fLogger = logger;
         namespaces.put("android", "http://schemas.android.com/apk/res/android");
     }
-
 
     public static void excludeDeclareStyleAttr(File file, List<String> attrs) {
 
@@ -88,7 +86,8 @@ public class PackerHelper {
                 return;
             }
 
-            if (deletedAttrs == null) {
+            if (deletedAttrs == null || deletedAttrs.isEmpty()) {
+                logInfo("no need excludeApplicationAttr");
                 return;
             }
 
@@ -125,7 +124,7 @@ public class PackerHelper {
 
                 if (deletedAttr != null) {
                     application.remove(deletedAttr);
-                    logInfo("delete application attr :" + archiveLibrary.getMavenCoord() + "->" + deletedAttr.getQualifiedName());
+                    logInfo("delete application attr :" + archiveLibrary.getMavenCoordString() + "->" + deletedAttr.getQualifiedName());
                 }
             }
 
@@ -141,6 +140,11 @@ public class PackerHelper {
 
     public static void excludeSo(File soDir, List<String> soList) {
 
+        if (soList.isEmpty()){
+            logInfo("no need exclude so");
+            return;
+        }
+
         File[] abiDir = soDir.listFiles();
 
         if (abiDir != null && abiDir.length > 0) {
@@ -152,22 +156,6 @@ public class PackerHelper {
                             soFile.delete();
                         }
                     }
-                }
-            }
-        }
-    }
-
-    private static void removeDir(File fileOrDirectory) {
-        if (fileOrDirectory.isDirectory()) {
-            File[] files = fileOrDirectory.listFiles();
-            if (files == null || files.length == 0) {
-                return;
-            }
-            for (File child : files) {
-                if (child.isDirectory()) {
-                    removeDir(child);
-                } else {
-                    child.delete();
                 }
             }
         }
@@ -285,7 +273,7 @@ public class PackerHelper {
             }
 
         } catch (Exception e) {
-            logInfo("重复 attr 剔除失败 : " + e.getMessage());
+            logInfo("exclude repeat attr failed : " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -329,7 +317,12 @@ public class PackerHelper {
     /**
      * abi filter
      */
-    public static void abiFilter(File aarDir, List<String> supportAbi, boolean renameV7Tov5) {
+    public static void abiFilter(File aarDir, List<String> supportAbi, boolean copyV7ToV5) {
+
+        if (supportAbi.isEmpty()) {
+            logInfo("no need do abi filter");
+            return;
+        }
 
         File jniDir = new File(aarDir, "/jni");
         if (!jniDir.exists() || jniDir.listFiles().length <= 0) {
@@ -344,21 +337,51 @@ public class PackerHelper {
             }
         }
 
-        if (renameV7Tov5) {
-            File v7Dir = new File(aarDir, "/jni/armeabi-v7a");
-            File v5Dir = new File(aarDir, "/jni/armeabi");
-            if (v5Dir.exists()) {
-                v5Dir.delete();
-            }
-            if (v7Dir.exists()) {
-                try {
-                    FileUtils.renameTo(v7Dir, v5Dir);
-                } catch (Exception e) {
-                    logInfo("abiFilter error : " + e.getMessage());
+        try {
+            if (copyV7ToV5) {
+                File v7Dir = new File(aarDir, "/jni/armeabi-v7a");
+                File v5Dir = new File(aarDir, "/jni/armeabi");
+
+                if (v7Dir.exists() && v5Dir.exists()) {
+
+                    List<String> v5Files = new ArrayList<>();
+                    for (File soFile : v5Dir.listFiles()) {
+                        v5Files.add(soFile.getName());
+                    }
+
+                    for (File soFile : v7Dir.listFiles()) {
+                        if (!v5Files.contains(soFile.getName())) {
+                            File newFile = new File(v5Dir, soFile.getName());
+                            FileUtils.copyFile(soFile, newFile);
+                            logInfo("copy " + soFile.getName() + " to armeabi dir");
+                        }
+                    }
+
+                    removeDir(v7Dir);
+                    v7Dir.delete();
                 }
             }
+        } catch (Exception e) {
+            logInfo("copyV7ToV5 error :" + e.getMessage());
         }
 
     }
+
+    private static void removeDir(File fileOrDirectory) {
+        if (fileOrDirectory.isDirectory()) {
+            File[] files = fileOrDirectory.listFiles();
+            if (files == null || files.length == 0) {
+                return;
+            }
+            for (File child : files) {
+                if (child.isDirectory()) {
+                    removeDir(child);
+                } else {
+                    child.delete();
+                }
+            }
+        }
+    }
+
 
 }

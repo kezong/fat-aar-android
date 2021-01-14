@@ -8,7 +8,12 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.internal.artifacts.ResolvableDependency
+import org.gradle.api.artifacts.result.ResolvedDependencyResult
+import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
+import org.gradle.api.internal.artifacts.PreResolvedResolvableArtifact
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext
+import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskDependency
@@ -246,6 +251,14 @@ class VariantProcessor {
         }
     }
 
+    private TaskDependencyContainer getTaskDependencyContainer(ResolvableArtifact artifact) {
+        if (artifact instanceof PreResolvedResolvableArtifact) {
+            return artifact.builtBy
+        } else {
+            return artifact.buildDependency
+        }
+    }
+
     /**
      * exploded artifact files
      */
@@ -260,11 +273,12 @@ class VariantProcessor {
                 AndroidArchiveLibrary archiveLibrary = new AndroidArchiveLibrary(mProject, artifact, mVariant.name)
                 addAndroidArchiveLibrary(archiveLibrary)
                 Set<Task> dependencies
-                if (artifact.buildDependencies instanceof TaskDependency) {
+
+                if (getTaskDependencyContainer(artifact) instanceof TaskDependency) {
                     dependencies = artifact.buildDependencies.getDependencies()
                 } else {
                     CachingTaskDependencyResolveContext context = new CachingTaskDependencyResolveContext()
-                    artifact.buildDependencies.visitDependencies(context)
+                    getTaskDependencyContainer(artifact).visitDependencies(context)
                     if (context.queue.size() == 0) {
                         dependencies = new HashSet<>()
                     } else {

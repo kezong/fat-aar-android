@@ -10,6 +10,7 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.tasks.TaskDependency
@@ -24,7 +25,7 @@ import javax.annotation.Nullable
  */
 class FlavorArtifact {
 
-    static DefaultResolvedArtifact createFlavorArtifact(Project project, LibraryVariant variant, ResolvedDependency unResolvedArtifact) {
+    static ResolvableArtifact createFlavorArtifact(Project project, LibraryVariant variant, ResolvedDependency unResolvedArtifact) {
         Project artifactProject = getArtifactProject(project, unResolvedArtifact)
         TaskProvider bundleProvider = null;
         try {
@@ -55,7 +56,12 @@ class FlavorArtifact {
                     taskDependencyResolveContext.add(createTaskDependency(bundleProvider.get()))
                 }
             }
-            return new DefaultResolvedArtifact(identifier, artifactName, artifactIdentifier, taskDependencyContainer, fileFactory)
+
+            if (FatUtils.compareVersion(project.gradle.gradleVersion, "6.8.0") >= 0) {
+                this.class.classLoader.loadClass("org.gradle.api.internal.artifacts.DefaultResolvableArtifact").newInstance(identifier, artifactName, taskDependencyContainer, fileFactory)
+            } else {
+                return new DefaultResolvedArtifact(identifier, artifactName, artifactIdentifier, taskDependencyContainer, fileFactory)
+            }
         } else {
             TaskDependency taskDependency = createTaskDependency(bundleProvider.get())
             return new DefaultResolvedArtifact(identifier, artifactName, artifactIdentifier, taskDependency, fileFactory)

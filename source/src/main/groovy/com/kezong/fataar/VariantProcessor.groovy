@@ -246,6 +246,17 @@ class VariantProcessor {
         }
     }
 
+    // gradle < 6, return TaskDependency
+    // gradle >= 6, return TaskDependencyContainer
+    static def getTaskDependency(ResolvedArtifact artifact) {
+        try {
+            return artifact.buildDependencies
+        } catch(MissingPropertyException ignore) {
+            // since gradle 6.8.0, property is changed;
+            return artifact.builtBy
+        }
+    }
+
     /**
      * exploded artifact files
      */
@@ -260,11 +271,12 @@ class VariantProcessor {
                 AndroidArchiveLibrary archiveLibrary = new AndroidArchiveLibrary(mProject, artifact, mVariant.name)
                 addAndroidArchiveLibrary(archiveLibrary)
                 Set<Task> dependencies
-                if (artifact.buildDependencies instanceof TaskDependency) {
+
+                if (getTaskDependency(artifact) instanceof TaskDependency) {
                     dependencies = artifact.buildDependencies.getDependencies()
                 } else {
                     CachingTaskDependencyResolveContext context = new CachingTaskDependencyResolveContext()
-                    artifact.buildDependencies.visitDependencies(context)
+                    getTaskDependency(artifact).visitDependencies(context)
                     if (context.queue.size() == 0) {
                         dependencies = new HashSet<>()
                     } else {

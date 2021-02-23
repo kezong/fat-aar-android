@@ -5,15 +5,16 @@ import com.android.builder.model.ProductFlavor
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
 import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.internal.DisplayName
 import org.gradle.internal.Factory
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 
@@ -24,7 +25,14 @@ import javax.annotation.Nullable
  */
 class FlavorArtifact {
 
-    static DefaultResolvedArtifact createFlavorArtifact(Project project, LibraryVariant variant, ResolvedDependency unResolvedArtifact) {
+    // since 6.8.0
+    private static final String CLASS_PreResolvedResolvableArtifact = "org.gradle.api.internal.artifacts.PreResolvedResolvableArtifact";
+    // since 6.8.0
+    private static final String CLASS_CalculatedValueContainer = "org.gradle.internal.model.CalculatedValueContainer"
+
+    private static final String CLASS_DefaultResolvedArtifact = "org.gradle.api.internal.artifacts.DefaultResolvedArtifact"
+
+    static ResolvedArtifact createFlavorArtifact(Project project, LibraryVariant variant, ResolvedDependency unResolvedArtifact) {
         Project artifactProject = getArtifactProject(project, unResolvedArtifact)
         TaskProvider bundleProvider = null;
         try {
@@ -55,10 +63,34 @@ class FlavorArtifact {
                     taskDependencyResolveContext.add(createTaskDependency(bundleProvider.get()))
                 }
             }
-            return new DefaultResolvedArtifact(identifier, artifactName, artifactIdentifier, taskDependencyContainer, fileFactory)
+            if (FatUtils.compareVersion(project.gradle.gradleVersion, "6.8.0") >= 0) {
+                Object fileCalculatedValue = Class.forName(CLASS_CalculatedValueContainer).newInstance(new DisplayName(){
+                    @Override
+                    String getCapitalizedDisplayName() {
+                        return artifactFile.name
+                    }
+
+                    @Override
+                    String getDisplayName() {
+                        return artifactFile.name
+                    }
+                }, artifactFile)
+                return Class.forName(CLASS_PreResolvedResolvableArtifact).newInstance(
+                        identifier,
+                        artifactName,
+                        artifactIdentifier,
+                        fileCalculatedValue,
+                        taskDependencyContainer,
+                        null
+                )
+            } else {
+                return Class.forName(CLASS_DefaultResolvedArtifact)
+                        .newInstance(identifier, artifactName, artifactIdentifier, taskDependencyContainer, fileFactory, null)
+            }
         } else {
             TaskDependency taskDependency = createTaskDependency(bundleProvider.get())
-            return new DefaultResolvedArtifact(identifier, artifactName, artifactIdentifier, taskDependency, fileFactory)
+            return Class.forName(CLASS_DefaultResolvedArtifact)
+                    .newInstance(identifier, artifactName, artifactIdentifier, taskDependency, fileFactory)
         }
     }
 

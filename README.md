@@ -5,7 +5,7 @@
 
 - [中文文档](./README_CN.md)
 
-The solution of merging aar works with [AGP][3] `3.0` and higher. (Tested in AGP 3.0 - 4.1.0, and Gradle 4.9 - 6.5)
+The solution of merging aar works with [AGP][3] `3.0` and higher. (Tested in AGP 3.0 - 4.1.0, and Gradle 4.9 - 6.8)
 
 ## Getting Started
 
@@ -19,7 +19,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.kezong:fat-aar:1.3.3'
+        classpath 'com.kezong:fat-aar:1.3.4'
     }
 }
 ```
@@ -115,22 +115,25 @@ See [anatomy of an aar file here][2].
 ## Gradle Version Support
 | Version | Gradle Plugin | Gradle |
 | :--------: | :--------:|:-------:|
-| 1.0.1 | 3.1.0 - 3.2.1 | 4.4-6.0 |
-| 1.1.6 | 3.1.0 - 3.4.1 | 4.4-6.0 |
-| 1.1.10| 3.0.0 - 3.4.1 | 4.1-6.0 |
-| 1.2.6 | 3.0.0 - 3.5.0 | 4.1-6.0 |
-| 1.2.8 | 3.0.0 - 3.5.9 | 4.1+ |
-| 1.2.11 - 1.2.14 | 3.0.0 - 3.6.9 | 4.1+ |
-| 1.2.15 - 1.2.16 | 3.0.0 - 4.0.2 | 4.1+|
-| 1.2.17 | 3.0.0 - 4.0.2 | 4.9+ |
-| 1.2.18+ | 3.0.0 - 4.1.0 | 4.9+ |
-| 1.3.+ | 3.0.0 - 4.1.0 | 4.9+ |
+| 1.0.1 | 3.1.0 - 3.2.1 | 4.4 - 6.0 |
+| 1.1.6 | 3.1.0 - 3.4.1 | 4.4 - 6.0 |
+| 1.1.10| 3.0.0 - 3.4.1 | 4.1 - 6.0 |
+| 1.2.6 | 3.0.0 - 3.5.0 | 4.1 - 6.0 |
+| 1.2.8 | 3.0.0 - 3.5.9 | 4.1 - 6.8 |
+| 1.2.11 - 1.2.14 | 3.0.0 - 3.6.9 | 4.1 - 6.8 |
+| 1.2.15 - 1.2.16 | 3.0.0 - 4.0.2 | 4.1 - 6.8 |
+| 1.2.17 | 3.0.0 - 4.0.2 | 4.9 - 6.8 |
+| 1.2.18+ | 3.0.0 - 4.1.0 | 4.9 - 6.8 |
+| 1.3.+ | 3.0.0 - 4.1.0 | 4.9 - 6.8 |
+| 1.3.4 | 3.0.0 - 4.1.0 | 4.9+ |
 
 The following link which version of Gradle is required for each version of the Android Gradle plugin. For the best performance, you should use the latest possible version of both Gradle and the plugin.
 
 [Plugin version and Required Gradle version](https://developer.android.google.cn/studio/releases/gradle-plugin.html)
 
 ## Version Log
+- [1.3.4](<https://github.com/kezong/fat-aar-android/releases/tag/v1.3.4>)
+  - Support Gradle 6.8 [#274](https://github.com/kezong/fat-aar-android/issues/274)
 - [1.3.3](<https://github.com/kezong/fat-aar-android/releases/tag/v1.3.3>)
   - Fix bug that "Can not find task bundleDebugAar". [#84](https://github.com/kezong/fat-aar-android/issues/84)
   - Fix bug that crash when module can not resolve.

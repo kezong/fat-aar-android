@@ -2,7 +2,7 @@
 [![license](http://img.shields.io/badge/license-Apache2.0-brightgreen.svg?style=flat)](https://github.com/kezong/fat-aar-android/blob/master/LICENSE)
 [![Download](https://api.bintray.com/packages/kezong/maven/fat-aar/images/download.svg)](https://bintray.com/kezong/maven/fat-aar/_latestVersion)
 
-该插件提供了将library以及它依赖的library一起打包成一个完整aar的解决方案，支持AGP 3.0及以上。（目前测试的版本范围是AGP 3.0 - 4.1.1，Gradle 4.9 - 6.5）
+该插件提供了将library以及它依赖的library一起打包成一个完整aar的解决方案，支持AGP 3.0及以上。（目前测试的版本范围是AGP 3.0 - 4.1.1，Gradle 4.9 - 6.8）
 
 ## 如何使用
 
@@ -16,7 +16,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.kezong:fat-aar:1.3.1'
+        classpath 'com.kezong:fat-aar:1.3.4'
     }
 }
 ```
@@ -128,20 +128,23 @@ AAR是Android提供的一种官方文件形式；
 
 | Version | Gradle Plugin | Gradle |
 | :--------: | :--------:|:-------:|
-| 1.0.1 | 3.1.0 - 3.2.1 | 4.4-6.0 |
-| 1.1.6 | 3.1.0 - 3.4.1 | 4.4-6.0 |
-| 1.1.10| 3.0.0 - 3.4.1 | 4.1-6.0 |
-| 1.2.6 | 3.0.0 - 3.5.0 | 4.1-6.0 |
-| 1.2.8 | 3.0.0 - 3.5.9 | 4.1+ |
-| 1.2.11 - 1.2.14 | 3.0.0 - 3.6.9 | 4.1+ |
-| 1.2.15 - 1.2.16 | 3.0.0 - 4.0.2 | 4.1+ |
-| 1.2.17 | 3.0.0 - 4.0.2 | 4.9+ |
-| 1.2.18+ | 3.0.0 - 4.1.0 | 4.9+ |
-| 1.3.+ | 3.0.0 - 4.1.0 | 4.9+ |
+| 1.0.1 | 3.1.0 - 3.2.1 | 4.4 - 6.0 |
+| 1.1.6 | 3.1.0 - 3.4.1 | 4.4 - 6.0 |
+| 1.1.10| 3.0.0 - 3.4.1 | 4.1 - 6.0 |
+| 1.2.6 | 3.0.0 - 3.5.0 | 4.1 - 6.0 |
+| 1.2.8 | 3.0.0 - 3.5.9 | 4.1 - 6.8 |
+| 1.2.11 - 1.2.14 | 3.0.0 - 3.6.9 | 4.1 - 6.8 |
+| 1.2.15 - 1.2.16 | 3.0.0 - 4.0.2 | 4.1 - 6.8 |
+| 1.2.17 | 3.0.0 - 4.0.2 | 4.9 - 6.8 |
+| 1.2.18+ | 3.0.0 - 4.1.0 | 4.9 - 6.8 |
+| 1.3.+ | 3.0.0 - 4.1.0 | 4.9 - 6.8 |
+| 1.3.4 | 3.0.0 - 4.1.0 | 4.9+ |
 
 [Gradle Plugin和所需求的Gradle版本官方文档](https://developer.android.google.cn/studio/releases/gradle-plugin.html)
 
 ## 更新日志
+- [1.3.4](<https://github.com/kezong/fat-aar-android/releases/tag/v1.3.4>)
+  - 支持Gradle 6.8 [#274](https://github.com/kezong/fat-aar-android/issues/274)
 - [1.3.3](<https://github.com/kezong/fat-aar-android/releases/tag/v1.3.3>)
   - 修复异常"Can not find task bundleDebugAar". [#84](https://github.com/kezong/fat-aar-android/issues/84)
   - 修复当工程解析失败时产生的异常.

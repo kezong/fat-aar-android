@@ -49,7 +49,9 @@ class FatAarPlugin implements Plugin<Project> {
 
     private void doAfterEvaluate() {
         embedConfigurations.each {
-            it.transitive = project.fataar.transitive
+            if (project.fataar.transitive) {
+                it.transitive = true
+            }
         }
 
         project.android.libraryVariants.all { LibraryVariant variant ->

@@ -66,6 +66,7 @@ public class RClassesTransform extends Transform {
     /**
      * Different variants have different package names.
      * So targetPackageName must set after evaluate
+     * @param variantName variant name
      * @param targetPackage main module's package name
      */
     public void putTargetPackage(String variantName, String targetPackage) {

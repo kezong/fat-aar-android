@@ -11,15 +11,26 @@ The solution of merging aar works with [AGP][3] `3.0` and higher. (Tested in AGP
 
 ### Step 1: Apply plugin
 
+#### For Maven Central (since 1.3.4):
 Add snippet below to your root build script file:
-
+```groovy
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.github.kezong:fat-aar:1.3.4'
+    }
+}
+```
+#### For JCenter (before 1.3.4):
 ```groovy
 buildscript {
     repositories {
         jcenter()
     }
     dependencies {
-        classpath 'com.kezong:fat-aar:1.3.4'
+        classpath 'com.kezong:fat-aar:1.3.3'
     }
 }
 ```

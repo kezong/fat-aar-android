@@ -8,8 +8,19 @@
 
 #### 第一步: Apply plugin
 
-添加以下代码到你工程根目录下的`build.gradle`文件中:
-
+添加以下代码到你工程根目录下的`build.gradle`文件中(Maven Central和Jcenter二选一，两者包名不一样):
+#### For Maven Central (1.3.4之后):
+```groovy
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.github.kezong:fat-aar:1.3.4'
+    }
+}
+```
+#### For JCenter (1.3.4之前可以使用，1.3.4之后不再维护):
 ```groovy
 buildscript {
     repositories {

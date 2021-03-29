@@ -11,8 +11,8 @@ The solution of merging aar works with [AGP][3] `3.0` and higher. (Tested in AGP
 
 ### Step 1: Apply plugin
 
-#### For Maven Central (since 1.3.4):
 Add snippet below to your root build script file:
+#### For Maven Central (since 1.3.4):
 ```groovy
 buildscript {
     repositories {

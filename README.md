@@ -23,7 +23,7 @@ buildscript {
     }
 }
 ```
-#### For JCenter (before 1.3.4):
+#### For JCenter (Deprecated, before 1.3.4):
 ```groovy
 buildscript {
     repositories {

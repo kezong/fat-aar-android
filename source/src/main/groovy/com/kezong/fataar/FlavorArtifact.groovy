@@ -85,7 +85,7 @@ class FlavorArtifact {
                 )
             } else {
                 return Class.forName(CLASS_DefaultResolvedArtifact)
-                        .newInstance(identifier, artifactName, artifactIdentifier, taskDependencyContainer, fileFactory, null)
+                        .newInstance(identifier, artifactName, artifactIdentifier, taskDependencyContainer, fileFactory)
             }
         } else {
             TaskDependency taskDependency = createTaskDependency(bundleProvider.get())

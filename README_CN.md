@@ -18,7 +18,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.github.kezong:fat-aar:1.3.4'
+        classpath 'com.github.kezong:fat-aar:1.3.5'
     }
 }
 ```

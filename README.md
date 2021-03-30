@@ -10,7 +10,7 @@ The solution of merging aar works with [AGP][3] `3.0` and higher. (Tested in AGP
 ## Getting Started
 
 ### Step 1: Add classpath
-####Add snippet below to your root build script file:
+#### Add snippet below to your root build script file:
 > JCenter services will be deprecated on May 1st 2021, if you are using the version in JCenter, it is recommended to rename the group name and switch to Maven Central. Like this:
 'com.kezong:fat-aar:x.x.x' => 'com.github.kezong:fat-aar:x.x.x'
 
@@ -25,7 +25,7 @@ buildscript {
     }
 }
 ```
-~~#### For JCenter (Deprecated, before 1.3.4):~~
+~~For JCenter (Deprecated, before 1.3.4):~~
 ```groovy
 buildscript {
     repositories {

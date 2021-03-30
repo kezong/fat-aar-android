@@ -7,6 +7,7 @@
 ## 如何使用
 
 #### 第一步: Apply classpath
+##### 添加以下代码到你工程根目录下的`build.gradle`文件中:
 > JCenter于2021.5.1不再提供服务, 如果你使用了JCenter中的版本，建议更改一下包名切换至Maven central, 比如:
 'com.kezong:fat-aar:x.x.x' => 'com.github.kezong:fat-aar:x.x.x'
 
@@ -21,7 +22,7 @@ buildscript {
     }
 }
 ```
-~~#### For JCenter (Deprecated, before 1.3.4):~~
+~~For JCenter (Deprecated, before 1.3.4):~~
 ```groovy
 buildscript {
     repositories {

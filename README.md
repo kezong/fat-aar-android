@@ -145,6 +145,9 @@ The following link which version of Gradle is required for each version of the A
 [Plugin version and Required Gradle version](https://developer.android.google.cn/studio/releases/gradle-plugin.html)
 
 ## Version Log
+- [1.3.5](<https://github.com/kezong/fat-aar-android/releases/tag/v1.3.5>)
+  - Fix the bug that jar cannot be merged in some case. [#255](https://github.com/kezong/fat-aar-android/issues/255) [#288](https://github.com/kezong/fat-aar-android/issues/288)
+  - Fix build error when use gradle 6.0-6.8. [#277](https://github.com/kezong/fat-aar-android/issues/277)
 - [1.3.4](<https://github.com/kezong/fat-aar-android/releases/tag/v1.3.4>)
   - Support Gradle 6.8 [#274](https://github.com/kezong/fat-aar-android/issues/274)
 - [1.3.3](<https://github.com/kezong/fat-aar-android/releases/tag/v1.3.3>)

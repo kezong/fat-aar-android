@@ -156,6 +156,9 @@ AAR是Android提供的一种官方文件形式；
 [Gradle Plugin和所需求的Gradle版本官方文档](https://developer.android.google.cn/studio/releases/gradle-plugin.html)
 
 ## 更新日志
+- [1.3.5](<https://github.com/kezong/fat-aar-android/releases/tag/v1.3.5>)
+  - 修复在仅有jar工程时jar无法合并的问题. [#255](https://github.com/kezong/fat-aar-android/issues/255) [#288](https://github.com/kezong/fat-aar-android/issues/288)
+  - 修复在使用Gradle 6.0-6.8时的编译错误. [#277](https://github.com/kezong/fat-aar-android/issues/277)
 - [1.3.4](<https://github.com/kezong/fat-aar-android/releases/tag/v1.3.4>)
   - 支持Gradle 6.8 [#274](https://github.com/kezong/fat-aar-android/issues/274)
 - [1.3.3](<https://github.com/kezong/fat-aar-android/releases/tag/v1.3.3>)

@@ -1,15 +1,16 @@
 # fat-aar-android
 [![license](http://img.shields.io/badge/license-Apache2.0-brightgreen.svg?style=flat)](https://github.com/kezong/fat-aar-android/blob/master/LICENSE)
-[![Download](https://api.bintray.com/packages/kezong/maven/fat-aar/images/download.svg)](https://bintray.com/kezong/maven/fat-aar/_latestVersion)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.kezong/fat-aar/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.kezong/fat-aar)
 
 该插件提供了将library以及它依赖的library一起打包成一个完整aar的解决方案，支持AGP 3.0及以上。（目前测试的版本范围是AGP 3.0 - 4.1.1，Gradle 4.9 - 6.8）
 
 ## 如何使用
 
-#### 第一步: Apply plugin
+#### 第一步: Apply classpath
+> JCenter于2021.5.1不再提供服务, 如果你使用了JCenter中的版本，建议更改一下包名切换至Maven central, 比如:
+'com.kezong:fat-aar:x.x.x' => 'com.github.kezong:fat-aar:x.x.x'
 
-添加以下代码到你工程根目录下的`build.gradle`文件中(Maven Central和Jcenter二选一，两者包名不一样):
-#### For Maven Central (1.3.4之后):
+For Maven Central (The lastest release is available on [Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.kezong/fat-aar)):
 ```groovy
 buildscript {
     repositories {
@@ -20,25 +21,25 @@ buildscript {
     }
 }
 ```
-#### For JCenter (1.3.4之前可以使用，1.3.4之后不再维护):
+~~#### For JCenter (Deprecated, before 1.3.4):~~
 ```groovy
 buildscript {
     repositories {
         jcenter()
     }
     dependencies {
-        classpath 'com.kezong:fat-aar:1.3.4'
+        classpath 'com.kezong:fat-aar:1.3.3'
     }
 }
 ```
 
+#### 第二步: Add plugin
 添加以下代码到你的主library的`build.gradle`中:
-
 ```groovy
 apply plugin: 'com.kezong.fat-aar'
 ```
 
-#### 第二步: Embed dependencies
+#### 第三步: Embed dependencies
 - `embed`你所需要的工程, 用法类似`implementation`
 
 代码所示：
@@ -46,25 +47,25 @@ apply plugin: 'com.kezong.fat-aar'
 dependencies {
     implementation fileTree(dir: 'libs', include: '*.jar')
     // java dependency
-    embed project(':lib-java')
+    embed project(path: ':lib-java', configuration: 'default')
     // aar dependency
-    embed project(':lib-aar')
+    embed project(path: ':lib-aar', configuration: 'default')
     // aar dependency
-    embed project(':lib-aar2')
+    embed project(path: ':lib-aar2', configuration: 'default')
     // local full aar dependency, just build in flavor1
-    flavor1Embed project(':lib-aar-local')
+    flavor1Embed project(path: ':lib-aar-local', configuration: 'default')
     // local full aar dependency, just build in debug
-    debugEmbed (name:'lib-aar-local2', ext:'aar')
+    debugEmbed(name: 'lib-aar-local2', ext: 'aar')
     // remote jar dependency
     embed 'com.google.guava:guava:20.0'
     // remote aar dependency
-    embed 'com.facebook.fresco:fresco:1.11.0'
+    embed 'com.facebook.fresco:fresco:1.12.0'
     // don't want to embed in
     implementation('androidx.appcompat:appcompat:1.2.0')
 }
 ```
 
-### 第三步: 执行assemble命令
+### 第四步: 执行assemble命令
 
 - 在你的工程目录下执行assemble指令，其中lib-main为你主library的工程名称，你可以根据不同的flavor以及不同的buildType来决定执行具体的assemble指令
 ```shell script

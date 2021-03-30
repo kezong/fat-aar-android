@@ -1,7 +1,7 @@
 # fat-aar-android
 
 [![license](http://img.shields.io/badge/license-Apache2.0-brightgreen.svg?style=flat)](https://github.com/kezong/fat-aar-android/blob/master/LICENSE)
-[![Download](https://api.bintray.com/packages/kezong/maven/fat-aar/images/download.svg)](https://bintray.com/kezong/maven/fat-aar/_latestVersion)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.kezong/fat-aar/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.kezong/fat-aar)
 
 - [中文文档](./README_CN.md)
 
@@ -9,10 +9,12 @@ The solution of merging aar works with [AGP][3] `3.0` and higher. (Tested in AGP
 
 ## Getting Started
 
-### Step 1: Apply plugin
+### Step 1: Add classpath
+####Add snippet below to your root build script file:
+> JCenter services will be deprecated on May 1st 2021, if you are using the version in JCenter, it is recommended to rename the group name and switch to Maven Central. Like this:
+'com.kezong:fat-aar:x.x.x' => 'com.github.kezong:fat-aar:x.x.x'
 
-Add snippet below to your root build script file:
-#### For Maven Central (since 1.3.4):
+For Maven Central (The lastest release is available on [Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.kezong/fat-aar)):
 ```groovy
 buildscript {
     repositories {
@@ -23,7 +25,7 @@ buildscript {
     }
 }
 ```
-#### For JCenter (Deprecated, before 1.3.4):
+~~#### For JCenter (Deprecated, before 1.3.4):~~
 ```groovy
 buildscript {
     repositories {
@@ -35,13 +37,13 @@ buildscript {
 }
 ```
 
-Add snippet below to the `build.gradle` of your android library:
-
+### Step 2: Add plugin
+Add snippet below to the `build.gradle` of your main android library:
 ```groovy
 apply plugin: 'com.kezong.fat-aar'
 ```
 
-### Step 2: Embed dependencies
+### Step 3: Embed dependencies
 
 Declare `embed` for the dependencies you want to merge in `build.gradle`. 
 
@@ -51,19 +53,19 @@ The usage is similar to `implementation`, like this:
 dependencies {
     implementation fileTree(dir: 'libs', include: '*.jar')
     // java dependency
-    embed project(':lib-java')
+    embed project(path: ':lib-java', configuration: 'default')
     // aar dependency
-    embed project(':lib-aar')
+    embed project(path: ':lib-aar', configuration: 'default')
     // aar dependency
-    embed project(':lib-aar2')
+    embed project(path: ':lib-aar2', configuration: 'default')
     // local full aar dependency, just build in flavor1
-    flavor1Embed project(':lib-aar-local')
+    flavor1Embed project(path: ':lib-aar-local', configuration: 'default')
     // local full aar dependency, just build in debug
-    debugEmbed (name:'lib-aar-local2', ext:'aar')
+    debugEmbed(name: 'lib-aar-local2', ext: 'aar')
     // remote jar dependency
     embed 'com.google.guava:guava:20.0'
     // remote aar dependency
-    embed 'com.facebook.fresco:fresco:1.11.0'
+    embed 'com.facebook.fresco:fresco:1.12.0'
     // don't want to embed in
     implementation('androidx.appcompat:appcompat:1.2.0')
 }

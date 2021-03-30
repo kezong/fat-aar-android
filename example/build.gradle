@@ -6,7 +6,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:4.1.1'
-        classpath 'com.github.kezong:fat-aar:1.3.4'
+        classpath 'com.github.kezong:fat-aar:1.3.5'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.72"
     }
 }

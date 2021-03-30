@@ -64,10 +64,10 @@ class VariantProcessor {
         TaskProvider bundleTask = VersionAdapter.getBundleTaskProvider(mProject, mVariant)
         preEmbed(artifacts, dependencies, prepareTask)
         processArtifacts(artifacts, prepareTask, bundleTask)
+        processClassesAndJars(bundleTask)
         if (mAndroidArchiveLibraries.isEmpty()) {
             return
         }
-        processClassesAndJars(bundleTask)
         processManifest()
         processResources()
         processAssets()

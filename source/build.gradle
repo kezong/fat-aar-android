@@ -1,17 +1,14 @@
 apply plugin: 'groovy'
-apply plugin: 'com.novoda.bintray-release'
+apply from: "./upload.gradle"
 
 buildscript {
     repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath 'com.novoda:bintray-release:0.9.1'
+        mavenCentral()
     }
 }
 
 repositories {
-    jcenter()
+    mavenCentral()
     google()
     maven { url "https://plugins.gradle.org/m2/" }
 }
@@ -23,22 +20,3 @@ dependencies {
     implementation "org.javassist:javassist:3.27.0-GA"
     implementation 'com.android.tools.build:gradle:4.1.0'
 }
-
-//afterEvaluate {
-//    tasks.all { task ->
-//        if (task.name == "generatePomFileForMavenPublication") {
-//            task.setEnabled(false)
-//        } else {
-//        }
-//    }
-//}
-
-publish {
-    userOrg = 'kezong'
-    groupId = 'com.kezong'
-    artifactId = 'fat-aar'
-    publishVersion = '1.3.3'
-    desc = 'A gradle plugin that merge dependencies into the final aar file works with AGP 3.+'
-    website = 'https://github.com/kezong/fat-aar-android'
-}
-

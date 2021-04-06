@@ -76,19 +76,19 @@ fataar {
 dependencies {
     implementation fileTree(dir: 'libs', include: '*.jar')
     // java dependency
-    embed project(':lib-java')
+    embed project(path: ':lib-java', configuration: 'default')
     // aar dependency
-    embed project(':lib-aar')
+    embed project(path: ':lib-aar', configuration: 'default')
     // aar dependency
-    embed project(':lib-aar2')
+    embed project(path: ':lib-aar2', configuration: 'default')
     // local full aar dependency, just build in flavor1
-    flavor1Embed project(':lib-aar-local')
+    flavor1Embed project(path: ':lib-aar-local', configuration: 'default')
     // local full aar dependency, just build in debug
     debugEmbed (name:'lib-aar-local2', ext:'aar')
     // remote dependency
     embed 'com.google.guava:guava:20.0'
     // remote aar dependency
-    embed ('com.facebook.fresco:fresco:1.11.0') {
+    embed ('com.facebook.fresco:fresco:1.12.0') {
         // exclude any group or module
         // exclude(group:'com.facebook.soloader', module:'soloader')
     }

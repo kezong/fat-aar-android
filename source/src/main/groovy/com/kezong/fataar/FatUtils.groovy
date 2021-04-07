@@ -58,6 +58,15 @@ class FatUtils {
         String[] version1Array = version1[0].split("[._]")
         String[] version2Array = version2[0].split("[._]")
 
+        String preRelease1 = new String()
+        String preRelease2 = new String()
+        if (version1.length > 1) {
+            preRelease1 = version1[1]
+        }
+        if (version2.length > 1) {
+            preRelease2 = version2[1]
+        }
+
         int index = 0
         int minLen = Math.min(version1Array.length, version2Array.length)
         long diff = 0
@@ -76,6 +85,19 @@ class FatUtils {
 
             for (int i = index; i < version2Array.length; i++) {
                 if (Long.parseLong(version2Array[i]) > 0) {
+                    return -1
+                }
+            }
+            //compare pre-release
+            if (!preRelease1.isEmpty() && preRelease2.isEmpty()) {
+                return -1
+            } else if (preRelease1.isEmpty() && !preRelease2.isEmpty()) {
+                return 1
+            } else if (!preRelease1.isEmpty() && !preRelease2.isEmpty()) {
+                int preReleaseDiff = preRelease1.compareTo(preRelease2);
+                if (preReleaseDiff > 0) {
+                    return 1
+                } else if (preReleaseDiff < 0) {
                     return -1
                 }
             }

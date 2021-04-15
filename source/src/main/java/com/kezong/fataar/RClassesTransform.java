@@ -176,8 +176,8 @@ public class RClassesTransform extends Transform {
         }
 
         final List<String> resourceTypes = Arrays.asList("anim", "animator", "array", "attr", "bool", "color", "dimen",
-                "drawable", "font", "fraction", "id", "integer", "interpolator", "layout", "menu", "mipmap", "plurals",
-                "raw", "string", "style", "styleable", "transition", "xml");
+                "drawable", "font", "fraction", "id", "integer", "interpolator", "layout", "menu", "mipmap", "navigation",
+                "plurals", "raw", "string", "style", "styleable", "transition", "xml");
 
         HashMap<String, String> map = new HashMap<>();
         for (String resource : resourceTypes) {

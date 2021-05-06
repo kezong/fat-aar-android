@@ -47,9 +47,8 @@ publishing {
                 url = 'https://github.com/kezong/fat-aar-android'
                 licenses {
                     license {
-                        //协议类型，一般默认Apache License2.0的话不用改：
-                        name = 'The Apache License, Version 2.0'
-                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        name = 'The MIT License'
+                        url = 'https://opensource.org/licenses/MIT'
                     }
                 }
                 developers {
@@ -61,10 +60,8 @@ publishing {
                 }
                 // Version control info, if you're using GitHub, follow the format as seen here
                 scm {
-                    //修改成你的Git地址：
                     connection = 'scm:git:github.com/kezong/fat-aar-android.git'
                     developerConnection = 'scm:git:ssh://github.com/kezong/fat-aar-android.git'
-                    //分支地址：
                     url = 'https://github.com/kezong/fat-aar-android/tree/master'
                 }
                 // A slightly hacky fix so that your POM will include any transitive dependencies

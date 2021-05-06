@@ -5,7 +5,7 @@
 
 - [中文文档](./README_CN.md)
 
-The solution of merging aar works with [AGP][3] `3.0` and higher. (Tested in AGP 3.0 - 4.1.0, and Gradle 4.9 - 6.8)
+The solution of merging aar works with [AGP][3] `3.0` and higher. (Tested in AGP 3.0 - 4.2.0, and Gradle 4.9 - 6.8)
 
 ## Getting Started
 
@@ -21,7 +21,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.github.kezong:fat-aar:1.3.5'
+        classpath 'com.github.kezong:fat-aar:1.3.6'
     }
 }
 ```
@@ -138,13 +138,17 @@ See [anatomy of an aar file here][2].
 | 1.2.17 | 3.0.0 - 4.0.2 | 4.9 - 6.8 |
 | 1.2.18+ | 3.0.0 - 4.1.0 | 4.9 - 6.8 |
 | 1.3.+ | 3.0.0 - 4.1.0 | 4.9 - 6.8 |
-| 1.3.4 | 3.0.0 - 4.1.0 | 4.9+ |
+| 1.3.4 - 1.3.5 | 3.0.0 - 4.1.0 | 4.9+ |
+| 1.3.6 | 3.0.0 - 4.2.0 | 4.9+ |
 
 The following link which version of Gradle is required for each version of the Android Gradle plugin. For the best performance, you should use the latest possible version of both Gradle and the plugin.
 
 [Plugin version and Required Gradle version](https://developer.android.google.cn/studio/releases/gradle-plugin.html)
 
 ## Version Log
+- [1.3.6](<https://github.com/kezong/fat-aar-android/releases/tag/v1.3.6>)
+  - Support AGP 4.2.0 [#290](https://github.com/kezong/fat-aar-android/issues/290) [#304](https://github.com/kezong/fat-aar-android/issues/304)
+  - Copy 'navigation' along with other R.$ classes. [#296](https://github.com/kezong/fat-aar-android/issues/296)
 - [1.3.5](<https://github.com/kezong/fat-aar-android/releases/tag/v1.3.5>)
   - Fix the bug that jar cannot be merged in some case. [#255](https://github.com/kezong/fat-aar-android/issues/255) [#288](https://github.com/kezong/fat-aar-android/issues/288)
   - Fix build error when use gradle 6.0-6.8. [#277](https://github.com/kezong/fat-aar-android/issues/277)

@@ -2,7 +2,7 @@
 [![license](http://img.shields.io/badge/license-Apache2.0-brightgreen.svg?style=flat)](https://github.com/kezong/fat-aar-android/blob/master/LICENSE)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.kezong/fat-aar/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.kezong/fat-aar)
 
-该插件提供了将library以及它依赖的library一起打包成一个完整aar的解决方案，支持AGP 3.0及以上。（目前测试的版本范围是AGP 3.0 - 4.1.1，Gradle 4.9 - 6.8）
+该插件提供了将library以及它依赖的library一起打包成一个完整aar的解决方案，支持AGP 3.0及以上。（目前测试的版本范围是AGP 3.0 - 4.2.0，Gradle 4.9 - 6.8）
 
 ## 如何使用
 
@@ -18,7 +18,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.github.kezong:fat-aar:1.3.5'
+        classpath 'com.github.kezong:fat-aar:1.3.6'
     }
 }
 ```
@@ -156,6 +156,9 @@ AAR是Android提供的一种官方文件形式；
 [Gradle Plugin和所需求的Gradle版本官方文档](https://developer.android.google.cn/studio/releases/gradle-plugin.html)
 
 ## 更新日志
+- [1.3.6](<https://github.com/kezong/fat-aar-android/releases/tag/v1.3.6>)
+  - 支持AGP 4.2.0 [#290](https://github.com/kezong/fat-aar-android/issues/290) [#304](https://github.com/kezong/fat-aar-android/issues/304)
+  - 处理'navigation'资源. [#296](https://github.com/kezong/fat-aar-android/issues/296)
 - [1.3.5](<https://github.com/kezong/fat-aar-android/releases/tag/v1.3.5>)
   - 修复在仅有jar工程时jar无法合并的问题. [#255](https://github.com/kezong/fat-aar-android/issues/255) [#288](https://github.com/kezong/fat-aar-android/issues/288)
   - 修复在使用Gradle 6.0-6.8时的编译错误. [#277](https://github.com/kezong/fat-aar-android/issues/277)

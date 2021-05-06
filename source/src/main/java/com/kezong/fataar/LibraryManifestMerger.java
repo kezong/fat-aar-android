@@ -1,15 +1,14 @@
 package com.kezong.fataar;
 
 import com.android.build.gradle.internal.LoggerWrapper;
-import com.android.build.gradle.tasks.InvokeManifestMerger;
 import com.android.manifmerger.ManifestMerger2;
 import com.android.manifmerger.ManifestProvider;
 import com.android.manifmerger.MergingReport;
 import com.android.utils.ILogger;
 
 import org.apache.tools.ant.BuildException;
+import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.workers.WorkerExecutor;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -22,11 +21,17 @@ import java.util.List;
 /**
  * ManifestMerger for Library
  */
-public class LibraryManifestMerger extends InvokeManifestMerger {
+public class LibraryManifestMerger extends DefaultTask {
 
     private String mGradlePluginVersion;
 
     private String mGradleVersion;
+
+    private File mMainManifestFile;
+
+    private List<File> mSecondaryManifestFiles;
+
+    private File mOutputFile;
 
     public void setGradlePluginVersion(String gradlePluginVersion) {
         mGradlePluginVersion = gradlePluginVersion;
@@ -89,7 +94,27 @@ public class LibraryManifestMerger extends InvokeManifestMerger {
         writer.close();
     }
 
-    public WorkerExecutor getWorkerExecutor() {
-        return null;
+    public File getMainManifestFile() {
+        return mMainManifestFile;
+    }
+
+    public void setMainManifestFile(File mainManifestFile) {
+        this.mMainManifestFile = mainManifestFile;
+    }
+
+    public List<File> getSecondaryManifestFiles() {
+        return mSecondaryManifestFiles;
+    }
+
+    public void setSecondaryManifestFiles(List<File> secondaryManifestFiles) {
+        this.mSecondaryManifestFiles = secondaryManifestFiles;
+    }
+
+    public File getOutputFile() {
+        return mOutputFile;
+    }
+
+    public void setOutputFile(File outputFile) {
+        this.mOutputFile = outputFile;
     }
 }

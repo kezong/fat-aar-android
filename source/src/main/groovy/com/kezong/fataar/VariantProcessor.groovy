@@ -336,7 +336,6 @@ class VariantProcessor {
         TaskProvider<LibraryManifestMerger> manifestsMergeTask = mProject.tasks.register("merge${mVariant.name.capitalize()}Manifest", LibraryManifestMerger) {
             setGradleVersion(mProject.getGradle().getGradleVersion())
             setGradlePluginVersion(VersionAdapter.AGPVersion)
-            setVariantName(mVariant.name)
             setMainManifestFile(manifestOutput)
             setSecondaryManifestFiles(inputManifests)
             setOutputFile(manifestOutput)

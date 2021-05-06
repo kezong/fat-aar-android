@@ -320,7 +320,7 @@ class VariantProcessor {
         ManifestProcessorTask processManifestTask = mVersionAdapter.getProcessManifest()
 
         File manifestOutput
-        if (FatUtils.compareVersion(VersionAdapter.AGPVersion, "4.2.0-alpha07") >= 0) {
+        if (FatUtils.compareVersion(VersionAdapter.AGPVersion, "4.2.0") >= 0) {
             manifestOutput = mProject.file("${mProject.buildDir.path}/intermediates/merged_manifest/${mVariant.name}/AndroidManifest.xml")
         } else if (FatUtils.compareVersion(VersionAdapter.AGPVersion, "3.3.0") >= 0) {
             manifestOutput = mProject.file("${mProject.buildDir.path}/intermediates/library_manifest/${mVariant.name}/AndroidManifest.xml")

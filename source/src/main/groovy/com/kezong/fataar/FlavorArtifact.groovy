@@ -38,7 +38,7 @@ class FlavorArtifact {
         try {
             bundleProvider = getBundleTask(artifactProject, variant)
         } catch (Exception ignore) {
-            FatUtils.logError("[$variant.name]Can not resove :$unResolvedArtifact.moduleName")
+            FatUtils.logError("[$variant.name]Can not resolve :$unResolvedArtifact.moduleName")
             return null
         }
 

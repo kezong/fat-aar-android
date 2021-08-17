@@ -54,7 +54,7 @@ class FatAarPlugin implements Plugin<Project> {
             }
         }
 
-        project.android.libraryVariants.all { LibraryVariant variant ->
+        project.android.libraryVariants.all { variant ->
             Collection<ResolvedArtifact> artifacts = new ArrayList()
             Collection<ResolvedDependency> firstLevelDependencies = new ArrayList<>()
             embedConfigurations.each { configuration ->
@@ -64,7 +64,7 @@ class FatAarPlugin implements Plugin<Project> {
                         || configuration.name == variant.name + CONFIG_SUFFIX) {
                     Collection<ResolvedArtifact> resolvedArtifacts = resolveArtifacts(configuration)
                     artifacts.addAll(resolvedArtifacts)
-                    artifacts.addAll(dealUnResolveArtifacts(configuration, variant, resolvedArtifacts))
+                    artifacts.addAll(dealUnResolveArtifacts(configuration, variant as LibraryVariant, resolvedArtifacts))
                     firstLevelDependencies.addAll(configuration.resolvedConfiguration.firstLevelModuleDependencies)
                 }
             }

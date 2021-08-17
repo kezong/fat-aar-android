@@ -141,11 +141,11 @@ class FlavorArtifact {
 
     private static TaskProvider getBundleTask(Project project, LibraryVariant variant) {
         TaskProvider bundleTaskProvider = null
-        project.android.libraryVariants.find { LibraryVariant subVariant ->
+        project.android.libraryVariants.find { subVariant ->
             // 1. find same flavor
             if (variant.name == subVariant.name) {
                 try {
-                    bundleTaskProvider = VersionAdapter.getBundleTaskProvider(project, subVariant)
+                    bundleTaskProvider = VersionAdapter.getBundleTaskProvider(project, subVariant.name as String)
                     return true
                 } catch (Exception ignore) {
                     return false
@@ -165,7 +165,7 @@ class FlavorArtifact {
                         && toFlavor == subFlavor.name
                         && variant.buildType.name == subVariant.buildType.name) {
                     try {
-                        bundleTaskProvider = VersionAdapter.getBundleTaskProvider(project, subVariant)
+                        bundleTaskProvider = VersionAdapter.getBundleTaskProvider(project, subVariant.name as String)
                         return true
                     } catch (Exception ignore) {
                         return false

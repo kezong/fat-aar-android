@@ -152,11 +152,8 @@ class FlavorArtifact {
                 }
             }
 
-            if (variant.productFlavors.isEmpty()) {
-                return false
-            }
             // 2. find missingStrategies
-            ProductFlavor flavor = variant.productFlavors.first()
+            ProductFlavor flavor = variant.productFlavors.isEmpty() ? variant.mergedFlavor : variant.productFlavors.first()
             flavor.missingDimensionStrategies.find { entry ->
                 String toDimension = entry.getKey()
                 String toFlavor = entry.getValue().getFallbacks().first()

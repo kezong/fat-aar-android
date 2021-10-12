@@ -124,8 +124,8 @@ class VersionAdapter {
         }
     }
 
-    static TaskProvider<Task> getBundleTaskProvider(Project project, LibraryVariant variant) throws UnknownTaskException {
-        def taskPath = "bundle" + variant.name.capitalize()
+    static TaskProvider<Task> getBundleTaskProvider(Project project, String variantName) throws UnknownTaskException {
+        def taskPath = "bundle" + variantName.capitalize()
         TaskProvider bundleTask
         try {
             bundleTask = project.tasks.named(taskPath)

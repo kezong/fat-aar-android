@@ -1,5 +1,4 @@
 apply plugin: 'maven-publish'
-apply plugin: 'maven'
 apply plugin: 'java'
 apply plugin: 'signing'
 

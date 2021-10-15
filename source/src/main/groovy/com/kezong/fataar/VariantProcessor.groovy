@@ -3,6 +3,8 @@ package com.kezong.fataar
 import com.android.build.gradle.api.LibraryVariant
 import com.android.build.gradle.internal.api.DefaultAndroidSourceSet
 import com.android.build.gradle.tasks.ManifestProcessorTask
+import groovy.xml.XmlParser
+import groovy.xml.XmlUtil
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ResolvedArtifact
@@ -70,6 +72,7 @@ class VariantProcessor {
         }
         processManifest()
         processResources()
+        addPrefixForAllResources()
         processAssets()
         processJniLibs()
         processConsumerProguard()
@@ -79,7 +82,7 @@ class VariantProcessor {
     }
 
     private static void printEmbedArtifacts(Collection<ResolvedArtifact> artifacts,
-                                     Collection<ResolvedDependency> dependencies) {
+                                            Collection<ResolvedDependency> dependencies) {
         Collection<String> moduleNames = artifacts.stream().map { it.moduleVersion.id.name }.collect()
         dependencies.each { dependency ->
             if (!moduleNames.contains(dependency.moduleName)) {
@@ -193,16 +196,16 @@ class VariantProcessor {
     private void transformRClasses(RClassesTransform transform, TaskProvider transformTask, TaskProvider bundleTask, TaskProvider reBundleTask) {
         transform.putTargetPackage(mVariant.name, mVariant.getApplicationId())
         transformTask.configure {
-                    doFirst {
-                        // library package name parsed by aar's AndroidManifest.xml
-                        // so must put after explode tasks perform.
-                        Collection libraryPackages = mAndroidArchiveLibraries
-                                .stream()
-                                .map { it.packageName }
-                                .collect()
-                        transform.putLibraryPackages(mVariant.name, libraryPackages);
-                    }
-                }
+            doFirst {
+                // library package name parsed by aar's AndroidManifest.xml
+                // so must put after explode tasks perform.
+                Collection libraryPackages = mAndroidArchiveLibraries
+                        .stream()
+                        .map { it.packageName }
+                        .collect()
+                transform.putLibraryPackages(mVariant.name, libraryPackages);
+            }
+        }
         bundleTask.configure {
             finalizedBy(reBundleTask)
         }
@@ -251,7 +254,7 @@ class VariantProcessor {
     static def getTaskDependency(ResolvedArtifact artifact) {
         try {
             return artifact.buildDependencies
-        } catch(MissingPropertyException ignore) {
+        } catch (MissingPropertyException ignore) {
             // since gradle 6.8.0, property is changed;
             return artifact.builtBy
         }
@@ -359,7 +362,7 @@ class VariantProcessor {
                 if (kotlinCompile != null) {
                     dependsOn(kotlinCompile)
                 }
-            } catch(Exception ignore) {
+            } catch (Exception ignore) {
 
             }
 
@@ -476,10 +479,96 @@ class VariantProcessor {
                 if (sourceSet.name == mVariant.name) {
                     for (archiveLibrary in mAndroidArchiveLibraries) {
                         FatUtils.logInfo("Merge resource，Library res：${archiveLibrary.resFolder}")
+
                         sourceSet.res.srcDir(archiveLibrary.resFolder)
                     }
                 }
             }
+        }
+    }
+
+    private void addPrefixForAllResources() {
+
+        String prefix = mProject.fataar.resourcePrefix
+
+        if (prefix.isEmpty()) {
+            println("Resource prefix is empty. Skip resource modifying.")
+            return
+        }
+
+        String preBuildPath = "package" + mVariant.name.capitalize() + "Resources"
+        TaskProvider preBuildTask = mProject.tasks.named(preBuildPath)
+        if (preBuildTask == null) {
+            throw new RuntimeException("Can not find task ${taskPath}!")
+        }
+
+        def preixingTaskName = "prefixing" + mVariant.name.capitalize() + "Resources"
+        def outDir = new File(mProject.buildDir.path + "/prefixOut/")
+        if (!outDir.exists()) {
+            outDir.mkdir()
+        }
+
+        def prefixingTask = mProject.tasks.create(preixingTaskName, Copy) {
+
+            from mProject.buildDir
+            into outDir
+
+            doFirst {
+                mProject.android.sourceSets.each { DefaultAndroidSourceSet sourceSet ->
+                    if (sourceSet.name == mVariant.name) {
+                        sourceSet.res.sourceFiles.files.each { resFile ->
+                            addPrefixByFile(resFile, prefix)
+                        }
+                    }
+                }
+            }
+        }
+
+        preBuildTask.configure {
+            dependsOn(prefixingTask)
+        }
+    }
+
+    private static void addPrefixByFile(File file, String prefix) {
+        println("[RES FILE] (old) " + file.absolutePath)
+
+        File newFile
+        if (!file.name.startsWith(prefix)) {
+            String newPath = file.path.replace(file.name, prefix + file.name)
+            newFile = new File(newPath)
+            newFile.createNewFile()
+
+            newFile.withWriter { writer ->
+                file.readLines().each { line -> writer.writeLine(line) }
+            }
+
+            file.delete()
+        } else {
+            newFile = file
+        }
+
+        if (newFile.name.endsWith(".xml")) {
+            addPrefixForResources(newFile, prefix)
+        }
+
+        println("[RES FILE] (new) " + newFile.absolutePath)
+    }
+
+    private static void addPrefixForResources(File file, String prefix) {
+        if (prefix.isEmpty()) return;
+
+        def parser = new XmlParser()
+        def root = parser.parse(file)
+        if (root.name().equals("resources")) {
+            root.each { resourceElement ->
+                String name = resourceElement.attribute("name")
+                if (name != null && !name.isEmpty() && !name.startsWith(prefix)) {
+                    resourceElement.@name = prefix + name
+                }
+            }
+        }
+        file.withWriter { outWriter ->
+            XmlUtil.serialize(root, outWriter)
         }
     }
 
@@ -578,7 +667,7 @@ class VariantProcessor {
         try {
             String mergeName = 'merge' + mVariant.name.capitalize() + 'GeneratedProguardFiles'
             mergeGenerateProguardTask = mProject.tasks.named(mergeName)
-        } catch(Exception ignore) {
+        } catch (Exception ignore) {
             return
         }
 

@@ -19,7 +19,7 @@ android {
 
         externalNativeBuild {
             ndk {
-                abiFilters "armeabi-v7a"
+                abiFilters "x86"
             }
         }
     }

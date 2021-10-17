@@ -551,14 +551,22 @@ class VariantProcessor {
 
         def parser = new XmlParser()
         def root = parser.parse(file)
+        def wasModified = false
+
         if (root.name().equals("resources")) {
             root.each { resourceElement ->
                 String name = resourceElement.attribute("name")
                 if (name != null && !name.isEmpty() && !name.startsWith(prefix)) {
                     resourceElement.@name = prefix + name
                     renamedResCount++
+                    wasModified = true
                 }
             }
+        }
+
+        wasModified = addPrefixForAllNodeResUsage(root, prefix) || wasModified
+
+        if (wasModified) {
             file.withWriter { outWriter ->
                 XmlUtil.serialize(root, outWriter)
             }
@@ -566,6 +574,48 @@ class VariantProcessor {
 
         return renamedResCount
     }
+
+    private static boolean addPrefixForAllNodeResUsage(Node rootNode, String prefix) {
+        def wasModified = false
+        def nodeValue = rootNode.text()
+
+        rootNode.attributes().each { attr ->
+            if (usesInternalResource(attr.value)) {
+                attr.value = addPrefixForResourceUsage(attr.value, prefix)
+                wasModified = true
+            }
+        }
+
+        if (usesInternalResource(nodeValue)) {
+            rootNode.setValue(addPrefixForResourceUsage(nodeValue, prefix))
+            wasModified = true
+        } else if (nodeValue.size() > 1) {
+            rootNode.each { subNode ->
+                if (subNode instanceof Node)
+                wasModified = addPrefixForAllNodeResUsage(subNode, prefix) || wasModified
+            }
+        }
+        return wasModified
+    }
+
+    private static boolean usesInternalResource(String tagValue) {
+        def resType = tagValue.split("/")[0]
+        if (resType != null && !resType.isEmpty()) {
+            return resourceTypes.contains(resType.toLowerCase())
+        }
+        return false
+    }
+
+    private static String addPrefixForResourceUsage(String resRef, String prefix) {
+        def resPath = resRef.split("/")
+        def resDir = resPath.first()
+        def resName = resPath.last()
+        return resDir + "/" + prefix + resName
+    }
+
+    private static Set<String> resourceTypes = new HashSet<String>(Arrays.asList("@anim", "@animator", "@array", "@attr", "@bool", "@color", "@dimen",
+            "@drawable", "@font", "@fraction", "@id", "@integer", "@interpolator", "@layout", "@menu", "@mipmap", "@navigation",
+            "@plurals", "@raw", "@string", "@style", "@styleable", "@transition", "@xml"))
 
     /**
      * merge assets

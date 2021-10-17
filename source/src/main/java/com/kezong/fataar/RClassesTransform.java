@@ -147,46 +147,7 @@ public class RClassesTransform extends Transform {
                                     ClassFile classFile = ctClass.getClassFile();
                                     ConstPool constPool = classFile.getConstPool();
                                     constPool.renameClass(transformTable);
-
-                                    if (resourcePrefix != null && !resourcePrefix.isEmpty()) {
-                                        for (int i = 1; i < constPool.getSize(); i++) {
-                                            try {
-                                                String constClassName = constPool.getFieldrefClassName(i);
-                                                if (constClassName.contains("R$")) {
-                                                    String name = constPool.getFieldrefName(i);
-                                                    System.out.println("Add prefix for resoruce: " + className + "." + name);
-                                                    String newName = resourcePrefix + name;
-                                                    constPool.renameClass(name, newName);
-                                                    int nameId = constPool.getNameAndTypeName(constPool.getFieldrefNameAndType(i));
-
-                                                    try {
-                                                        Method getItemMethod = constPool.getClass()
-                                                                .getDeclaredMethod("getItem", int.class);
-                                                        getItemMethod.setAccessible(true);
-
-                                                        Object utf8Info = getItemMethod.invoke(constPool, nameId);
-
-                                                        System.out.println("Utf8Info name: " + utf8Info.getClass().getName());
-
-                                                        Field classPoolUtf8NameField = utf8Info.getClass()
-                                                                .getDeclaredField("string");
-
-                                                        classPoolUtf8NameField.setAccessible(true);
-                                                        classPoolUtf8NameField.set(utf8Info, newName);
-                                                    } catch (IllegalAccessException
-                                                            | InvocationTargetException
-                                                            | NoSuchMethodException
-                                                            | NoSuchFieldException e) {
-                                                        e.printStackTrace();
-                                                    }
-
-                                                    System.out.println("New resource name: " + constPool.getFieldrefName(i));
-                                                }
-                                            } catch (ClassCastException e) {
-                                                // ignore this
-                                            }
-                                        }
-                                    }
+                                    addPrefixForResourceReads(constPool, resourcePrefix, transformTable.values());
                                 }
 
                                 ctClass.writeFile(outputDir.getAbsolutePath());
@@ -218,6 +179,44 @@ public class RClassesTransform extends Transform {
         project.getLogger().info("the task cost "
                 + (endTime - startTime)
                 + "ms");
+    }
+
+    private void addPrefixForResourceReads(ConstPool constPool, String resourcePrefix, Collection<String> libRClasses) {
+        if (resourcePrefix == null || resourcePrefix.isEmpty()) return;
+
+        for (int i = 1; i < constPool.getSize(); i++) {
+            try {
+                String constClassName = constPool.getFieldrefClassName(i).replace(".", "/");
+
+                if (libRClasses.contains(constClassName)) {
+                    String name = constPool.getFieldrefName(i);
+                    String newName = resourcePrefix + name;
+                    constPool.renameClass(name, newName);
+                    int nameId = constPool.getNameAndTypeName(constPool.getFieldrefNameAndType(i));
+
+                    try {
+                        Method getItemMethod = constPool.getClass()
+                                .getDeclaredMethod("getItem", int.class);
+                        getItemMethod.setAccessible(true);
+
+                        Object utf8Info = getItemMethod.invoke(constPool, nameId);
+
+                        Field classPoolUtf8NameField = utf8Info.getClass()
+                                .getDeclaredField("string");
+
+                        classPoolUtf8NameField.setAccessible(true);
+                        classPoolUtf8NameField.set(utf8Info, newName);
+                    } catch (IllegalAccessException
+                            | InvocationTargetException
+                            | NoSuchMethodException
+                            | NoSuchFieldException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } catch (ClassCastException e) {
+                // ignore this
+            }
+        }
     }
 
     private Map<String, String> buildTransformTable(String variantName) {

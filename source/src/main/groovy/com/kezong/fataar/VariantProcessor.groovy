@@ -493,7 +493,7 @@ class VariantProcessor {
         String prefix = mProject.fataar.resourcePrefix
 
         if (prefix.isEmpty()) {
-            println("Resource prefix is empty. Skip resource modifying.")
+            println("[fat-aar] Resource prefix is empty. Skip resource modifying.")
             return
         }
 
@@ -503,35 +503,26 @@ class VariantProcessor {
             throw new RuntimeException("Can not find task ${taskPath}!")
         }
 
-        def preixingTaskName = "prefixing" + mVariant.name.capitalize() + "Resources"
-        def outDir = new File(mProject.buildDir.path + "/prefixOut/")
-        if (!outDir.exists()) {
-            outDir.mkdir()
-        }
-
-        def prefixingTask = mProject.tasks.create(preixingTaskName, Copy) {
-
-            from mProject.buildDir
-            into outDir
+        preBuildTask.configure {
 
             doFirst {
+                def renamedResCount = 0
+
                 mProject.android.sourceSets.each { DefaultAndroidSourceSet sourceSet ->
                     if (sourceSet.name == mVariant.name) {
                         sourceSet.res.sourceFiles.files.each { resFile ->
-                            addPrefixByFile(resFile, prefix)
+                            renamedResCount += addPrefixByFile(resFile, prefix)
                         }
                     }
                 }
-            }
-        }
 
-        preBuildTask.configure {
-            dependsOn(prefixingTask)
+                println("[fat-aar] Added a prefix to $renamedResCount resources")
+            }
         }
     }
 
-    private static void addPrefixByFile(File file, String prefix) {
-        println("[RES FILE] (old) " + file.absolutePath)
+    private static int addPrefixByFile(File file, String prefix) {
+        def renamedResCount = 0
 
         File newFile
         if (!file.name.startsWith(prefix)) {
@@ -544,19 +535,24 @@ class VariantProcessor {
             }
 
             file.delete()
+
+            renamedResCount++
         } else {
             newFile = file
         }
 
         if (newFile.name.endsWith(".xml")) {
-            addPrefixForResources(newFile, prefix)
+            renamedResCount += addPrefixForResources(newFile, prefix)
         }
 
-        println("[RES FILE] (new) " + newFile.absolutePath)
+        return renamedResCount
     }
 
-    private static void addPrefixForResources(File file, String prefix) {
-        if (prefix.isEmpty()) return;
+    private static int addPrefixForResources(File file, String prefix) {
+
+        def renamedResCount = 0
+
+        if (prefix.isEmpty()) return renamedResCount
 
         def parser = new XmlParser()
         def root = parser.parse(file)
@@ -565,12 +561,15 @@ class VariantProcessor {
                 String name = resourceElement.attribute("name")
                 if (name != null && !name.isEmpty() && !name.startsWith(prefix)) {
                     resourceElement.@name = prefix + name
+                    renamedResCount++
                 }
             }
         }
         file.withWriter { outWriter ->
             XmlUtil.serialize(root, outWriter)
         }
+
+        return renamedResCount
     }
 
     /**

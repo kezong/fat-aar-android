@@ -613,9 +613,8 @@ class VariantProcessor {
 
     private static String addPrefixForResourceUsage(String resRef, String prefix) {
         def resPath = resRef.split("/")
-        def resDir = resPath.first()
         def resName = resPath.last()
-        return resDir + "/" + prefix + resName
+        return resRef.replace(resName, prefix + resName)
     }
 
     private static Set<String> resourceTypes = new HashSet<String>(Arrays.asList("anim", "animator", "array", "attr", "bool", "color", "dimen",

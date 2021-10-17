@@ -526,15 +526,10 @@ class VariantProcessor {
 
         File newFile
         if (!file.name.startsWith(prefix)) {
+
             String newPath = file.path.replace(file.name, prefix + file.name)
             newFile = new File(newPath)
-            newFile.createNewFile()
-
-            newFile.withWriter { writer ->
-                file.readLines().each { line -> writer.writeLine(line) }
-            }
-
-            file.delete()
+            file.renameTo(newFile)
 
             renamedResCount++
         } else {
@@ -564,9 +559,9 @@ class VariantProcessor {
                     renamedResCount++
                 }
             }
-        }
-        file.withWriter { outWriter ->
-            XmlUtil.serialize(root, outWriter)
+            file.withWriter { outWriter ->
+                XmlUtil.serialize(root, outWriter)
+            }
         }
 
         return renamedResCount

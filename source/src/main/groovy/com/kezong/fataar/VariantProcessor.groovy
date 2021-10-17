@@ -498,12 +498,12 @@ class VariantProcessor {
         }
 
         String preBuildPath = "package" + mVariant.name.capitalize() + "Resources"
-        TaskProvider preBuildTask = mProject.tasks.named(preBuildPath)
-        if (preBuildTask == null) {
+        TaskProvider packageResourcesTask = mProject.tasks.named(preBuildPath)
+        if (packageResourcesTask == null) {
             throw new RuntimeException("Can not find task ${taskPath}!")
         }
 
-        preBuildTask.configure {
+        packageResourcesTask.configure {
 
             doFirst {
                 def renamedResCount = 0
@@ -516,7 +516,7 @@ class VariantProcessor {
                     }
                 }
 
-                println("[fat-aar] Added a prefix to $renamedResCount resources")
+                println("[fat-aar] Prefix was added to $renamedResCount resources")
             }
         }
     }
@@ -553,10 +553,15 @@ class VariantProcessor {
         def root = parser.parse(file)
         def wasModified = false
 
-        if (root.name().equals("resources")) {
+        if (root.name() == "resources") {
             root.each { resourceElement ->
                 String name = resourceElement.attribute("name")
-                if (name != null && !name.isEmpty() && !name.startsWith(prefix)) {
+
+                if (resourceTypes.contains(resourceElement.name())
+                        && name != null
+                        && !name.isEmpty()
+                        && !name.startsWith(prefix)) {
+
                     resourceElement.@name = prefix + name
                     renamedResCount++
                     wasModified = true
@@ -592,7 +597,7 @@ class VariantProcessor {
         } else if (nodeValue.size() > 1) {
             rootNode.each { subNode ->
                 if (subNode instanceof Node)
-                wasModified = addPrefixForAllNodeResUsage(subNode, prefix) || wasModified
+                    wasModified = addPrefixForAllNodeResUsage(subNode, prefix) || wasModified
             }
         }
         return wasModified
@@ -600,8 +605,8 @@ class VariantProcessor {
 
     private static boolean usesInternalResource(String tagValue) {
         def resType = tagValue.split("/")[0]
-        if (resType != null && !resType.isEmpty()) {
-            return resourceTypes.contains(resType.toLowerCase())
+        if (resType != null && !resType.isEmpty() && resType.startsWith("@")) {
+            return resourceTypes.contains(resType.replace("@", "").toLowerCase())
         }
         return false
     }
@@ -613,9 +618,9 @@ class VariantProcessor {
         return resDir + "/" + prefix + resName
     }
 
-    private static Set<String> resourceTypes = new HashSet<String>(Arrays.asList("@anim", "@animator", "@array", "@attr", "@bool", "@color", "@dimen",
-            "@drawable", "@font", "@fraction", "@id", "@integer", "@interpolator", "@layout", "@menu", "@mipmap", "@navigation",
-            "@plurals", "@raw", "@string", "@style", "@styleable", "@transition", "@xml"))
+    private static Set<String> resourceTypes = new HashSet<String>(Arrays.asList("anim", "animator", "array", "attr", "bool", "color", "dimen",
+            "drawable", "font", "fraction", "id", "integer", "interpolator", "layout", "menu", "mipmap", "navigation",
+            "plurals", "raw", "string", "styleable", "transition", "xml")) // except style
 
     /**
      * merge assets

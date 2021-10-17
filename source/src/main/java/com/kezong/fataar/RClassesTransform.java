@@ -182,13 +182,20 @@ public class RClassesTransform extends Transform {
     }
 
     private void addPrefixForResourceReads(ConstPool constPool, String resourcePrefix, Collection<String> libRClasses) {
+
         if (resourcePrefix == null || resourcePrefix.isEmpty()) return;
+
+        final List<String> resourceTypes = Arrays.asList("anim", "animator", "array", "attr", "bool", "color", "dimen",
+                "drawable", "font", "fraction", "id", "integer", "interpolator", "layout", "menu", "mipmap", "navigation",
+                "plurals", "raw", "string", "styleable", "transition", "xml"); // except style
 
         for (int i = 1; i < constPool.getSize(); i++) {
             try {
                 String constClassName = constPool.getFieldrefClassName(i).replace(".", "/");
 
-                if (libRClasses.contains(constClassName)) {
+                if (libRClasses.contains(constClassName)
+                        && resourceTypes.contains(constClassName.split("\\$")[1])) {
+
                     String name = constPool.getFieldrefName(i);
                     String newName = resourcePrefix + name;
                     constPool.renameClass(name, newName);

@@ -195,6 +195,7 @@ class VariantProcessor {
 
     private void transformRClasses(RClassesTransform transform, TaskProvider transformTask, TaskProvider bundleTask, TaskProvider reBundleTask) {
         transform.putTargetPackage(mVariant.name, mVariant.getApplicationId())
+        transform.putResourcesPrefix(mProject.fataar.resourcePrefix)
         transformTask.configure {
             doFirst {
                 // library package name parsed by aar's AndroidManifest.xml

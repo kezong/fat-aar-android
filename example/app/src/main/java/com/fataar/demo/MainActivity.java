@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -34,9 +35,11 @@ import com.kezong.demo.libaar.TestActivity;
 import com.kezong.demo.libaar2.Aar2LibClass;
 import com.kezong.demo.libaarlocal.AarLocalLibClass;
 import com.kezong.demo.libaarlocal2.AarLocal2LibClass;
+import com.kezong.demo.lib.R.*;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 
 /**
  * @author kezong on 2020/12/11.
@@ -162,12 +165,17 @@ public class MainActivity extends FragmentActivity {
     }
 
     public void testResourceMerge() {
+
+        for (Field field : R.string.class.getFields()) {
+            Log.d("R class name:", field.getName());
+        }
+
         String text = new AarLibClass().getLibName(this);
         addTestView("resource", text, TextUtils.equals(text, "lib-aar"));
     }
 
     public void testResourceMerge2() {
-        String text = this.getResources().getString(R.string.app_name_aar2);
+        String text = this.getResources().getString(R.string.lib_main_app_name_aar2);
         addTestView("resource2", text, TextUtils.equals(text, "lib-aar2"));
     }
 

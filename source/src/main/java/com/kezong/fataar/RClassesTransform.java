@@ -15,6 +15,9 @@ import org.gradle.api.Project;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -59,6 +62,8 @@ public class RClassesTransform extends Transform {
 
     private final Map<String, Collection<String>> libraryPackageMap = new HashMap<>();
 
+    private String resourcePrefix = null;
+
     public RClassesTransform(final Project project) {
         this.project = project;
     }
@@ -66,16 +71,22 @@ public class RClassesTransform extends Transform {
     /**
      * Different variants have different package names.
      * So targetPackageName must set after evaluate
-     * @param variantName variant name
+     *
+     * @param variantName   variant name
      * @param targetPackage main module's package name
      */
     public void putTargetPackage(String variantName, String targetPackage) {
         targetPackageMap.put(variantName, targetPackage);
     }
 
+    public void putResourcesPrefix(String prefix) {
+        this.resourcePrefix = prefix;
+    }
+
     /**
      * library packages name must set after exploded task perform
-     * @param variantName variant name
+     *
+     * @param variantName     variant name
      * @param libraryPackages sub module's package name, read from AndroidManifest.xml
      */
     public void putLibraryPackages(String variantName, Collection<String> libraryPackages) {
@@ -136,7 +147,48 @@ public class RClassesTransform extends Transform {
                                     ClassFile classFile = ctClass.getClassFile();
                                     ConstPool constPool = classFile.getConstPool();
                                     constPool.renameClass(transformTable);
+
+                                    if (resourcePrefix != null && !resourcePrefix.isEmpty()) {
+                                        for (int i = 1; i < constPool.getSize(); i++) {
+                                            try {
+                                                String constClassName = constPool.getFieldrefClassName(i);
+                                                if (constClassName.contains("R$")) {
+                                                    String name = constPool.getFieldrefName(i);
+                                                    System.out.println("Add prefix for resoruce: " + className + "." + name);
+                                                    String newName = resourcePrefix + name;
+                                                    constPool.renameClass(name, newName);
+                                                    int nameId = constPool.getNameAndTypeName(constPool.getFieldrefNameAndType(i));
+
+                                                    try {
+                                                        Method getItemMethod = constPool.getClass()
+                                                                .getDeclaredMethod("getItem", int.class);
+                                                        getItemMethod.setAccessible(true);
+
+                                                        Object utf8Info = getItemMethod.invoke(constPool, nameId);
+
+                                                        System.out.println("Utf8Info name: " + utf8Info.getClass().getName());
+
+                                                        Field classPoolUtf8NameField = utf8Info.getClass()
+                                                                .getDeclaredField("string");
+
+                                                        classPoolUtf8NameField.setAccessible(true);
+                                                        classPoolUtf8NameField.set(utf8Info, newName);
+                                                    } catch (IllegalAccessException
+                                                            | InvocationTargetException
+                                                            | NoSuchMethodException
+                                                            | NoSuchFieldException e) {
+                                                        e.printStackTrace();
+                                                    }
+
+                                                    System.out.println("New resource name: " + constPool.getFieldrefName(i));
+                                                }
+                                            } catch (ClassCastException e) {
+                                                // ignore this
+                                            }
+                                        }
+                                    }
                                 }
+
                                 ctClass.writeFile(outputDir.getAbsolutePath());
                             } catch (CannotCompileException | NotFoundException | IOException e) {
                                 e.printStackTrace();

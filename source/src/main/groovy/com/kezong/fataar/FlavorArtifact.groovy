@@ -152,10 +152,21 @@ class FlavorArtifact {
                 }
             }
 
+            // 2. find suffixed flavor
             if (variant.productFlavors.isEmpty()) {
                 return false
             }
-            // 2. find missingStrategies
+            ProductFlavor flavor = variant.productFlavors.first()
+            if (flavor.name + subVariant.name.capitalize() == variant.name) {
+                try {
+                    bundleTaskProvider = VersionAdapter.getBundleTaskProvider(project, subVariant.name as String)
+                    return true
+                } catch (Exception ignore) {
+                    return false
+                }
+            }
+            
+            // 3. find missingStrategies
             ProductFlavor flavor = variant.productFlavors.first()
             flavor.missingDimensionStrategies.find { entry ->
                 String toDimension = entry.getKey()

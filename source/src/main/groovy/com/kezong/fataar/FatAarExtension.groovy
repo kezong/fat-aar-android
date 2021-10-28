@@ -27,7 +27,8 @@ class FatAarExtension {
     boolean transitive = false
 
     /**
-     * // TODO describe this
+     * Add prefix for all library resources. To prevent conflicts with a library clients.
+     * @since 1.3.7
      */
     String resourcePrefix = ""
 }

@@ -594,7 +594,7 @@ class VariantProcessor {
         if (usesInternalResource(nodeValue)) {
             rootNode.setValue(addPrefixForResourceUsage(nodeValue, prefix))
             wasModified = true
-        } else if (nodeValue.size() > 1) {
+        } else {
             rootNode.each { subNode ->
                 if (subNode instanceof Node)
                     wasModified = addPrefixForAllNodeResUsage(subNode, prefix) || wasModified

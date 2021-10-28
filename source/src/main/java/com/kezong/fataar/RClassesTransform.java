@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -64,6 +65,8 @@ public class RClassesTransform extends Transform {
 
     private String resourcePrefix = null;
 
+    private HashSet<String> renamedResources = null;
+
     public RClassesTransform(final Project project) {
         this.project = project;
     }
@@ -81,6 +84,10 @@ public class RClassesTransform extends Transform {
 
     public void putResourcesPrefix(String prefix) {
         this.resourcePrefix = prefix;
+    }
+
+    public void putRenamedResources(HashSet<String> renamedResources) {
+        this.renamedResources = renamedResources;
     }
 
     /**
@@ -185,9 +192,9 @@ public class RClassesTransform extends Transform {
 
         if (resourcePrefix == null || resourcePrefix.isEmpty()) return;
 
-        final List<String> resourceTypes = Arrays.asList("anim", "animator", "array", "attr", "bool", "color", "dimen",
+        final List<String> resourceTypes = Arrays.asList("anim", "animator", "array", "bool", "color", "dimen",
                 "drawable", "font", "fraction", "id", "integer", "interpolator", "layout", "menu", "mipmap", "navigation",
-                "plurals", "raw", "string", "styleable", "transition", "xml"); // except style
+                "plurals", "raw", "string", "styleable", "transition", "xml", "style"); // except, attr
 
         for (int i = 1; i < constPool.getSize(); i++) {
             try {
@@ -212,7 +219,11 @@ public class RClassesTransform extends Transform {
                                 .getDeclaredField("string");
 
                         classPoolUtf8NameField.setAccessible(true);
-                        classPoolUtf8NameField.set(utf8Info, newName);
+                        String classPoolResourceName = (String) classPoolUtf8NameField.get(utf8Info);
+
+                        if (renamedResources.contains(classPoolResourceName)) {
+                            classPoolUtf8NameField.set(utf8Info, newName);
+                        }
                     } catch (IllegalAccessException
                             | InvocationTargetException
                             | NoSuchMethodException

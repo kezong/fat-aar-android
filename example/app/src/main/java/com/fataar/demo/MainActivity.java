@@ -31,6 +31,7 @@ import com.kezong.demo.lib.KotlinInMain;
 import com.kezong.demo.libaar.AarFlavor;
 import com.kezong.demo.libaar.AarLibClass;
 import com.kezong.demo.libaar.KotlinTest2;
+import com.kezong.demo.libaar.LibCountries;
 import com.kezong.demo.libaar.TestActivity;
 import com.kezong.demo.libaar2.Aar2LibClass;
 import com.kezong.demo.libaarlocal.AarLocalLibClass;
@@ -68,6 +69,11 @@ public class MainActivity extends FragmentActivity {
         testAssetsMerge();
         testRemoteAar();
         testFlavor();
+        testEnum();
+    }
+
+    private void testEnum() {
+        addTestView("enums", "lib flag ee", LibCountries.ESTONIA.getFlagRes() == R.drawable.lib_main_flag_ee);
     }
 
     private void testFlavor() {
@@ -171,7 +177,7 @@ public class MainActivity extends FragmentActivity {
         }
 
         String text = new AarLibClass().getLibName(this);
-        addTestView("resource", text, TextUtils.equals(text, "lib-aar"));
+        addTestView("resource", text, TextUtils.equals(text, "lib-aar eng"));
     }
 
     public void testResourceMerge2() {

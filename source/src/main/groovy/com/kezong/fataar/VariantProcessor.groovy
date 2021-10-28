@@ -37,6 +37,8 @@ class VariantProcessor {
 
     private Collection<Task> mExplodeTasks = new ArrayList<>()
 
+    private HashSet<String> renamedResources = new HashSet<String>()
+
     private VersionAdapter mVersionAdapter
 
     private TaskProvider mMergeClassTask
@@ -72,7 +74,7 @@ class VariantProcessor {
         }
         processManifest()
         processResources()
-        addPrefixForAllResources()
+        processResourcePrefixing()
         processAssets()
         processJniLibs()
         processConsumerProguard()
@@ -205,6 +207,7 @@ class VariantProcessor {
                         .map { it.packageName }
                         .collect()
                 transform.putLibraryPackages(mVariant.name, libraryPackages);
+                transform.putRenamedResources(renamedResources)
             }
         }
         bundleTask.configure {
@@ -317,13 +320,8 @@ class VariantProcessor {
         }
     }
 
-    /**
-     * merge manifest
-     */
-    private void processManifest() {
-        ManifestProcessorTask processManifestTask = mVersionAdapter.getProcessManifest()
-
-        File manifestOutput
+    private File getManifestOutputDir() {
+        def manifestOutput
         if (FatUtils.compareVersion(VersionAdapter.AGPVersion, "4.2.0-alpha07") >= 0) {
             manifestOutput = mProject.file("${mProject.buildDir.path}/intermediates/merged_manifest/${mVariant.name}/AndroidManifest.xml")
         } else if (FatUtils.compareVersion(VersionAdapter.AGPVersion, "3.3.0") >= 0) {
@@ -331,6 +329,17 @@ class VariantProcessor {
         } else {
             manifestOutput = mProject.file(processManifestTask.getManifestOutputDirectory().absolutePath + "/AndroidManifest.xml")
         }
+
+        return manifestOutput
+    }
+
+    /**
+     * merge manifest
+     */
+    private void processManifest() {
+        ManifestProcessorTask processManifestTask = mVersionAdapter.getProcessManifest()
+
+        File manifestOutput = getManifestOutputDir()
 
         final List<File> inputManifests = new ArrayList<>()
         for (archiveLibrary in mAndroidArchiveLibraries) {
@@ -350,6 +359,12 @@ class VariantProcessor {
         processManifestTask.doLast {
             // Merge manifests
             manifestsMergeTask.get().doTaskAction()
+
+            String prefix = mProject.fataar.resourcePrefix
+
+            if (prefix != null && !prefix.isEmpty()) {
+                modifyResourceUsage(getManifestOutputDir(), prefix)
+            }
         }
     }
 
@@ -488,7 +503,7 @@ class VariantProcessor {
         }
     }
 
-    private void addPrefixForAllResources() {
+    private void processResourcePrefixing() {
 
         String prefix = mProject.fataar.resourcePrefix
 
@@ -516,13 +531,22 @@ class VariantProcessor {
                     }
                 }
 
+                mProject.android.sourceSets.each { DefaultAndroidSourceSet sourceSet ->
+                    if (sourceSet.name == mVariant.name) {
+                        sourceSet.res.sourceFiles.files.each { resFile ->
+                            modifyResourceUsage(resFile, prefix)
+                        }
+                    }
+                }
+
                 println("[fat-aar] Prefix was added to $renamedResCount resources")
             }
         }
     }
 
-    private static int addPrefixByFile(File file, String prefix) {
+    private int addPrefixByFile(File file, String prefix) {
         def renamedResCount = 0
+        renamedResources.add(file.name.split("\\.").first())
 
         File newFile
         if (!file.name.startsWith(prefix)) {
@@ -543,7 +567,7 @@ class VariantProcessor {
         return renamedResCount
     }
 
-    private static int addPrefixForResources(File file, String prefix) {
+    private int addPrefixForResources(File file, String prefix) {
 
         def renamedResCount = 0
 
@@ -562,14 +586,14 @@ class VariantProcessor {
                         && !name.isEmpty()
                         && !name.startsWith(prefix)) {
 
+                    renamedResources.add(name)
+                    renamedResources.add(name.replace(".", "_"))
                     resourceElement.@name = prefix + name
                     renamedResCount++
                     wasModified = true
                 }
             }
         }
-
-        wasModified = addPrefixForAllNodeResUsage(root, prefix) || wasModified
 
         if (wasModified) {
             file.withWriter { outWriter ->
@@ -580,12 +604,29 @@ class VariantProcessor {
         return renamedResCount
     }
 
-    private static boolean addPrefixForAllNodeResUsage(Node rootNode, String prefix) {
+    private void modifyResourceUsage(File file, String prefix) {
+        if (!file.name.endsWith(".xml")) return
+
+        def parser = new XmlParser()
+        def root = parser.parse(file)
+        def wasModified = false
+
+        wasModified = addPrefixForAllNodeResUsage(root, prefix)
+        if (wasModified) {
+            file.withWriter { outWriter ->
+                XmlUtil.serialize(root, outWriter)
+            }
+        }
+    }
+
+    private boolean addPrefixForAllNodeResUsage(Node rootNode, String prefix) {
         def wasModified = false
         def nodeValue = rootNode.text()
 
         rootNode.attributes().each { attr ->
-            if (usesInternalResource(attr.value)) {
+            def isParentStyle = attr.key == "parent" && renamedResources.contains(attr.value)
+
+            if (isParentStyle || usesInternalResource(attr.value)) {
                 attr.value = addPrefixForResourceUsage(attr.value, prefix)
                 wasModified = true
             }
@@ -603,10 +644,16 @@ class VariantProcessor {
         return wasModified
     }
 
-    private static boolean usesInternalResource(String tagValue) {
-        def resType = tagValue.split("/")[0]
+    private boolean usesInternalResource(String tagValue) {
+        def splitedName = tagValue.split("/")
+        def resType = splitedName[0]
         if (resType != null && !resType.isEmpty() && resType.startsWith("@")) {
-            return resourceTypes.contains(resType.replace("@", "").toLowerCase())
+
+            def key = resType.replace("@", "")
+                    .replace("+", "")
+                    .toLowerCase()
+
+            return renamedResources.contains(splitedName.last()) && resourceTypes.contains(key)
         }
         return false
     }
@@ -617,9 +664,9 @@ class VariantProcessor {
         return resRef.replace(resName, prefix + resName)
     }
 
-    private static Set<String> resourceTypes = new HashSet<String>(Arrays.asList("anim", "animator", "array", "attr", "bool", "color", "dimen",
+    private static Set<String> resourceTypes = new HashSet<String>(Arrays.asList("anim", "style", "animator", "array", "bool", "color", "dimen",
             "drawable", "font", "fraction", "id", "integer", "interpolator", "layout", "menu", "mipmap", "navigation",
-            "plurals", "raw", "string", "styleable", "transition", "xml")) // except style
+            "plurals", "raw", "string", "styleable", "transition", "xml")) // except attr
 
     /**
      * merge assets

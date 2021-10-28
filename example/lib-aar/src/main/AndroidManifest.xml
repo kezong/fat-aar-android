@@ -7,6 +7,6 @@
     <application>
         <activity
             android:name="com.kezong.demo.libaar.TestActivity"
-            />
+            android:theme="@style/LibAarTheme" />
     </application>
 </manifest>

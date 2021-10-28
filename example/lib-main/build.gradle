@@ -10,11 +10,11 @@ repositories {
 }
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 31
 
     defaultConfig {
         minSdkVersion 16
-        targetSdkVersion 27
+        targetSdkVersion 31
         versionCode 1
         versionName "1.0.0"
     }
@@ -43,6 +43,15 @@ android {
         exclude 'lib/x86_64/*.so'
         exclude 'lib/armeabi/*.so'
         exclude 'lib/arm64-v8a/*.so'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_11
     }
 }
 

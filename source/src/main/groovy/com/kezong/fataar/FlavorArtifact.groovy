@@ -148,41 +148,40 @@ class FlavorArtifact {
                     bundleTaskProvider = VersionAdapter.getBundleTaskProvider(project, subVariant.name as String)
                     return true
                 } catch (Exception ignore) {
-                    return false
                 }
             }
 
-            // 2. find suffixed flavor
-            if (variant.productFlavors.isEmpty()) {
-                return false
-            }
-            ProductFlavor flavor = variant.productFlavors.first()
-            if (flavor.name + subVariant.name.capitalize() == variant.name) {
+            // 2. find buildType
+            ProductFlavor flavor = variant.productFlavors.isEmpty() ? variant.mergedFlavor : variant.productFlavors.first()
+            if (subVariant.name == variant.buildType.name) {
                 try {
                     bundleTaskProvider = VersionAdapter.getBundleTaskProvider(project, subVariant.name as String)
                     return true
                 } catch (Exception ignore) {
-                    return false
                 }
             }
-            
+
             // 3. find missingStrategies
-            ProductFlavor flavor = variant.productFlavors.first()
-            flavor.missingDimensionStrategies.find { entry ->
-                String toDimension = entry.getKey()
-                String toFlavor = entry.getValue().getFallbacks().first()
-                ProductFlavor subFlavor = subVariant.productFlavors.first()
-                if (toDimension == subFlavor.dimension
-                        && toFlavor == subFlavor.name
-                        && variant.buildType.name == subVariant.buildType.name) {
-                    try {
-                        bundleTaskProvider = VersionAdapter.getBundleTaskProvider(project, subVariant.name as String)
-                        return true
-                    } catch (Exception ignore) {
-                        return false
+            try {
+                flavor.missingDimensionStrategies.find { entry ->
+                    String toDimension = entry.getKey()
+                    String toFlavor = entry.getValue().getFallbacks().first()
+                    ProductFlavor subFlavor = subVariant.productFlavors.isEmpty() ?
+                            subVariant.mergedFlavor : subVariant.productFlavors.first()
+                    if (toDimension == subFlavor.dimension
+                            && toFlavor == subFlavor.name
+                            && variant.buildType.name == subVariant.buildType.name) {
+                        try {
+                            bundleTaskProvider = VersionAdapter.getBundleTaskProvider(project, subVariant.name as String)
+                            return true
+                        } catch (Exception ignore) {
+                        }
                     }
                 }
+            } catch (Exception ignore) {
+
             }
+
             return bundleTaskProvider != null
         }
 

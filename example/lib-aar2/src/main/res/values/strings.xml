@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name_aar2">lib-aar2</string>
+    <string name="lib_string_1">lib string 1</string>
 </resources>

@@ -25,4 +25,10 @@ class FatAarExtension {
      * @since 1.3.0
      */
     boolean transitive = false
+
+    /**
+     * Add prefix for all library resources. To prevent conflicts with a library clients.
+     * @since 1.3.7
+     */
+    String resourcePrefix = ""
 }

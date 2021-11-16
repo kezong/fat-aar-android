@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name_aar">lib-aar</string>
+    <string name="lib_aar_test_string1">lib aar test string value</string>
+    <string name="lib_aar_string_ref">@string/lib_aar_test_string1</string>
+    <string name="country_ee" translatable="false">Estonia</string>
+    <string name="country_us" translatable="false">USA</string>
 </resources>

@@ -3,6 +3,8 @@ package com.kezong.fataar
 import com.android.build.gradle.api.LibraryVariant
 import com.android.build.gradle.internal.api.DefaultAndroidSourceSet
 import com.android.build.gradle.tasks.ManifestProcessorTask
+import groovy.xml.XmlParser
+import groovy.xml.XmlUtil
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ResolvedArtifact
@@ -34,6 +36,8 @@ class VariantProcessor {
     private Collection<File> mJarFiles = new ArrayList<>()
 
     private Collection<Task> mExplodeTasks = new ArrayList<>()
+
+    private HashSet<String> renamedResources = new HashSet<String>()
 
     private VersionAdapter mVersionAdapter
 
@@ -70,6 +74,7 @@ class VariantProcessor {
         }
         processManifest()
         processResources()
+        processResourcePrefixing()
         processAssets()
         processJniLibs()
         processConsumerProguard()
@@ -79,7 +84,7 @@ class VariantProcessor {
     }
 
     private static void printEmbedArtifacts(Collection<ResolvedArtifact> artifacts,
-                                     Collection<ResolvedDependency> dependencies) {
+                                            Collection<ResolvedDependency> dependencies) {
         Collection<String> moduleNames = artifacts.stream().map { it.moduleVersion.id.name }.collect()
         dependencies.each { dependency ->
             if (!moduleNames.contains(dependency.moduleName)) {
@@ -192,17 +197,19 @@ class VariantProcessor {
 
     private void transformRClasses(RClassesTransform transform, TaskProvider transformTask, TaskProvider bundleTask, TaskProvider reBundleTask) {
         transform.putTargetPackage(mVariant.name, mVariant.getApplicationId())
+        transform.putResourcesPrefix(mProject.fataar.resourcePrefix)
         transformTask.configure {
-                    doFirst {
-                        // library package name parsed by aar's AndroidManifest.xml
-                        // so must put after explode tasks perform.
-                        Collection libraryPackages = mAndroidArchiveLibraries
-                                .stream()
-                                .map { it.packageName }
-                                .collect()
-                        transform.putLibraryPackages(mVariant.name, libraryPackages);
-                    }
-                }
+            doFirst {
+                // library package name parsed by aar's AndroidManifest.xml
+                // so must put after explode tasks perform.
+                Collection libraryPackages = mAndroidArchiveLibraries
+                        .stream()
+                        .map { it.packageName }
+                        .collect()
+                transform.putLibraryPackages(mVariant.name, libraryPackages);
+                transform.putRenamedResources(renamedResources)
+            }
+        }
         bundleTask.configure {
             finalizedBy(reBundleTask)
         }
@@ -251,7 +258,7 @@ class VariantProcessor {
     static def getTaskDependency(ResolvedArtifact artifact) {
         try {
             return artifact.buildDependencies
-        } catch(MissingPropertyException ignore) {
+        } catch (MissingPropertyException ignore) {
             // since gradle 6.8.0, property is changed;
             return artifact.builtBy
         }
@@ -313,13 +320,8 @@ class VariantProcessor {
         }
     }
 
-    /**
-     * merge manifest
-     */
-    private void processManifest() {
-        ManifestProcessorTask processManifestTask = mVersionAdapter.getProcessManifest()
-
-        File manifestOutput
+    private File getManifestOutputDir() {
+        def manifestOutput
         if (FatUtils.compareVersion(VersionAdapter.AGPVersion, "4.2.0-alpha07") >= 0) {
             manifestOutput = mProject.file("${mProject.buildDir.path}/intermediates/merged_manifest/${mVariant.name}/AndroidManifest.xml")
         } else if (FatUtils.compareVersion(VersionAdapter.AGPVersion, "3.3.0") >= 0) {
@@ -327,6 +329,17 @@ class VariantProcessor {
         } else {
             manifestOutput = mProject.file(processManifestTask.getManifestOutputDirectory().absolutePath + "/AndroidManifest.xml")
         }
+
+        return manifestOutput
+    }
+
+    /**
+     * merge manifest
+     */
+    private void processManifest() {
+        ManifestProcessorTask processManifestTask = mVersionAdapter.getProcessManifest()
+
+        File manifestOutput = getManifestOutputDir()
 
         final List<File> inputManifests = new ArrayList<>()
         for (archiveLibrary in mAndroidArchiveLibraries) {
@@ -346,6 +359,12 @@ class VariantProcessor {
         processManifestTask.doLast {
             // Merge manifests
             manifestsMergeTask.get().doTaskAction()
+
+            String prefix = mProject.fataar.resourcePrefix
+
+            if (prefix != null && !prefix.isEmpty()) {
+                modifyResourceUsage(getManifestOutputDir(), prefix)
+            }
         }
     }
 
@@ -359,7 +378,7 @@ class VariantProcessor {
                 if (kotlinCompile != null) {
                     dependsOn(kotlinCompile)
                 }
-            } catch(Exception ignore) {
+            } catch (Exception ignore) {
 
             }
 
@@ -476,12 +495,178 @@ class VariantProcessor {
                 if (sourceSet.name == mVariant.name) {
                     for (archiveLibrary in mAndroidArchiveLibraries) {
                         FatUtils.logInfo("Merge resource，Library res：${archiveLibrary.resFolder}")
+
                         sourceSet.res.srcDir(archiveLibrary.resFolder)
                     }
                 }
             }
         }
     }
+
+    private void processResourcePrefixing() {
+
+        String prefix = mProject.fataar.resourcePrefix
+
+        if (prefix.isEmpty()) {
+            println("[fat-aar] Resource prefix is empty. Skip resource modifying.")
+            return
+        }
+
+        String preBuildPath = "package" + mVariant.name.capitalize() + "Resources"
+        TaskProvider packageResourcesTask = mProject.tasks.named(preBuildPath)
+        if (packageResourcesTask == null) {
+            throw new RuntimeException("Can not find task ${taskPath}!")
+        }
+
+        packageResourcesTask.configure {
+
+            doFirst {
+                def renamedResCount = 0
+
+                mProject.android.sourceSets.each { DefaultAndroidSourceSet sourceSet ->
+                    if (sourceSet.name == mVariant.name) {
+                        sourceSet.res.sourceFiles.files.each { resFile ->
+                            renamedResCount += addPrefixByFile(resFile, prefix)
+                        }
+                    }
+                }
+
+                mProject.android.sourceSets.each { DefaultAndroidSourceSet sourceSet ->
+                    if (sourceSet.name == mVariant.name) {
+                        sourceSet.res.sourceFiles.files.each { resFile ->
+                            modifyResourceUsage(resFile, prefix)
+                        }
+                    }
+                }
+
+                println("[fat-aar] Prefix was added to $renamedResCount resources")
+            }
+        }
+    }
+
+    private int addPrefixByFile(File file, String prefix) {
+        def renamedResCount = 0
+        renamedResources.add(file.name.split("\\.").first())
+
+        File newFile
+        if (!file.name.startsWith(prefix)) {
+
+            String newPath = file.path.replace(file.name, prefix + file.name)
+            newFile = new File(newPath)
+            file.renameTo(newFile)
+
+            renamedResCount++
+        } else {
+            newFile = file
+        }
+
+        if (newFile.name.endsWith(".xml")) {
+            renamedResCount += addPrefixForResources(newFile, prefix)
+        }
+
+        return renamedResCount
+    }
+
+    private int addPrefixForResources(File file, String prefix) {
+
+        def renamedResCount = 0
+
+        if (prefix.isEmpty()) return renamedResCount
+
+        def parser = new XmlParser()
+        def root = parser.parse(file)
+        def wasModified = false
+
+        if (root.name() == "resources") {
+            root.each { resourceElement ->
+                String name = resourceElement.attribute("name")
+
+                if (resourceTypes.contains(resourceElement.name())
+                        && name != null
+                        && !name.isEmpty()
+                        && !name.startsWith(prefix)) {
+
+                    renamedResources.add(name)
+                    renamedResources.add(name.replace(".", "_"))
+                    resourceElement.@name = prefix + name
+                    renamedResCount++
+                    wasModified = true
+                }
+            }
+        }
+
+        if (wasModified) {
+            file.withWriter { outWriter ->
+                XmlUtil.serialize(root, outWriter)
+            }
+        }
+
+        return renamedResCount
+    }
+
+    private void modifyResourceUsage(File file, String prefix) {
+        if (!file.name.endsWith(".xml")) return
+
+        def parser = new XmlParser()
+        def root = parser.parse(file)
+        def wasModified = false
+
+        wasModified = addPrefixForAllNodeResUsage(root, prefix)
+        if (wasModified) {
+            file.withWriter { outWriter ->
+                XmlUtil.serialize(root, outWriter)
+            }
+        }
+    }
+
+    private boolean addPrefixForAllNodeResUsage(Node rootNode, String prefix) {
+        def wasModified = false
+        def nodeValue = rootNode.text()
+
+        rootNode.attributes().each { attr ->
+            def isParentStyle = attr.key == "parent" && renamedResources.contains(attr.value)
+
+            if (isParentStyle || usesInternalResource(attr.value)) {
+                attr.value = addPrefixForResourceUsage(attr.value, prefix)
+                wasModified = true
+            }
+        }
+
+        if (usesInternalResource(nodeValue)) {
+            rootNode.setValue(addPrefixForResourceUsage(nodeValue, prefix))
+            wasModified = true
+        } else {
+            rootNode.each { subNode ->
+                if (subNode instanceof Node)
+                    wasModified = addPrefixForAllNodeResUsage(subNode, prefix) || wasModified
+            }
+        }
+        return wasModified
+    }
+
+    private boolean usesInternalResource(String tagValue) {
+        def splitedName = tagValue.split("/")
+        def resType = splitedName[0]
+        if (resType != null && !resType.isEmpty() && resType.startsWith("@")) {
+
+            def key = resType.replace("@", "")
+                    .replace("+", "")
+                    .toLowerCase()
+
+            return renamedResources.contains(splitedName.last()) && resourceTypes.contains(key)
+        }
+        return false
+    }
+
+    private static String addPrefixForResourceUsage(String resRef, String prefix) {
+        def resPath = resRef.split("/")
+        def resName = resPath.last()
+        return resRef.replace(resName, prefix + resName)
+    }
+
+    private static Set<String> resourceTypes = new HashSet<String>(Arrays.asList("anim", "style", "animator", "array", "bool", "color", "dimen",
+            "drawable", "font", "fraction", "id", "integer", "interpolator", "layout", "menu", "mipmap", "navigation",
+            "plurals", "raw", "string", "styleable", "transition", "xml")) // except attr
 
     /**
      * merge assets
@@ -578,7 +763,7 @@ class VariantProcessor {
         try {
             String mergeName = 'merge' + mVariant.name.capitalize() + 'GeneratedProguardFiles'
             mergeGenerateProguardTask = mProject.tasks.named(mergeName)
-        } catch(Exception ignore) {
+        } catch (Exception ignore) {
             return
         }
 

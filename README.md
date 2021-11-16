@@ -103,6 +103,20 @@ embed('com.facebook.fresco:fresco:1.11.0') {
 
 **More usage see [example](./example).**
 
+### Resource prefixing (experimental)
+You can enable prefixing of library resources. This can be useful if your fat-aar has a lot of resources that cannot be renamed at the source level. The plugin will add the specified prefix to all internal library resources during build time.
+
+```groovy
+fataar {
+
+     /**
+     * Add prefix for all library resources. To prevent conflicts with a library clients.
+     * @since 1.3.7
+     */
+    resourcePrefix = "lib_main_"
+}
+```
+
 ## About AAR File
 
 AAR is a file format for android library.

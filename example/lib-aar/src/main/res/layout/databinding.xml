@@ -1,19 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
     <data>
         <variable name="user" type="com.kezong.demo.libaar.User"/>
     </data>
     <LinearLayout
+        android:id="@+id/container"
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:padding="@dimen/corner_paddings"
+            android:background="@drawable/lib_background"
+            android:textColor="@android:color/black"
             android:text="@{user.name}"/>
         <TextView android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textColor="@color/text_red"
             android:text="@{user.sex}"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_white"
+            android:background="@android:color/black"
+            android:text="@string/lib_aar_string_ref" />
     </LinearLayout>
 </layout>

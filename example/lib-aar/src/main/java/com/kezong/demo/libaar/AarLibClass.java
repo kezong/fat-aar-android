@@ -12,4 +12,8 @@ public class AarLibClass {
     public String getLibName(Context ctx) {
         return ctx.getResources().getString(R.string.app_name_aar);
     }
+
+    public String getTestString(Context ctx) {
+        return ctx.getResources().getString(R.string.lib_aar_test_string1);
+    }
 }

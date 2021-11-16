@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="my_test_color">@android:color/black</color>
+    <color name="my_test_color_ref">@color/my_test_color</color>
+</resources>

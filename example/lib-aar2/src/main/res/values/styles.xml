@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="MyTheme" parent="android:Theme.Black">
+        <item name="android:background">@color/my_test_color</item>
+    </style>
+    <style name="OtherTheme" parent="MyTheme">
+        <item name="android:background">@color/my_test_color_ref</item>
+    </style>
+</resources>

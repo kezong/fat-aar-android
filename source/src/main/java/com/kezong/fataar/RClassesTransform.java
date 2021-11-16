@@ -15,12 +15,16 @@ import org.gradle.api.Project;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -59,6 +63,10 @@ public class RClassesTransform extends Transform {
 
     private final Map<String, Collection<String>> libraryPackageMap = new HashMap<>();
 
+    private String resourcePrefix = null;
+
+    private HashSet<String> renamedResources = null;
+
     public RClassesTransform(final Project project) {
         this.project = project;
     }
@@ -66,16 +74,26 @@ public class RClassesTransform extends Transform {
     /**
      * Different variants have different package names.
      * So targetPackageName must set after evaluate
-     * @param variantName variant name
+     *
+     * @param variantName   variant name
      * @param targetPackage main module's package name
      */
     public void putTargetPackage(String variantName, String targetPackage) {
         targetPackageMap.put(variantName, targetPackage);
     }
 
+    public void putResourcesPrefix(String prefix) {
+        this.resourcePrefix = prefix;
+    }
+
+    public void putRenamedResources(HashSet<String> renamedResources) {
+        this.renamedResources = renamedResources;
+    }
+
     /**
      * library packages name must set after exploded task perform
-     * @param variantName variant name
+     *
+     * @param variantName     variant name
      * @param libraryPackages sub module's package name, read from AndroidManifest.xml
      */
     public void putLibraryPackages(String variantName, Collection<String> libraryPackages) {
@@ -136,7 +154,9 @@ public class RClassesTransform extends Transform {
                                     ClassFile classFile = ctClass.getClassFile();
                                     ConstPool constPool = classFile.getConstPool();
                                     constPool.renameClass(transformTable);
+                                    addPrefixForResourceReads(constPool, resourcePrefix, transformTable.values());
                                 }
+
                                 ctClass.writeFile(outputDir.getAbsolutePath());
                             } catch (CannotCompileException | NotFoundException | IOException e) {
                                 e.printStackTrace();
@@ -166,6 +186,55 @@ public class RClassesTransform extends Transform {
         project.getLogger().info("the task cost "
                 + (endTime - startTime)
                 + "ms");
+    }
+
+    private void addPrefixForResourceReads(ConstPool constPool, String resourcePrefix, Collection<String> libRClasses) {
+
+        if (resourcePrefix == null || resourcePrefix.isEmpty()) return;
+
+        final List<String> resourceTypes = Arrays.asList("anim", "animator", "array", "bool", "color", "dimen",
+                "drawable", "font", "fraction", "id", "integer", "interpolator", "layout", "menu", "mipmap", "navigation",
+                "plurals", "raw", "string", "styleable", "transition", "xml", "style"); // except, attr
+
+        for (int i = 1; i < constPool.getSize(); i++) {
+            try {
+                String constClassName = constPool.getFieldrefClassName(i).replace(".", "/");
+
+                if (libRClasses.contains(constClassName)
+                        && resourceTypes.contains(constClassName.split("\\$")[1])) {
+
+                    String name = constPool.getFieldrefName(i);
+                    String newName = resourcePrefix + name;
+                    constPool.renameClass(name, newName);
+                    int nameId = constPool.getNameAndTypeName(constPool.getFieldrefNameAndType(i));
+
+                    try {
+                        Method getItemMethod = constPool.getClass()
+                                .getDeclaredMethod("getItem", int.class);
+                        getItemMethod.setAccessible(true);
+
+                        Object utf8Info = getItemMethod.invoke(constPool, nameId);
+
+                        Field classPoolUtf8NameField = utf8Info.getClass()
+                                .getDeclaredField("string");
+
+                        classPoolUtf8NameField.setAccessible(true);
+                        String classPoolResourceName = (String) classPoolUtf8NameField.get(utf8Info);
+
+                        if (renamedResources.contains(classPoolResourceName)) {
+                            classPoolUtf8NameField.set(utf8Info, newName);
+                        }
+                    } catch (IllegalAccessException
+                            | InvocationTargetException
+                            | NoSuchMethodException
+                            | NoSuchFieldException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } catch (ClassCastException e) {
+                // ignore this
+            }
+        }
     }
 
     private Map<String, String> buildTransformTable(String variantName) {

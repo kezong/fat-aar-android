@@ -81,6 +81,8 @@ dependencies {
     embed project(path: ':lib-aar', configuration: 'default')
     // aar dependency
     embed project(path: ':lib-aar2', configuration: 'default')
+    // aar dependency from included build
+    embed module(group: "com.kezong.demo.libaarincluded", name: "lib-aar-included", configuration: 'default')
     // local full aar dependency, just build in flavor1
     flavor1Embed project(path: ':lib-aar-local', configuration: 'default')
     // local full aar dependency, just build in debug

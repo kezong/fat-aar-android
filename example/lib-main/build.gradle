@@ -14,7 +14,7 @@ android {
 
     defaultConfig {
         minSdkVersion 16
-        targetSdkVersion 27
+        targetSdkVersion 29
         versionCode 1
         versionName "1.0.0"
     }
@@ -101,4 +101,3 @@ dependencies {
     // don't want to embed in
     implementation('androidx.appcompat:appcompat:1.2.0')
 }
-

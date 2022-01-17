@@ -1,4 +1,4 @@
-@file:JvmName("KotlinTest2")
+@file:JvmName("KotlinTestIncluded")
 package com.kezong.demo.libaarincluded
 
 fun test2() : Int {

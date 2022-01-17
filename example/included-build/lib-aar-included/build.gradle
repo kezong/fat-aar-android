@@ -23,12 +23,6 @@ android {
     }
 }
 
-android.libraryVariants.all { variant ->
-    variant.outputs.all { output ->
-        outputFileName = "change-name-lib-aar-${variant.name.capitalize()}.aar"
-    }
-}
-
 dependencies {
     implementation fileTree(dir: 'libs', include: '*.jar')
 }

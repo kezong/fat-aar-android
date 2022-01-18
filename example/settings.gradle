@@ -4,3 +4,9 @@ include ':lib-aar'
 include ':lib-aar2'
 include ':lib-aar-local'
 include ':app'
+
+includeBuild('../source') {
+    dependencySubstitution {
+        substitute module('com.github.kezong:fat-aar') using project(':')
+    }
+}

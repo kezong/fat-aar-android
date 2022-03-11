@@ -5,15 +5,12 @@
 
 - [中文文档](./README_CN.md)
 
-The solution of merging aar works with [AGP][3] `3.0` and higher. (Tested in AGP 3.0 - 4.2.0, and Gradle 4.9 - 6.8)
+The solution of merging aar works with [AGP][3] `3.0` and higher. (Tested in AGP 3.0 - 7.1.0, and Gradle 4.9 - 7.3)
 
 ## Getting Started
 
 ### Step 1: Add classpath
 #### Add snippet below to your root build script file:
-> JCenter services will be deprecated on May 1st 2021, if you are using the version in JCenter, it is recommended to rename the group name and switch to Maven Central. Like this:
-'com.kezong:fat-aar:x.x.x' => 'com.github.kezong:fat-aar:x.x.x'
-
 For Maven Central (The lastest release is available on [Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.kezong/fat-aar)):
 ```groovy
 buildscript {
@@ -21,18 +18,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.github.kezong:fat-aar:1.3.6'
-    }
-}
-```
-~~For JCenter (Deprecated, before 1.3.4):~~
-```groovy
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath 'com.kezong:fat-aar:1.3.3'
+        classpath 'com.github.kezong:fat-aar:1.3.8'
     }
 }
 ```
@@ -140,12 +126,18 @@ See [anatomy of an aar file here][2].
 | 1.3.+ | 3.0.0 - 4.1.0 | 4.9 - 6.8 |
 | 1.3.4 - 1.3.5 | 3.0.0 - 4.1.0 | 4.9+ |
 | 1.3.6 | 3.0.0 - 4.2.0 | 4.9+ |
+| 1.3.8 | 3.0.0+ | 4.9+ |
 
 The following link which version of Gradle is required for each version of the Android Gradle plugin. For the best performance, you should use the latest possible version of both Gradle and the plugin.
 
 [Plugin version and Required Gradle version](https://developer.android.google.cn/studio/releases/gradle-plugin.html)
 
 ## Version Log
+- [1.3.8](<https://github.com/kezong/fat-aar-android/releases/tag/v1.3.8>)
+  - Fix the issue that plugin cannot be used in jdk 1.8 [#371](https://github.com/kezong/fat-aar-android/issues/371)
+- [1.3.7](<https://github.com/kezong/fat-aar-android/releases/tag/v1.3.7>)
+  - Fix productFlavor detection in embed submodules [#348](https://github.com/kezong/fat-aar-android/issues/348)
+  - Support missingDimensionStrategy without productFlavors in current project. [#343](https://github.com/kezong/fat-aar-android/issues/343)
 - [1.3.6](<https://github.com/kezong/fat-aar-android/releases/tag/v1.3.6>)
   - Support AGP 4.2.0 [#290](https://github.com/kezong/fat-aar-android/issues/290) [#304](https://github.com/kezong/fat-aar-android/issues/304)
   - Copy 'navigation' along with other R.$ classes. [#296](https://github.com/kezong/fat-aar-android/issues/296)

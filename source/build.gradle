@@ -18,6 +18,5 @@ dependencies {
     implementation gradleApi()
     implementation localGroovy()
     implementation "org.javassist:javassist:3.27.0-GA"
-    implementation 'com.android.tools.build:gradle:7.0.2'
-    implementation 'com.android.tools:common:30.0.2'
+    implementation 'com.android.tools.build:gradle:4.2.0'
 }

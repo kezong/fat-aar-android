@@ -2,15 +2,12 @@
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/kezong/fat-aar-android/blob/master/LICENSE)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.kezong/fat-aar/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.kezong/fat-aar)
 
-该插件提供了将library以及它依赖的library一起打包成一个完整aar的解决方案，支持AGP 3.0及以上。（目前测试的版本范围是AGP 3.0 - 4.2.0，Gradle 4.9 - 6.8）
+该插件提供了将library以及它依赖的library一起打包成一个完整aar的解决方案，支持AGP 3.0及以上。（目前测试的版本范围是AGP 3.0 - 7.1.0，Gradle 4.9 - 7.3）
 
 ## 如何使用
 
 #### 第一步: Apply classpath
 ##### 添加以下代码到你工程根目录下的`build.gradle`文件中:
-> JCenter于2021.5.1不再提供服务, 如果你使用了JCenter中的版本，建议更改一下包名切换至Maven central, 比如:
-'com.kezong:fat-aar:x.x.x' => 'com.github.kezong:fat-aar:x.x.x'
-
 For Maven Central (The lastest release is available on [Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.kezong/fat-aar)):
 ```groovy
 buildscript {
@@ -18,18 +15,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.github.kezong:fat-aar:1.3.6'
-    }
-}
-```
-~~For JCenter (Deprecated, before 1.3.4):~~
-```groovy
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath 'com.kezong:fat-aar:1.3.3'
+        classpath 'com.github.kezong:fat-aar:1.3.8'
     }
 }
 ```
@@ -152,13 +138,17 @@ AAR是Android提供的一种官方文件形式；
 | 1.2.18+ | 3.0.0 - 4.1.0 | 4.9 - 6.8 |
 | 1.3.+ | 3.0.0 - 4.1.0 | 4.9 - 6.8 |
 | 1.3.4 | 3.0.0 - 4.1.0 | 4.9+ |
+| 1.3.6 | 3.0.0 - 4.2.0 | 4.9+ |
+| 1.3.8 | 3.0.0+ | 4.9+ |
 
 [Gradle Plugin和所需求的Gradle版本官方文档](https://developer.android.google.cn/studio/releases/gradle-plugin.html)
 
 ## 更新日志
-- [1.3.6](<https://github.com/kezong/fat-aar-android/releases/tag/v1.3.6>)
-  - 支持AGP 4.2.0 [#290](https://github.com/kezong/fat-aar-android/issues/290) [#304](https://github.com/kezong/fat-aar-android/issues/304)
-  - 处理'navigation'资源. [#296](https://github.com/kezong/fat-aar-android/issues/296)
+- [1.3.8](<https://github.com/kezong/fat-aar-android/releases/tag/v1.3.8>)
+  - Fix the issue that plugin cannot be used in jdk 1.8 [#371](https://github.com/kezong/fat-aar-android/issues/371)
+- [1.3.7](<https://github.com/kezong/fat-aar-android/releases/tag/v1.3.7>)
+  - Fix productFlavor detection in embed submodules [#348](https://github.com/kezong/fat-aar-android/issues/348)
+  - Support missingDimensionStrategy without productFlavors in current project. [#343](https://github.com/kezong/fat-aar-android/issues/343)
 - [1.3.5](<https://github.com/kezong/fat-aar-android/releases/tag/v1.3.5>)
   - 修复在仅有jar工程时jar无法合并的问题. [#255](https://github.com/kezong/fat-aar-android/issues/255) [#288](https://github.com/kezong/fat-aar-android/issues/288)
   - 修复在使用Gradle 6.0-6.8时的编译错误. [#277](https://github.com/kezong/fat-aar-android/issues/277)

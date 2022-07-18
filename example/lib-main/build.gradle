@@ -71,6 +71,8 @@ fataar {
      * @since 1.3.0
      */
     transitive = true
+
+    formatDeclareStyleable = true
 }
 
 dependencies {

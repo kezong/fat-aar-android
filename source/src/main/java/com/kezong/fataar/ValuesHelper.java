@@ -15,26 +15,19 @@ import org.gradle.api.Project;
 
 
 public class ValuesHelper {
-    private static ValuesHelper sInstance = null;
-    private Project mProject;
+    private static Project mProject;
     private static final String ELE_ATTR = "attr";
     private static final String ELE_DECLARE_STYLEABLE = "declare-styleable";
 
-    public static ValuesHelper getInstance() {
-        if (sInstance == null) {
-            sInstance = new ValuesHelper();
-        }
-        return sInstance;
-    }
-
-    public void init(Project project) {
+    public static void attach(Project project) {
         // fix: org.xml.sax.SAXNotRecognizedException: unrecognized feature http://xml.org/sax/features/external-general-entities
         System.setProperty("javax.xml.parsers.SAXParserFactory",
                 "com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl");
         mProject = project;
+        project.getLogger().info("attach Values Helper");
     }
 
-    public void splitValuesXmlRepeatAttr(File pkgFile) {
+    public static void splitValuesXmlRepeatAttr(File pkgFile) {
 
         final File valueXml = new File(pkgFile, "res/values/values.xml");
         if (!valueXml.exists()) {
@@ -48,7 +41,7 @@ public class ValuesHelper {
         }
     }
 
-    private void formatRepeatAttr(final File file) {
+    private static void formatRepeatAttr(final File file) {
         try {
             mProject.getLogger()
                     .info("ValuesHelper: deleteDuplicateAttr : " + file.getAbsolutePath());

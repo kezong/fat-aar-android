@@ -172,7 +172,7 @@ class VariantProcessor {
             if (mProject.fataar.formatDeclareStyleable) {
                 doFirst {
                     FatUtils.logAnytime("Extension formatDeclareStyleable enable!")
-                    ValuesHelper.getInstance().splitValuesXmlRepeatAttr(reBundleDir)
+                    ValuesHelper.splitValuesXmlRepeatAttr(reBundleDir)
                 }
             }
 

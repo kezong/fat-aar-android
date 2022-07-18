@@ -169,6 +169,13 @@ class VariantProcessor {
                 it.destinationDir = aarOutputFile.getParentFile()
             }
 
+            if (mProject.fataar.formatDeclareStyleable) {
+                doFirst {
+                    FatUtils.logAnytime("Extension formatDeclareStyleable enable!")
+                    ValuesHelper.getInstance().splitValuesXmlRepeatAttr(reBundleDir)
+                }
+            }
+
             doLast {
                 FatUtils.logAnytime(" target: ${aarOutputFile.absolutePath} [${FatUtils.formatDataSize(aarOutputFile.size())}]")
             }

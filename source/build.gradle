@@ -1,5 +1,5 @@
 apply plugin: 'groovy'
-apply from: "./upload.gradle"
+//apply from: "./upload.gradle"
 
 buildscript {
     repositories {
@@ -19,4 +19,5 @@ dependencies {
     implementation localGroovy()
     implementation "org.javassist:javassist:3.27.0-GA"
     implementation 'com.android.tools.build:gradle:4.2.0'
+    implementation "org.dom4j:dom4j:2.1.3"
 }

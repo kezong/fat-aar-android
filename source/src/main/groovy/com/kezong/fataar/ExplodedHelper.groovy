@@ -58,6 +58,8 @@ class ExplodedHelper {
             project.copy {
                 from project.zipTree(jarFile)
                 into folderOut
+                dirMode 0755
+                fileMode 0755
             }
         }
     }
@@ -86,6 +88,8 @@ class ExplodedHelper {
                 from project.zipTree(jarFile)
                 into folderOut
                 exclude 'META-INF/'
+                dirMode 0755
+                fileMode 0755
             }
         }
     }

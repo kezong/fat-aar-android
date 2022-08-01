@@ -32,6 +32,8 @@ import com.kezong.demo.libaar.AarLibClass;
 import com.kezong.demo.libaar.KotlinTest2;
 import com.kezong.demo.libaar.TestActivity;
 import com.kezong.demo.libaar2.Aar2LibClass;
+import com.kezong.demo.libaarincluded.AarIncludedLibClass;
+import com.kezong.demo.libaarincluded.KotlinTestIncluded;
 import com.kezong.demo.libaarlocal.AarLocalLibClass;
 import com.kezong.demo.libaarlocal2.AarLocal2LibClass;
 
@@ -54,11 +56,14 @@ public class MainActivity extends FragmentActivity {
         testMainLibClassMerge();
         testClassMerge();
         testClassMerge2();
+        testClassMerge3Included();
         testJarMerge();
         testResourceMerge();
         testResourceMerge2();
+        testResourceMerge3Included();
         testKotlinTopLevel();
         testKotlinTopLevel2();
+        testKotlinTopLevel3Included();
         testLocalAar1();
         testLocalAar2();
         testSoMerge();
@@ -161,6 +166,11 @@ public class MainActivity extends FragmentActivity {
         addTestView("kotlin2", text, TextUtils.equals(text, "130"));
     }
 
+    public void testKotlinTopLevel3Included() {
+        String text = String.valueOf(KotlinTestIncluded.test2());
+        addTestView("kotlin3included", text, TextUtils.equals(text, "140"));
+    }
+
     public void testResourceMerge() {
         String text = new AarLibClass().getLibName(this);
         addTestView("resource", text, TextUtils.equals(text, "lib-aar"));
@@ -171,9 +181,19 @@ public class MainActivity extends FragmentActivity {
         addTestView("resource2", text, TextUtils.equals(text, "lib-aar2"));
     }
 
+    public void testResourceMerge3Included() {
+        String text = this.getResources().getString(R.string.app_name_aar_included);
+        addTestView("resource3included", text, TextUtils.equals(text, "lib-aar-included"));
+    }
+
     public void testClassMerge2() {
         String text = Aar2LibClass.TAG;
         addTestView("lib class2", text, TextUtils.equals(text, Aar2LibClass.class.getSimpleName()));
+    }
+
+    public void testClassMerge3Included() {
+        String text = AarIncludedLibClass.TAG;
+        addTestView("lib class3 included", text, TextUtils.equals(text, AarIncludedLibClass.class.getSimpleName()));
     }
 
     public void testMainLibClassMerge() {

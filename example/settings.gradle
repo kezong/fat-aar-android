@@ -10,3 +10,5 @@ includeBuild('../source') {
         substitute module('com.github.kezong:fat-aar') using project(':')
     }
 }
+
+includeBuild('included-build')

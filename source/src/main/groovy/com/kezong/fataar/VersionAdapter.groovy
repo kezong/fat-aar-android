@@ -6,6 +6,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.initialization.IncludedBuild
 import org.gradle.api.tasks.TaskProvider
 
 import java.lang.reflect.Field
@@ -132,6 +133,19 @@ class VersionAdapter {
         } catch (UnknownTaskException ignored) {
             taskPath += "Aar"
             bundleTask = project.tasks.named(taskPath)
+        }
+        return bundleTask
+    }
+
+    static Task getIncludedBuildBundleTask(IncludedBuild build, String projectName, String variantName)
+            throws UnknownTaskException {
+        def taskPath = ":" + projectName + ":bundle" + variantName
+        Task bundleTask
+        try {
+            bundleTask = build.task(taskPath).resolveTask()
+        } catch (UnknownTaskException ignored) {
+            taskPath += "Aar"
+            bundleTask = build.task(taskPath).resolveTask()
         }
         return bundleTask
     }

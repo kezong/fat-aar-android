@@ -4,11 +4,16 @@ import com.android.build.gradle.api.LibraryVariant
 import com.android.builder.model.ProductFlavor
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
+import org.gradle.api.artifacts.result.ResolvedComponentResult
+import org.gradle.api.artifacts.result.ResolvedDependencyResult
+import org.gradle.api.initialization.IncludedBuild
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
@@ -32,22 +37,54 @@ class FlavorArtifact {
 
     private static final String CLASS_DefaultResolvedArtifact = "org.gradle.api.internal.artifacts.DefaultResolvedArtifact"
 
-    static ResolvedArtifact createFlavorArtifact(Project project, LibraryVariant variant, ResolvedDependency unResolvedArtifact) {
+    static ResolvedArtifact createFlavorArtifact(Project project, Configuration configuration, LibraryVariant variant, ResolvedDependency unResolvedArtifact) {
         Project artifactProject = getArtifactProject(project, unResolvedArtifact)
-        TaskProvider bundleProvider = null;
-        try {
-            bundleProvider = getBundleTask(artifactProject, variant)
-        } catch (Exception ignore) {
-            FatUtils.logError("[$variant.name]Can not resolve :$unResolvedArtifact.moduleName")
-            return null
-        }
+        Task bundleTask = null
 
-        if (bundleProvider == null) {
-            return null
+        if (artifactProject != null) {
+            TaskProvider bundleProvider
+            try {
+                bundleProvider = getBundleTask(artifactProject, variant)
+            } catch (Exception ignore) {
+                FatUtils.logError("[$variant.name]Can not resolve :$unResolvedArtifact.moduleName")
+                return null
+            }
+
+            if (bundleProvider == null) {
+                return null
+            }
+
+            bundleTask = bundleProvider.get()
+        } else { // try included builds
+            ResolvedDependencyResult resolvedResult = configuration.incoming.resolutionResult.allDependencies.find { result ->
+                if (result instanceof ResolvedDependencyResult && result.selected.selectionReason.compositeSubstitution) {
+                    return result.requested.group == unResolvedArtifact.moduleGroup
+                            && result.requested.module == unResolvedArtifact.moduleName
+                }
+                return false
+            }
+
+            if (resolvedResult != null) {
+                try {
+                    ResolvedComponentResult selected = resolvedResult.selected
+                    ProjectComponentIdentifier identifier = (ProjectComponentIdentifier) selected.id
+                    IncludedBuild build = project.gradle.includedBuild(identifier.build.name)
+
+                    String variantName = variant.buildType.name.capitalize()
+
+                    bundleTask = VersionAdapter.getIncludedBuildBundleTask(build, identifier.projectName, variantName)
+                } catch (Exception ignore) {
+                    FatUtils.logError("[$variant.name]Can not resolve :$unResolvedArtifact")
+                    return null
+                }
+            } else {
+                FatUtils.logError("[$variant.name]Can not resolve :$unResolvedArtifact")
+                return null
+            }
         }
 
         ModuleVersionIdentifier identifier = createModuleVersionIdentifier(unResolvedArtifact)
-        File artifactFile = createArtifactFile(artifactProject, bundleProvider.get())
+        File artifactFile = createArtifactFile(project, bundleTask)
         DefaultIvyArtifactName artifactName = createArtifactName(artifactFile)
         Factory<File> fileFactory = new Factory<File>() {
             @Override
@@ -60,11 +97,11 @@ class FlavorArtifact {
             TaskDependencyContainer taskDependencyContainer = new TaskDependencyContainer() {
                 @Override
                 void visitDependencies(TaskDependencyResolveContext taskDependencyResolveContext) {
-                    taskDependencyResolveContext.add(createTaskDependency(bundleProvider.get()))
+                    taskDependencyResolveContext.add(createTaskDependency(bundleTask))
                 }
             }
             if (FatUtils.compareVersion(project.gradle.gradleVersion, "6.8.0") >= 0) {
-                Object fileCalculatedValue = Class.forName(CLASS_CalculatedValueContainer).newInstance(new DisplayName(){
+                Object fileCalculatedValue = Class.forName(CLASS_CalculatedValueContainer).newInstance(new DisplayName() {
                     @Override
                     String getCapitalizedDisplayName() {
                         return artifactFile.name
@@ -88,7 +125,7 @@ class FlavorArtifact {
                         .newInstance(identifier, artifactName, artifactIdentifier, taskDependencyContainer, fileFactory)
             }
         } else {
-            TaskDependency taskDependency = createTaskDependency(bundleProvider.get())
+            TaskDependency taskDependency = createTaskDependency(bundleTask)
             return Class.forName(CLASS_DefaultResolvedArtifact)
                     .newInstance(identifier, artifactName, artifactIdentifier, taskDependency, fileFactory)
         }

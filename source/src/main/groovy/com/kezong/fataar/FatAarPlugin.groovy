@@ -140,7 +140,7 @@ class FatAarPlugin implements Plugin<Project> {
             }
 
             if (!match) {
-                def flavorArtifact = FlavorArtifact.createFlavorArtifact(project, variant, dependency)
+                def flavorArtifact = FlavorArtifact.createFlavorArtifact(project, configuration, variant, dependency)
                 if (flavorArtifact != null) {
                     artifactList.add(flavorArtifact)
                 }

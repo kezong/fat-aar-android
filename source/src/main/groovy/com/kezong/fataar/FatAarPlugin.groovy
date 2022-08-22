@@ -39,6 +39,7 @@ class FatAarPlugin implements Plugin<Project> {
         project.afterEvaluate {
             doAfterEvaluate()
         }
+        ValuesHelper.attach(project)
     }
 
     private registerTransform() {

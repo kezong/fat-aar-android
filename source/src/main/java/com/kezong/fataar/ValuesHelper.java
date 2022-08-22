@@ -55,11 +55,27 @@ public class ValuesHelper {
             if (rootEle == null) {
                 return;
             }
-
+            List<Element> rootAttr = rootEle.elements(ELE_ATTR);
             List<Element> styleableElements = rootEle.elements(ELE_DECLARE_STYLEABLE);
 
             final Set<StyleAttr> repeatStyleAttr = new HashSet<>();
             final Set<StyleAttr> styleAttrs = new HashSet<>();
+
+            //先查找根节点<attr
+            for (Element attr : rootAttr) {
+                StyleAttr styleAttr = getStyleAttr(attr);
+                if (styleAttr != null) {
+                    if (styleAttrs.contains(styleAttr)) {
+                        repeatStyleAttr.add(styleAttr);
+                    } else {
+                        styleAttrs.add(styleAttr);
+                    }
+                    if (repeatStyleAttr.contains(styleAttr)) {
+                        Attribute format = attr.attribute(StyleAttr.ATTR_FORMAT);
+                        attr.remove(format);
+                    }
+                }
+            }
 
             // 只保留第一个attr的定义
             for (Element declareStyle : styleableElements) {

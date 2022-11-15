@@ -472,13 +472,11 @@ class VariantProcessor {
         resourceGenTask.configure {
             dependsOn(mExplodeTasks)
 
-            mProject.android.sourceSets.each { DefaultAndroidSourceSet sourceSet ->
-                if (sourceSet.name == mVariant.name) {
-                    for (archiveLibrary in mAndroidArchiveLibraries) {
-                        FatUtils.logInfo("Merge resource，Library res：${archiveLibrary.resFolder}")
-                        sourceSet.res.srcDir(archiveLibrary.resFolder)
-                    }
-                }
+            for (archiveLibrary in mAndroidArchiveLibraries) {
+                FatUtils.logInfo("Merge resource，Library res：${archiveLibrary.resFolder}")
+                mVariant.registerGeneratedResFolders(
+                        mProject.files(archiveLibrary.resFolder)
+                )
             }
         }
     }

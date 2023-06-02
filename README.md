@@ -3,14 +3,14 @@
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/kezong/fat-aar-android/blob/master/LICENSE)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.kezong/fat-aar/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.kezong/fat-aar)
 
-- [中文文档](./README_CN.md)
+This fork adds support for AGP 8.0
 
 >**I am no longer engaged in research and development, so the project will not be updated and maintained.<br>**
 >**You can try to use the following steps to reference the remote plugin. If it doesn't work on the new version of gradle, you can fork or download this project to modify it, the code of this project is not very complex.**
 >
 >**P.S. Hope Google can support this damn feature as soon as possible.**
 
-The solution of merging aar works with [AGP][3] `3.0` and higher. (Tested in AGP 3.0 - 7.1.0, and Gradle 4.9 - 7.3)
+The solution of merging aar works with [AGP][3] `3.0` and higher. (Tested in AGP 3.0 - 8.0.0, and Gradle 4.9 - 8.0)
 ## Getting Started
 
 ### Step 1: Add classpath

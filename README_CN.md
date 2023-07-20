@@ -2,6 +2,11 @@
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/kezong/fat-aar-android/blob/master/LICENSE)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.kezong/fat-aar/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.kezong/fat-aar)
 
+>**因为我不再从事研发工作，所以该仓库将不再进行维护和更新。<br>**
+>**你可以尝试按底下的步骤引入该插件，如果它在新的gradle版本中无法工作，你可以fork或者下载该仓库并且修改它，该项目的代码并不是很复杂。**
+>
+>**P.S. 希望Google官方能够尽快支持该功能**
+
 该插件提供了将library以及它依赖的library一起打包成一个完整aar的解决方案，支持AGP 3.0及以上。（目前测试的版本范围是AGP 3.0 - 7.1.0，Gradle 4.9 - 7.3）
 
 ## 如何使用

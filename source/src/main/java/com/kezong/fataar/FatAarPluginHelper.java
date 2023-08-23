@@ -13,6 +13,7 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.commons.ClassRemapper;
 import org.objectweb.asm.commons.Remapper;
@@ -30,7 +31,7 @@ public class FatAarPluginHelper {
 
     public static void registerAsmTransformation(
             Project project,
-            MapProperty<String, List<String>> variantPackagesProperty) {
+            MapProperty<String, List<AndroidArchiveLibrary>> variantPackagesProperty) {
         AndroidComponentsExtension<?, ?, Variant> components =
                 project.getExtensions().getByType(AndroidComponentsExtension.class);
         components.onVariants(components.selector().all(), variant -> {
@@ -39,7 +40,9 @@ public class FatAarPluginHelper {
                     InstrumentationScope.PROJECT,
                     params -> {
                         params.getNamespace().set(variant.getNamespace());
-                        params.getLibraryNamespaces().set(variantPackagesProperty.getting(variant.getName()));
+                        params.getLibraryNamespaces().set(variantPackagesProperty.getting(variant.getName())
+                                .map(list -> list.stream().map(it -> it.getPackageName()).collect(Collectors.toList()))
+                        );
                         return Unit.INSTANCE;
                     });
             variant.getInstrumentation().setAsmFramesComputationMode(COPY_FRAMES);
@@ -54,6 +57,7 @@ public class FatAarPluginHelper {
             Property<String> getNamespace();
 
             @Input
+            @Optional
             ListProperty<String> getLibraryNamespaces();
         }
 

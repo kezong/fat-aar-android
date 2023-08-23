@@ -44,14 +44,12 @@ class VariantProcessor {
 
     private TaskProvider mMergeClassTask
 
-    VariantProcessor(Project project, LibraryVariant variant, MapProperty<String, List<String>> variantPackagesProperty) {
+    VariantProcessor(Project project, LibraryVariant variant, MapProperty<String, List<AndroidArchiveLibrary>> variantPackagesProperty) {
         mProject = project
         mVariant = variant
         mVersionAdapter = new VersionAdapter(project, variant)
         mAndroidArchiveLibrariesProperty = mProject.objects.listProperty(AndroidArchiveLibrary.class)
-        variantPackagesProperty.put(mVariant.getName(),
-                mAndroidArchiveLibrariesProperty.map(it ->
-                        it.stream().map(it2 -> it2.getPackageName()).collect(Collectors.toList())))
+        variantPackagesProperty.put(mVariant.getName(), mAndroidArchiveLibrariesProperty)
     }
 
     void addAndroidArchiveLibrary(AndroidArchiveLibrary library) {

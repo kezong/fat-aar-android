@@ -28,7 +28,7 @@ class FatAarPlugin implements Plugin<Project> {
 
     private final Collection<Configuration> embedConfigurations = new ArrayList<>()
 
-    private MapProperty<String, List<String>> variantPackagesProperty;
+    private MapProperty<String, List<AndroidArchiveLibrary>> variantPackagesProperty;
 
     @Override
     void apply(Project project) {

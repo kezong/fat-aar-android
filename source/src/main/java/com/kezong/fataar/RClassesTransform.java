@@ -8,7 +8,6 @@ import com.android.build.api.transform.Transform;
 import com.android.build.api.transform.TransformInput;
 import com.android.build.api.transform.TransformInvocation;
 import com.android.build.api.transform.TransformOutputProvider;
-import com.android.build.gradle.internal.pipeline.TransformManager;
 
 import org.gradle.api.Project;
 
@@ -89,7 +88,9 @@ public class RClassesTransform extends Transform {
 
     @Override
     public Set<QualifiedContent.ContentType> getInputTypes() {
-        return TransformManager.CONTENT_CLASS;
+        HashSet<QualifiedContent.ContentType> set = new HashSet<>();
+        set.add(QualifiedContent.DefaultContentType.CLASSES);
+        return set;
     }
 
     @Override

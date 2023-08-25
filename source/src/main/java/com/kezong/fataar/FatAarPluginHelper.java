@@ -18,6 +18,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.commons.ClassRemapper;
 import org.objectweb.asm.commons.Remapper;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -65,15 +66,19 @@ public class FatAarPluginHelper {
         public ClassVisitor createClassVisitor(ClassContext classContext, ClassVisitor classVisitor) {
             Params params = getParameters().get();
             String namespace = params.getNamespace().get();
-            final ListProperty<String> libraryNamespaces = params.getLibraryNamespaces();
+            List<String> libraryNamespaces = params.getLibraryNamespaces().orElse(Collections.emptyList()).get();
+
+            if (libraryNamespaces.isEmpty()) {
+                return classVisitor;
+            }
 
             String targetRClass = namespace.replace(".", "/") + "/R";
             String targetRSubclass = namespace.replace(".", "/") + "/R$";
 
-            Set<String> libraryRClasses = libraryNamespaces.get().stream()
+            Set<String> libraryRClasses = libraryNamespaces.stream()
                     .map(it -> it.replace(".", "/") + "/R")
                     .collect(Collectors.toSet());
-            List<String> libraryRSubclasses = libraryNamespaces.get().stream()
+            List<String> libraryRSubclasses = libraryNamespaces.stream()
                     .map(it -> it.replace(".", "/") + "/R$")
                     .collect(Collectors.toList());
 

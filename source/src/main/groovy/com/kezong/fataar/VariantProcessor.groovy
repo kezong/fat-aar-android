@@ -9,6 +9,8 @@ import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.internal.artifacts.ResolvableDependency
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskDependency
@@ -18,6 +20,7 @@ import org.gradle.api.tasks.bundling.Zip
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.stream.Collectors
 
 /**
  * Core
@@ -31,6 +34,8 @@ class VariantProcessor {
 
     private Collection<AndroidArchiveLibrary> mAndroidArchiveLibraries = new ArrayList<>()
 
+    private ListProperty<AndroidArchiveLibrary> mAndroidArchiveLibrariesProperty
+
     private Collection<File> mJarFiles = new ArrayList<>()
 
     private Collection<Task> mExplodeTasks = new ArrayList<>()
@@ -39,14 +44,17 @@ class VariantProcessor {
 
     private TaskProvider mMergeClassTask
 
-    VariantProcessor(Project project, LibraryVariant variant) {
+    VariantProcessor(Project project, LibraryVariant variant, MapProperty<String, List<AndroidArchiveLibrary>> variantPackagesProperty) {
         mProject = project
         mVariant = variant
         mVersionAdapter = new VersionAdapter(project, variant)
+        mAndroidArchiveLibrariesProperty = mProject.objects.listProperty(AndroidArchiveLibrary.class)
+        variantPackagesProperty.put(mVariant.getName(), mAndroidArchiveLibrariesProperty)
     }
 
     void addAndroidArchiveLibrary(AndroidArchiveLibrary library) {
         mAndroidArchiveLibraries.add(library)
+        mAndroidArchiveLibrariesProperty.add(library)
     }
 
     void addJarFile(File jar) {
@@ -178,6 +186,7 @@ class VariantProcessor {
     }
 
     private void processRClasses(RClassesTransform transform, TaskProvider<Task> bundleTask) {
+        if (FatUtils.compareVersion(VersionAdapter.AGPVersion, "8.0.0") >= 0) return
         TaskProvider reBundleTask = configureReBundleAarTask(bundleTask)
         TaskProvider transformTask = mProject.tasks.named("transformClassesWith${transform.name.capitalize()}For${mVariant.name.capitalize()}")
         transformTask.configure {
@@ -351,6 +360,9 @@ class VariantProcessor {
 
     private TaskProvider handleClassesMergeTask(final boolean isMinifyEnabled) {
         final TaskProvider task = mProject.tasks.register("mergeClasses" + mVariant.name.capitalize()) {
+
+            outputs.upToDateWhen { false }
+
             dependsOn(mExplodeTasks)
             dependsOn(mVersionAdapter.getJavaCompileTask())
             try {
@@ -444,6 +456,9 @@ class VariantProcessor {
                     .withPathSensitivity(PathSensitivity.RELATIVE)
             inputs.files(mJarFiles).withPathSensitivity(PathSensitivity.RELATIVE)
         }
+        mProject.tasks.named("transform${mVariant.name.capitalize()}ClassesWithAsm").configure {
+            dependsOn(mMergeClassTask)
+        }
         extractAnnotationsTask.configure {
             mustRunAfter(mMergeClassTask)
         }
@@ -472,13 +487,11 @@ class VariantProcessor {
         resourceGenTask.configure {
             dependsOn(mExplodeTasks)
 
-            mProject.android.sourceSets.each { DefaultAndroidSourceSet sourceSet ->
-                if (sourceSet.name == mVariant.name) {
-                    for (archiveLibrary in mAndroidArchiveLibraries) {
-                        FatUtils.logInfo("Merge resource，Library res：${archiveLibrary.resFolder}")
-                        sourceSet.res.srcDir(archiveLibrary.resFolder)
-                    }
-                }
+            for (archiveLibrary in mAndroidArchiveLibraries) {
+                FatUtils.logInfo("Merge resource，Library res：${archiveLibrary.resFolder}")
+                mVariant.registerGeneratedResFolders(
+                        mProject.files(archiveLibrary.resFolder)
+                )
             }
         }
     }

@@ -7,6 +7,7 @@ import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.provider.MapProperty
 
 /**
  * plugin entry
@@ -27,6 +28,8 @@ class FatAarPlugin implements Plugin<Project> {
 
     private final Collection<Configuration> embedConfigurations = new ArrayList<>()
 
+    private MapProperty<String, List<AndroidArchiveLibrary>> variantPackagesProperty;
+
     @Override
     void apply(Project project) {
         this.project = project
@@ -42,9 +45,14 @@ class FatAarPlugin implements Plugin<Project> {
     }
 
     private registerTransform() {
-        transform = new RClassesTransform(project)
-        // register in project.afterEvaluate is invalid.
-        project.android.registerTransform(transform)
+        variantPackagesProperty = project.objects.mapProperty(String.class, List.class)
+        if (FatUtils.compareVersion(VersionAdapter.AGPVersion, "8.0.0") >= 0) {
+            FatAarPluginHelper.registerAsmTransformation(project, variantPackagesProperty)
+        } else {
+            transform = new RClassesTransform(project)
+            // register in project.afterEvaluate is invalid.
+            project.android.registerTransform(transform)
+        }
     }
 
     private void doAfterEvaluate() {
@@ -70,7 +78,7 @@ class FatAarPlugin implements Plugin<Project> {
             }
 
             if (!artifacts.isEmpty()) {
-                def processor = new VariantProcessor(project, variant)
+                def processor = new VariantProcessor(project, variant, variantPackagesProperty)
                 processor.processVariant(artifacts, firstLevelDependencies, transform)
             }
         }

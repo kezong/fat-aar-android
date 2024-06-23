@@ -13,33 +13,27 @@ class DirectoryManager {
 
     private static final String INTERMEDIATES_TEMP_FOLDER = "fat-aar";
 
-    private static Project sProject;
-
-    static void attach(Project project) {
-        sProject = project;
+    static File getReBundleDirectory(Project project, LibraryVariant variant) {
+        return project.file("${project.getBuildDir()}/outputs/${RE_BUNDLE_FOLDER}/${variant.name}")
     }
 
-    static File getReBundleDirectory(LibraryVariant variant) {
-        return sProject.file("${sProject.getBuildDir()}/outputs/${RE_BUNDLE_FOLDER}/${variant.name}")
+    static File getRJavaDirectory(Project project, LibraryVariant variant) {
+        return project.file("${project.getBuildDir()}/intermediates/${INTERMEDIATES_TEMP_FOLDER}/r/${variant.name}")
     }
 
-    static File getRJavaDirectory(LibraryVariant variant) {
-        return sProject.file("${sProject.getBuildDir()}/intermediates/${INTERMEDIATES_TEMP_FOLDER}/r/${variant.name}")
+    static File getRClassDirectory(Project project, LibraryVariant variant) {
+        return project.file("${project.getBuildDir()}/intermediates/${INTERMEDIATES_TEMP_FOLDER}/r-class/${variant.name}")
     }
 
-    static File getRClassDirectory(LibraryVariant variant) {
-        return sProject.file("${sProject.getBuildDir()}/intermediates/${INTERMEDIATES_TEMP_FOLDER}/r-class/${variant.name}")
+    static File getRJarDirectory(Project project, LibraryVariant variant) {
+        return project.file("${project.getBuildDir()}/outputs/${RE_BUNDLE_FOLDER}/${variant.name}/libs")
     }
 
-    static File getRJarDirectory(LibraryVariant variant) {
-        return sProject.file("${sProject.getBuildDir()}/outputs/${RE_BUNDLE_FOLDER}/${variant.name}/libs")
+    static File getMergeClassDirectory(Project project, LibraryVariant variant) {
+        return project.file("${project.getBuildDir()}/intermediates/${INTERMEDIATES_TEMP_FOLDER}/merge_classes/${variant.name}")
     }
 
-    static File getMergeClassDirectory(LibraryVariant variant) {
-        return sProject.file("${sProject.getBuildDir()}/intermediates/${INTERMEDIATES_TEMP_FOLDER}/merge_classes/${variant.name}")
-    }
-
-    static File getKotlinMetaDirectory(LibraryVariant variant) {
-        return sProject.file("${sProject.getBuildDir()}/tmp/kotlin-classes/${variant.name}/META-INF")
+    static File getKotlinMetaDirectory(Project project, LibraryVariant variant) {
+        return project.file("${project.getBuildDir()}/tmp/kotlin-classes/${variant.name}/META-INF")
     }
 }

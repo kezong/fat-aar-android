@@ -29,9 +29,9 @@ class RClassesGenerate {
     }
 
     TaskProvider configure(TaskProvider<Task> reBundleTask) {
-        File rJavaDir = DirectoryManager.getRJavaDirectory(mVariant)
-        File rClassDir = DirectoryManager.getRClassDirectory(mVariant)
-        File rJarDir = DirectoryManager.getRJarDirectory(mVariant)
+        File rJavaDir = DirectoryManager.getRJavaDirectory(mProject, mVariant)
+        File rClassDir = DirectoryManager.getRClassDirectory(mProject, mVariant)
+        File rJarDir = DirectoryManager.getRJarDirectory(mProject, mVariant)
         def RJarTask = configureRJarTask(rClassDir, rJarDir, reBundleTask)
         def RClassTask = configureRClassTask(rJavaDir, rClassDir, RJarTask)
         def RFileTask = configureRFileTask(rJavaDir, RClassTask)

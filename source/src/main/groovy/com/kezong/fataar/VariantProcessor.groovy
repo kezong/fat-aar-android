@@ -132,7 +132,7 @@ class VariantProcessor {
 
     private TaskProvider configureReBundleAarTask(TaskProvider bundleTask) {
         File aarOutputFile
-        File reBundleDir = DirectoryManager.getReBundleDirectory(mVariant)
+        File reBundleDir = DirectoryManager.getReBundleDirectory(mProject, mVariant)
         bundleTask.configure { it ->
             if (FatUtils.compareVersion(mProject.gradle.gradleVersion, "5.1") >= 0) {
                 aarOutputFile = new File(it.getDestinationDirectory().getAsFile().get(), it.getArchiveFileName().get())
@@ -225,7 +225,7 @@ class VariantProcessor {
             doLast {
                 for (archiveLibrary in mAndroidArchiveLibraries) {
                     if (archiveLibrary.dataBindingFolder != null && archiveLibrary.dataBindingFolder.exists()) {
-                        String filePath = "${DirectoryManager.getReBundleDirectory(mVariant).path}/${archiveLibrary.dataBindingFolder.name}"
+                        String filePath = "${DirectoryManager.getReBundleDirectory(mProject, mVariant).path}/${archiveLibrary.dataBindingFolder.name}"
                         new File(filePath).mkdirs()
                         mProject.copy {
                             from archiveLibrary.dataBindingFolder
@@ -234,7 +234,7 @@ class VariantProcessor {
                     }
 
                     if (archiveLibrary.dataBindingLogFolder != null && archiveLibrary.dataBindingLogFolder.exists()) {
-                        String filePath = "${DirectoryManager.getReBundleDirectory(mVariant).path}/${archiveLibrary.dataBindingLogFolder.name}"
+                        String filePath = "${DirectoryManager.getReBundleDirectory(mProject, mVariant).path}/${archiveLibrary.dataBindingLogFolder.name}"
                         new File(filePath).mkdirs()
                         mProject.copy {
                             from archiveLibrary.dataBindingLogFolder
@@ -370,7 +370,7 @@ class VariantProcessor {
                         .withPathSensitivity(PathSensitivity.RELATIVE)
                 inputs.files(mJarFiles).withPathSensitivity(PathSensitivity.RELATIVE)
             }
-            File outputDir = DirectoryManager.getMergeClassDirectory(mVariant)
+            File outputDir = DirectoryManager.getMergeClassDirectory(mProject, mVariant)
             File javacDir = mVersionAdapter.getClassPathDirFiles().first()
             outputs.dir(outputDir)
 
@@ -401,7 +401,7 @@ class VariantProcessor {
 
                 mProject.copy {
                     from outputDir.absolutePath + "/META-INF"
-                    into DirectoryManager.getKotlinMetaDirectory(mVariant)
+                    into DirectoryManager.getKotlinMetaDirectory(mProject, mVariant)
                     include '*.kotlin_module'
                 }
             }

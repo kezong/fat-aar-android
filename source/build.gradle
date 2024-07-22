@@ -20,3 +20,9 @@ dependencies {
     implementation "org.javassist:javassist:3.27.0-GA"
     implementation 'com.android.tools.build:gradle:4.2.0'
 }
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}

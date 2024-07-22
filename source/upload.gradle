@@ -1,29 +1,5 @@
 apply plugin: 'maven-publish'
 apply plugin: 'java'
-apply plugin: 'signing'
-
-task sourcesJar(type: Jar) {
-    from sourceSets.main.allJava
-    classifier = 'sources'
-}
-
-task javadocJar(type: Jar) {
-    from javadoc
-    classifier = 'javadoc'
-}
-
-
-File secretPropsFile = project.rootProject.file('local.properties')
-if (secretPropsFile.exists()) {
-    println "Found secret props file, loading props"
-    Properties p = new Properties()
-    p.load(new FileInputStream(secretPropsFile))
-    p.each { name, value ->
-        ext[name] = value
-    }
-} else {
-    println "No props file, loading env vars"
-}
 
 publishing {
     publications {
@@ -35,39 +11,16 @@ publishing {
             version PUBLISH_VERSION
 
             artifact jar
-            artifact sourcesJar
-            artifact javadocJar
 
             // Self-explanatory metadata for the most part
             pom {
                 name = PUBLISH_ARTIFACT_ID
                 description = 'A gradle plugin that merge dependencies into the final aar file works with AGP 3.+'
-                // If your project has a dedicated site, use its URL here
-                url = 'https://github.com/kezong/fat-aar-android'
-                licenses {
-                    license {
-                        name = 'The MIT License'
-                        url = 'https://opensource.org/licenses/MIT'
-                    }
-                }
-                developers {
-                    developer {
-                        id = 'kezong'
-                        name = 'kezong'
-                        email = 'kezong1811@gmail.com'
-                    }
-                }
-                // Version control info, if you're using GitHub, follow the format as seen here
-                scm {
-                    connection = 'scm:git:github.com/kezong/fat-aar-android.git'
-                    developerConnection = 'scm:git:ssh://github.com/kezong/fat-aar-android.git'
-                    url = 'https://github.com/kezong/fat-aar-android/tree/master'
-                }
-                // A slightly hacky fix so that your POM will include any transitive dependencies
-                // that your library builds upon
+                
                 withXml {
                     def dependenciesNode = asNode().appendNode('dependencies')
 
+                    // patch the dependency section of the pom file
                     project.configurations.implementation.allDependencies.each {
                         if (it.group == "com.android.tools.build" && it.name == "gradle") {
                             return
@@ -84,27 +37,15 @@ publishing {
             }
         }
     }
+
     repositories {
-        // The repository to publish to, Sonatype/MavenCentral
         maven {
-            // This is an arbitrary name, you may also use "mavencentral" or
-            // any other name that's descriptive for you
-            name = "fat-aar"
-
-            def releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-            def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
-            // You only need this if you want to publish snapshots, otherwise just set the URL
-            // to the release repo directly
-            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
-
-            // The username and password we've fetched earlier
+            name = 'GitHubPackages'
+            url = uri("https://maven.pkg.github.com/Legion2/fat-aar-android")
             credentials {
-                username ossrhUsername
-                password ossrhPassword
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
             }
         }
     }
-}
-signing {
-    sign publishing.publications
 }

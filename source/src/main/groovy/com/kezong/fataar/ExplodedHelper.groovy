@@ -37,6 +37,16 @@ class ExplodedHelper {
                 FatUtils.logInfo('[warning]' + jarFile + ' not found!')
             }
         }
+
+        project.fileTree(folderOut).forEach { file ->
+            def result = project.exec {
+                commandLine 'zip', '-qd', file.getAbsolutePath(), '*/module-info.class'
+                ignoreExitValue true
+            }
+            if (result.exitValue != 0 && result.exitValue != 12) {
+                throw new RuntimeException("Failed to remove module-info.class from ${file}")
+            }
+        }
     }
 
     static void processClassesJarInfoClasses(Project project,

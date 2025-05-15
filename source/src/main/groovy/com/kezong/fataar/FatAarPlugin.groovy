@@ -36,8 +36,8 @@ class FatAarPlugin implements Plugin<Project> {
         project.extensions.create(FatAarExtension.NAME, FatAarExtension)
         createConfigurations()
         registerTransform()
-        project.afterEvaluate {
-            doAfterEvaluate()
+        project.gradle.projectsEvaluated {
+            doProjectsEvaluated()
         }
     }
 
@@ -47,7 +47,7 @@ class FatAarPlugin implements Plugin<Project> {
         project.android.registerTransform(transform)
     }
 
-    private void doAfterEvaluate() {
+    private void doProjectsEvaluated() {
         embedConfigurations.each {
             if (project.fataar.transitive) {
                 it.transitive = true

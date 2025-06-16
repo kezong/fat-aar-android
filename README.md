@@ -3,6 +3,9 @@
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/kezong/fat-aar-android/blob/master/LICENSE)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.kezong/fat-aar/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.kezong/fat-aar)
 
+> [!WARNING]
+> This plugin is deprecated! Please try out [Android Fused Library plugin](https://developer.android.com/build/publish-library/fused-library) instead, which is backed by Android official.
+
 - [中文文档](./README_CN.md)
 
 >**I am no longer engaged in research and development, so the project will not be updated and maintained.<br>**
